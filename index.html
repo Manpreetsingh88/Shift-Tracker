@@ -97,7 +97,7 @@
     letter-spacing: -0.3px;
     font-weight: 700;
   }
-  .subtitle { color: var(--text-muted); font-size: 11px; margin-bottom: 14px; }
+  .subtitle { color: var(--text-muted); font-size: 9.5px; margin-bottom: 4px; line-height: 1; opacity: 0.75; }
   .toolbar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
   button {
     border: none; border-radius: 10px; padding: 9px 14px;
@@ -418,9 +418,9 @@
     -webkit-backdrop-filter: blur(24px) saturate(180%);
     border: 1px solid var(--glass-border);
     border-radius: 14px;
-    padding: 11px 15px;
-    margin-bottom: 10px;
-    font-size: 13px;
+    padding: 8px 13px;
+    margin-bottom: 8px;
+    font-size: 12px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -442,13 +442,17 @@
     -webkit-backdrop-filter: blur(24px) saturate(180%);
     border: 1px solid var(--glass-border);
     border-radius: 14px;
-    padding: 10px 14px;
-    margin-bottom: 10px;
+    padding: 9px 12px;
+    margin-bottom: 8px;
     display: flex;
     gap: 8px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
     box-shadow: var(--elev-1);
   }
+  .summary-strip::-webkit-scrollbar { display: none; }
   .summary-pill {
     font-size: 11px;
     font-weight: 600;
@@ -459,6 +463,8 @@
     letter-spacing: 0.2px;
     display: inline-flex;
     align-items: center;
+    flex-shrink: 0;
+    white-space: nowrap;
     transition: background 0.25s var(--ease);
   }
   .summary-pill.on-break { background: #fef3c7; color: #92400e; }
@@ -1007,8 +1013,8 @@
     background: linear-gradient(180deg, rgba(233,237,244,0.92) 0%, rgba(233,237,244,0.75) 100%);
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
-    padding: calc(var(--pad-top) - 10px) var(--pad-right) 8px var(--pad-left);
-    margin: calc(-1 * var(--pad-top)) calc(-1 * var(--pad-right)) 12px calc(-1 * var(--pad-left));
+    padding: calc(var(--pad-top) - 10px) var(--pad-right) 5px var(--pad-left);
+    margin: calc(-1 * var(--pad-top)) calc(-1 * var(--pad-right)) 8px calc(-1 * var(--pad-left));
     border-bottom: 1px solid var(--glass-border);
   }
   body.dark #stickyHeader {
@@ -1019,7 +1025,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
   }
   .header-top h1 { margin: 0; }
   .gear-btn {
@@ -1070,7 +1076,7 @@
   .settings-menu button { width: 100%; justify-content: flex-start; }
   .settings-menu-divider { border-top: 1px solid var(--glass-border); margin: 6px 0; }
 
-  .search-bar { margin: 10px 0 16px 0; }
+  .search-bar { margin: 2px 0 6px 0; }
   .search-bar input {
     width: 100%;
     padding: 12px 14px;
