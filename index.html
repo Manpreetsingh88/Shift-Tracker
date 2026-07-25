@@ -547,6 +547,75 @@
   .modal-buttons { display: flex; gap: 8px; }
   .modal-buttons button { flex: 1; padding: 12px; font-size: 14px; }
 
+  #loginScreen {
+    position: fixed;
+    inset: 0;
+    z-index: 20000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background-color: #e9edf4;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 10% -5%, rgba(59,130,246,0.20), transparent 60%),
+      radial-gradient(ellipse 70% 50% at 95% 8%, rgba(139,92,246,0.16), transparent 60%),
+      linear-gradient(160deg, #f2f5fa 0%, #e6ebf5 100%);
+  }
+  body.dark #loginScreen {
+    background-color: #080c14;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 10% -5%, rgba(59,130,246,0.22), transparent 60%),
+      radial-gradient(ellipse 70% 50% at 95% 8%, rgba(139,92,246,0.20), transparent 60%),
+      linear-gradient(160deg, #101725 0%, #070b12 100%);
+  }
+  #loginScreen.hidden { display: none; }
+
+  .login-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(28px) saturate(190%);
+    -webkit-backdrop-filter: blur(28px) saturate(190%);
+    border: 1px solid var(--glass-border);
+    border-radius: 22px;
+    padding: 32px 28px;
+    box-shadow: var(--elev-3);
+    text-align: center;
+    width: 100%;
+    max-width: 360px;
+  }
+  .login-title { font-size: 18px; font-weight: 750; color: var(--text); margin-bottom: 4px; letter-spacing: -0.3px; }
+  .login-subtitle { font-size: 12.5px; color: var(--text-muted); margin-bottom: 20px; }
+  .login-card .modal-input { margin-bottom: 10px; }
+  .login-error {
+    color: #dc2626;
+    font-size: 12px;
+    font-weight: 600;
+    min-height: 16px;
+    margin-bottom: 8px;
+  }
+  .login-footnote { font-size: 11px; color: var(--text-muted); margin-top: 16px; }
+
+  .account-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    background: rgba(148,163,184,0.14);
+    padding: 8px 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    word-break: break-all;
+  }
+  .admin-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    margin-left: 6px;
+    vertical-align: 1px;
+  }
+
   /* Desktop view: multi-column section grid, centered container */
   body.view-desktop {
     max-width: 1400px;
@@ -1139,6 +1208,7 @@
 
   <div class="settings-menu">
     <div class="settings-menu-title">Settings</div>
+    <div id="accountLabel" class="account-label"></div>
     <button class="secondary" id="viewModeBtn" onclick="toggleViewMode()"></button>
     <button class="secondary" id="darkModeBtn" onclick="toggleDarkMode()"></button>
     <button class="secondary" id="compactBtn" onclick="toggleCompact()"></button>
@@ -1152,6 +1222,7 @@
     <div class="settings-menu-divider"></div>
     <button class="secondary" onclick="exportText()" id="copyTextBtnLabel"></button>
     <button class="danger" onclick="resetAll()" id="resetBtnLabel"></button>
+    <button class="danger" onclick="signOutUser()" id="signOutBtnLabel"></button>
     <button class="secondary" onclick="toggleSettingsMenu()" style="margin-top:6px;">Close</button>
   </div>
 </div>
@@ -1165,10 +1236,23 @@
 
 <div id="celebrationContainer"></div>
 
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="mj-badge mj-badge-lg" style="margin-bottom:14px;"><span>MJ</span></div>
+    <div class="login-title">Shift &amp; Break Tracker</div>
+    <div class="login-subtitle">Sign in with the account your SDM lead gave you</div>
+    <input type="email" id="loginEmail" class="modal-input" placeholder="Email" autocomplete="username">
+    <input type="password" id="loginPassword" class="modal-input" placeholder="Password" autocomplete="current-password">
+    <div id="loginError" class="login-error"></div>
+    <button id="loginSubmitBtn" style="width:100%;" onclick="attemptLogin()">Sign In</button>
+    <div class="login-footnote">Don't have an account? Ask your SDM lead for access.</div>
+  </div>
+</div>
+
 <div id="board"></div>
 
 <div class="add-section-wrap">
-  <button class="secondary" onclick="addSection()" id="addSectionBtnBottom"></button>
+  <button class="secondary admin-only-add-section" onclick="addSection()" id="addSectionBtnBottom"></button>
 </div>
 
 <div class="footer-note">Autosaves to this file's browser storage. Keep reopening it from the Files app (not the Claude preview) to keep your progress.</div>
@@ -1206,6 +1290,7 @@ const ICONS = {
   arrowRight: '<svg class="icon-svg" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
   drop: '<svg class="icon-svg" viewBox="0 0 24 24"><path d="M12 2s7 8.7 7 13a7 7 0 01-14 0c0-4.3 7-13 7-13z"/></svg>',
   x: '<svg class="icon-svg" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+  logOut: '<svg class="icon-svg" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
   alertTriangle: '<svg class="icon-svg" viewBox="0 0 24 24"><path d="M12 2 1 21h22z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="16.5" r="0.6" style="fill:currentColor;stroke:none"/></svg>',
   users: '<svg class="icon-svg" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>',
   coffee: '<svg class="icon-svg" viewBox="0 0 24 24"><path d="M17 8h2a3 3 0 010 6h-2"/><path d="M3 8h14v6a4 4 0 01-4 4H7a4 4 0 01-4-4z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>',
@@ -1233,6 +1318,11 @@ const firebaseConfig = {
 let dataRef = null;
 let firebaseAvailable = false;
 let authReady = false;
+let currentUserEmail = '';
+const ADMIN_EMAIL = 'manpreetsingh88.msk@gmail.com';
+function isAdmin() {
+  return !!currentUserEmail && currentUserEmail.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+}
 try {
   firebase.initializeApp(firebaseConfig);
   dataRef = firebase.database().ref('shiftData');
@@ -1249,20 +1339,77 @@ function setSyncStatus(text) {
   if (el) el.textContent = text;
 }
 
+function showLoginScreen() {
+  const el = document.getElementById('loginScreen');
+  if (el) el.classList.remove('hidden');
+}
+
+function hideLoginScreen() {
+  const el = document.getElementById('loginScreen');
+  if (el) el.classList.add('hidden');
+}
+
+function friendlyAuthError(err) {
+  switch (err.code) {
+    case 'auth/invalid-email': return 'That email address doesn\'t look right.';
+    case 'auth/user-not-found':
+    case 'auth/invalid-credential':
+    case 'auth/wrong-password': return 'Incorrect email or password.';
+    case 'auth/too-many-requests': return 'Too many attempts — wait a moment and try again.';
+    case 'auth/network-request-failed': return 'No internet connection.';
+    default: return 'Couldn\'t sign in. Please try again.';
+  }
+}
+
+function attemptLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  const btn = document.getElementById('loginSubmitBtn');
+  errEl.textContent = '';
+  if (!email || !password) {
+    errEl.textContent = 'Enter both email and password.';
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+  firebase.auth().signInWithEmailAndPassword(email, password)
+    .catch((err) => {
+      errEl.textContent = friendlyAuthError(err);
+    })
+    .finally(() => {
+      btn.disabled = false;
+      btn.textContent = 'Sign In';
+    });
+}
+
+function signOutUser() {
+  firebase.auth().signOut();
+}
+
 if (firebaseAvailable) {
-  setSyncStatus('Signing in…');
-  firebase.auth().signInAnonymously()
-    .then(() => {
+  document.getElementById('loginPassword').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') attemptLogin();
+  });
+
+  firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
       authReady = true;
+      currentUserEmail = user.email || '';
+      hideLoginScreen();
       startFirebaseListener();
       startOfficersFirebaseListener();
       pushToFirebaseDebounced(); // flush anything saved before auth completed
       pushOfficersToFirebaseDebounced(loadOfficers());
-    })
-    .catch((err) => {
-      console.error('Firebase anonymous sign-in failed', err);
-      setSyncStatus('Sync unavailable (sign-in failed) · using local copy');
-    });
+      updateAccountMenuLabel();
+    } else {
+      authReady = false;
+      currentUserEmail = '';
+      showLoginScreen();
+    }
+  });
+} else {
+  hideLoginScreen(); // no Firebase available — don't lock the user out of local-only use
 }
 
 function pushToFirebaseDebounced() {
@@ -2323,6 +2470,11 @@ function render() {
     titleInput.value = section.title;
     titleInput.oninput = e => { section.title = e.target.value; saveData(); };
     titleInput.onclick = e => e.stopPropagation();
+    if (!isAdmin()) {
+      titleInput.readOnly = true;
+      titleInput.title = 'Only the admin can rename sections';
+      titleInput.style.cursor = 'default';
+    }
     header.appendChild(titleInput);
 
     const now = new Date();
@@ -2346,12 +2498,14 @@ function render() {
     addPersonHeaderBtn.onclick = (e) => { e.stopPropagation(); showAddOfficerModal(section); };
     header.appendChild(addPersonHeaderBtn);
 
-    const delSecBtn = document.createElement('button');
-    delSecBtn.className = 'icon-btn';
-    delSecBtn.innerHTML = icon('x');
-    delSecBtn.title = 'Delete section';
-    delSecBtn.onclick = (e) => { e.stopPropagation(); if (confirm('Delete section "'+section.title+'"?')) { data.splice(sIdx,1); saveData(); render(); } };
-    header.appendChild(delSecBtn);
+    if (isAdmin()) {
+      const delSecBtn = document.createElement('button');
+      delSecBtn.className = 'icon-btn';
+      delSecBtn.innerHTML = icon('x');
+      delSecBtn.title = 'Delete section';
+      delSecBtn.onclick = (e) => { e.stopPropagation(); if (confirm('Delete section "'+section.title+'"?')) { data.splice(sIdx,1); saveData(); render(); } };
+      header.appendChild(delSecBtn);
+    }
 
     sec.appendChild(header);
 
@@ -2629,11 +2783,13 @@ function render() {
 }
 
 function addSection() {
+  if (!isAdmin()) { showToast('Only the admin can add sections', 'error'); return; }
   data.push({ title: 'NEW SECTION', hours: { type: 'none' }, collapsed: false, people: [newPerson('', '')] });
   saveData(); render();
 }
 
 function resetAll() {
+  if (!isAdmin()) { showToast('Only the admin can do that', 'error'); return; }
   if (confirm('Reset to the original roster? This clears all your edits.')) {
     data = JSON.parse(JSON.stringify(defaultData));
     saveData(); render();
@@ -2803,15 +2959,17 @@ function renderOfficersPanelIfOpen() {
     timeGroup.appendChild(endInput);
     row.appendChild(timeGroup);
 
-    const delBtn = document.createElement('button');
-    delBtn.className = 'icon-btn';
-    delBtn.innerHTML = icon('trash');
-    delBtn.onclick = () => {
-      officers.splice(idx, 1);
-      saveOfficers(officers);
-      renderOfficersPanelIfOpen();
-    };
-    row.appendChild(delBtn);
+    if (isAdmin()) {
+      const delBtn = document.createElement('button');
+      delBtn.className = 'icon-btn';
+      delBtn.innerHTML = icon('trash');
+      delBtn.onclick = () => {
+        officers.splice(idx, 1);
+        saveOfficers(officers);
+        renderOfficersPanelIfOpen();
+      };
+      row.appendChild(delBtn);
+    }
 
     panel.appendChild(row);
   });
@@ -3029,10 +3187,31 @@ function initStaticIcons() {
   document.getElementById('officersBtnLabel').innerHTML = icon('users') + 'Officer Directory';
   document.getElementById('copyTextBtnLabel').innerHTML = icon('fileText') + 'Copy as Text';
   document.getElementById('resetBtnLabel').innerHTML = icon('trash') + 'Reset All';
+  document.getElementById('signOutBtnLabel').innerHTML = icon('logOut') + 'Sign Out';
   document.getElementById('searchIconSlot').innerHTML = icon('search');
   document.getElementById('addSectionBtnBottom').innerHTML = icon('plus') + 'Add Section';
 }
 initStaticIcons();
+
+function updateAccountMenuLabel() {
+  const el = document.getElementById('accountLabel');
+  if (el) {
+    el.innerHTML = currentUserEmail
+      ? ('Signed in as ' + currentUserEmail + (isAdmin() ? ' <span class="admin-badge">ADMIN</span>' : ''))
+      : '';
+  }
+  updateAdminOnlyUI();
+}
+
+function updateAdminOnlyUI() {
+  const admin = isAdmin();
+  const resetBtn = document.getElementById('resetBtnLabel');
+  if (resetBtn) resetBtn.style.display = admin ? '' : 'none';
+  document.querySelectorAll('.admin-only-add-section').forEach(el => {
+    el.style.display = admin ? '' : 'none';
+  });
+}
+
 
 try {
   checkShiftTimers();
