@@ -1010,15 +1010,22 @@
     position: sticky;
     top: 0;
     z-index: 500;
-    background: linear-gradient(180deg, rgba(233,237,244,0.92) 0%, rgba(233,237,244,0.75) 100%);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    /* NOTE: no backdrop-filter here on purpose — backdrop-filter on a
+       position:sticky element triggers an iOS repaint bug where content
+       below isn't painted until a scroll happens. The inner panels
+       (ticker / summary / search) keep their own glass blur, so the
+       frosted look is preserved. */
+    background: linear-gradient(180deg, rgba(236,239,246,0.99) 0%, rgba(233,237,244,0.97) 100%);
     padding: calc(var(--pad-top) - 10px) var(--pad-right) 5px var(--pad-left);
     margin: calc(-1 * var(--pad-top)) calc(-1 * var(--pad-right)) 8px calc(-1 * var(--pad-left));
     border-bottom: 1px solid var(--glass-border);
+    /* force its own compositing layer so iOS paints it correctly on load */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: transform;
   }
   body.dark #stickyHeader {
-    background: linear-gradient(180deg, rgba(8,12,20,0.92) 0%, rgba(8,12,20,0.72) 100%);
+    background: linear-gradient(180deg, rgba(10,14,23,0.99) 0%, rgba(8,12,20,0.97) 100%);
   }
 
   .header-top {
@@ -2865,6 +2872,30 @@ initStaticIcons();
 checkShiftTimers();
 autoMoveClosedSections();
 render();
+
+// iOS standalone (home-screen app) sometimes fails to paint the sticky
+// header + first section until a scroll occurs. Nudge a repaint after
+// first paint, and again whenever the app is resumed from the background.
+function forceRepaint() {
+  const el = document.getElementById('stickyHeader');
+  if (!el) return;
+  el.style.display = 'none';
+  void el.offsetHeight;   // read forces reflow
+  el.style.display = '';
+}
+
+window.addEventListener('load', () => {
+  requestAnimationFrame(() => requestAnimationFrame(forceRepaint));
+});
+
+// fires when returning to a suspended standalone app / back-forward cache
+window.addEventListener('pageshow', forceRepaint);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    forceRepaint();
+    if (!isUserTyping()) render();
+  }
+});
 </script>
 
 </body>
