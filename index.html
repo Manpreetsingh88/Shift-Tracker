@@ -1287,14 +1287,20 @@ function startFirebaseListener() {
       return;
     }
     if (isUserTyping()) return; // don't yank focus mid-edit
-    applyingRemoteUpdate = true;
-    data = remote;
-    runMigrations(data);
-    checkShiftTimers();
-    autoMoveClosedSections();
-    render();
-    setSyncStatus('Synced · ' + new Date().toLocaleTimeString());
-    applyingRemoteUpdate = false;
+    try {
+      applyingRemoteUpdate = true;
+      data = ensureArray(remote);
+      runMigrations(data);
+      checkShiftTimers();
+      autoMoveClosedSections();
+      render();
+      setSyncStatus('Synced · ' + new Date().toLocaleTimeString());
+    } catch (e) {
+      console.error('Failed to apply synced data', e);
+      setSyncStatus('Sync error — showing last good copy (see console)');
+    } finally {
+      applyingRemoteUpdate = false;
+    }
   }, (err) => {
     console.error('Firebase listener error', err);
     setSyncStatus('Offline (using local copy)');
@@ -1671,7 +1677,7 @@ const defaultData = [
 function loadData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) return ensureArray(JSON.parse(raw));
   } catch (e) { console.error('localStorage unavailable', e); }
   return JSON.parse(JSON.stringify(defaultData));
 }
@@ -1704,8 +1710,20 @@ function lookupKnownHours(title) {
   return found ? JSON.parse(JSON.stringify(found.hours)) : null;
 }
 
+// Firebase Realtime Database silently drops empty arrays/objects when saving —
+// an empty `people: []` or `log: []` comes back as `undefined` on read. Every
+// array in our data model must be coerced defensively wherever it's consumed.
+function ensureArray(x) {
+  if (Array.isArray(x)) return x;
+  if (x && typeof x === 'object') {
+    return Object.keys(x).sort((a, b) => Number(a) - Number(b)).map(k => x[k]);
+  }
+  return [];
+}
+
 function runMigrations(d) {
   d.forEach(section => {
+    section.people = ensureArray(section.people);
     if (!section.hours) section.hours = { type: 'none' };
     if (section.collapsed === undefined) section.collapsed = false;
     if (section.hours.type === 'none') {
@@ -1713,10 +1731,12 @@ function runMigrations(d) {
       if (known) section.hours = known;
     }
     section.people.forEach(p => {
+      p.breaks = ensureArray(p.breaks);
       if (p.computedHours === undefined) {
         updateBreaksFromTimes(p);
       }
       if (!p.quickBreak) p.quickBreak = { active: false, startedAtMs: null, coveredBy: '', log: [] };
+      p.quickBreak.log = ensureArray(p.quickBreak.log);
       p.breaks.forEach(b => {
         if (b.doneAt === undefined) b.doneAt = null;
         if (b.coveredBy === undefined) b.coveredBy = '';
@@ -2971,9 +2991,15 @@ function initStaticIcons() {
 }
 initStaticIcons();
 
-checkShiftTimers();
-autoMoveClosedSections();
-render();
+try {
+  checkShiftTimers();
+  autoMoveClosedSections();
+  render();
+} catch (e) {
+  console.error('Initial render failed', e);
+  const board = document.getElementById('board');
+  if (board) board.textContent = 'Something went wrong loading your data. Check the browser console for details.';
+}
 
 // iOS standalone (home-screen app) sometimes fails to paint the sticky
 // header + first section until a scroll occurs. Nudge a repaint after
