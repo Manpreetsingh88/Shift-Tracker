@@ -1255,7 +1255,9 @@ if (firebaseAvailable) {
     .then(() => {
       authReady = true;
       startFirebaseListener();
+      startOfficersFirebaseListener();
       pushToFirebaseDebounced(); // flush anything saved before auth completed
+      pushOfficersToFirebaseDebounced(loadOfficers());
     })
     .catch((err) => {
       console.error('Firebase anonymous sign-in failed', err);
@@ -1311,17 +1313,58 @@ function startFirebaseListener() {
 const SETTINGS_KEY = 'shift_break_tracker_settings_v1';
 const HISTORY_KEY = 'shift_break_tracker_history_v1';
 const OFFICERS_KEY = 'shift_break_tracker_officers_v1';
+let officersRef = null;
+let officersFbSyncTimeout = null;
+let applyingRemoteOfficersUpdate = false;
+
+if (firebaseAvailable) {
+  officersRef = firebase.database().ref('officers');
+}
 
 function loadOfficers() {
   try {
     const raw = localStorage.getItem(OFFICERS_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) return ensureArray(JSON.parse(raw));
   } catch (e) {}
   return [];
 }
 
 function saveOfficers(officers) {
   try { localStorage.setItem(OFFICERS_KEY, JSON.stringify(officers)); } catch (e) {}
+  pushOfficersToFirebaseDebounced(officers);
+}
+
+function pushOfficersToFirebaseDebounced(officers) {
+  if (!firebaseAvailable || !authReady || applyingRemoteOfficersUpdate || !officersRef) return;
+  clearTimeout(officersFbSyncTimeout);
+  officersFbSyncTimeout = setTimeout(() => {
+    officersRef.set(officers).catch(err => console.error('Officer sync failed', err));
+  }, 400);
+}
+
+function startOfficersFirebaseListener() {
+  if (!firebaseAvailable || !officersRef) return;
+  officersRef.on('value', (snapshot) => {
+    const remote = snapshot.val();
+    if (remote === null) {
+      // nothing on the server yet — push whatever is stored locally
+      officersRef.set(loadOfficers());
+      return;
+    }
+    if (isUserTyping()) return; // don't yank focus mid-edit
+    try {
+      applyingRemoteOfficersUpdate = true;
+      const officers = ensureArray(remote);
+      localStorage.setItem(OFFICERS_KEY, JSON.stringify(officers));
+      if (officersPanelOpen) renderOfficersPanelIfOpen();
+    } catch (e) {
+      console.error('Failed to apply synced officer directory', e);
+    } finally {
+      applyingRemoteOfficersUpdate = false;
+    }
+  }, (err) => {
+    console.error('Officers listener error', err);
+  });
 }
 
 function upsertOfficer(name, startTime, endTime) {
