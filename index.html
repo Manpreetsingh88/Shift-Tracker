@@ -422,18 +422,22 @@
     margin-bottom: 8px;
     font-size: 12px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 6px;
+    gap: 10px;
     box-shadow: var(--elev-1);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    white-space: nowrap;
   }
+  .top-ticker::-webkit-scrollbar { display: none; }
+  .top-ticker .clock { flex-shrink: 0; }
   .top-ticker .clock { font-weight: 700; font-size: 15px; }
   .top-ticker .next-transition { color: #666; font-size: 12px; }
-  .transition-list { display: flex; flex-direction: column; gap: 2px; align-items: flex-end; }
+  .transition-list { display: flex; flex-direction: row; gap: 12px; align-items: center; flex-shrink: 0; }
+  .transition-list .next-transition { flex-shrink: 0; }
   .transition-list .next-primary { font-weight: 600; color: #334155; }
   body.dark .transition-list .next-primary { color: #e2e8f0; }
-  body.view-mobile .transition-list { align-items: flex-start; }
   body.dark .top-ticker .next-transition { color: #94a3b8; }
 
   .summary-strip {
@@ -587,7 +591,6 @@
     .mj-badge-sm span { font-size: 10px; }
     .title-group { gap: 8px; }
     .settings-row button { font-size: 12px; padding: 7px 10px; }
-    .top-ticker { flex-direction: column; align-items: flex-start; }
     .summary-pill { font-size: 11px; padding: 5px 9px; }
   }
 
@@ -1119,17 +1122,19 @@
     </div>
     <button class="gear-btn" id="menuBtnLabel" onclick="toggleSettingsMenu()"></button>
   </div>
-  <div class="subtitle" id="lastSaved" style="margin-bottom:6px;"></div>
   <div id="topTicker"></div>
-  <div id="summaryStrip"></div>
-  <div id="alertsPanel"></div>
   <div class="search-bar">
     <span id="searchIconSlot"></span>
     <input type="text" id="searchInput" placeholder="Search officers…" oninput="onSearchInput()">
   </div>
 </div>
 
+<div class="subtitle" id="lastSaved" style="margin: 6px 0 8px 0;"></div>
+<div id="summaryStrip"></div>
+<div id="alertsPanel"></div>
+
 <div id="settingsMenuOverlay" onclick="closeSettingsMenuIfOverlay(event)">
+
   <div class="settings-menu">
     <div class="settings-menu-title">Settings</div>
     <button class="secondary" id="viewModeBtn" onclick="toggleViewMode()"></button>
