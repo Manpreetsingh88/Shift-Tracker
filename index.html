@@ -1184,6 +1184,9 @@
   </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 <script>
 const ICONS = {
   menu: '<svg class="icon-svg" viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="1.6" style="fill:currentColor;stroke:none"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="16" cy="12" r="1.6" style="fill:currentColor;stroke:none"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="11" cy="18" r="1.6" style="fill:currentColor;stroke:none"/></svg>',
@@ -1215,6 +1218,90 @@ const ICONS = {
 function icon(name) { return ICONS[name] || ''; }
 
 const STORAGE_KEY = 'shift_break_tracker_locations_v1';
+
+// ── Firebase realtime sync ──────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyBxVxvOZjPEr3IjWItowcIJenUS5404Nxc",
+  authDomain: "shift-tracker-7827f.firebaseapp.com",
+  databaseURL: "https://shift-tracker-7827f-default-rtdb.firebaseio.com",
+  projectId: "shift-tracker-7827f",
+  storageBucket: "shift-tracker-7827f.firebasestorage.app",
+  messagingSenderId: "40633511757",
+  appId: "1:40633511757:web:1b21744340ccbc0b359104"
+};
+
+let dataRef = null;
+let firebaseAvailable = false;
+let authReady = false;
+try {
+  firebase.initializeApp(firebaseConfig);
+  dataRef = firebase.database().ref('shiftData');
+  firebaseAvailable = true;
+} catch (e) {
+  console.error('Firebase init failed, falling back to local-only storage', e);
+}
+
+let fbSyncTimeout = null;
+let applyingRemoteUpdate = false;
+
+function setSyncStatus(text) {
+  const el = document.getElementById('lastSaved');
+  if (el) el.textContent = text;
+}
+
+if (firebaseAvailable) {
+  setSyncStatus('Signing in…');
+  firebase.auth().signInAnonymously()
+    .then(() => {
+      authReady = true;
+      startFirebaseListener();
+      pushToFirebaseDebounced(); // flush anything saved before auth completed
+    })
+    .catch((err) => {
+      console.error('Firebase anonymous sign-in failed', err);
+      setSyncStatus('Sync unavailable (sign-in failed) · using local copy');
+    });
+}
+
+function pushToFirebaseDebounced() {
+  if (!firebaseAvailable || !authReady || applyingRemoteUpdate) return;
+  clearTimeout(fbSyncTimeout);
+  setSyncStatus('Syncing…');
+  fbSyncTimeout = setTimeout(() => {
+    dataRef.set(data)
+      .then(() => setSyncStatus('Synced · ' + new Date().toLocaleTimeString()))
+      .catch(err => {
+        console.error('Firebase sync failed', err);
+        setSyncStatus('Saved locally (sync failed) · ' + new Date().toLocaleTimeString());
+      });
+  }, 400);
+}
+
+function startFirebaseListener() {
+  if (!firebaseAvailable) return;
+  dataRef.on('value', (snapshot) => {
+    const remote = snapshot.val();
+    if (remote === null) {
+      // nothing on the server yet — push what we have locally
+      dataRef.set(data);
+      return;
+    }
+    if (isUserTyping()) return; // don't yank focus mid-edit
+    applyingRemoteUpdate = true;
+    data = remote;
+    runMigrations(data);
+    checkShiftTimers();
+    autoMoveClosedSections();
+    render();
+    setSyncStatus('Synced · ' + new Date().toLocaleTimeString());
+    applyingRemoteUpdate = false;
+  }, (err) => {
+    console.error('Firebase listener error', err);
+    setSyncStatus('Offline (using local copy)');
+  });
+}
+// ─────────────────────────────────────────────────────────────────────
+
 const SETTINGS_KEY = 'shift_break_tracker_settings_v1';
 const HISTORY_KEY = 'shift_break_tracker_history_v1';
 const OFFICERS_KEY = 'shift_break_tracker_officers_v1';
@@ -1593,10 +1680,13 @@ function saveData() {
   const el = document.getElementById('lastSaved');
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    el.textContent = 'Saved · ' + new Date().toLocaleTimeString();
+    if (!firebaseAvailable) {
+      el.textContent = 'Saved · ' + new Date().toLocaleTimeString();
+    }
   } catch (e) {
     el.textContent = 'Not saved (storage unavailable) · ' + new Date().toLocaleTimeString();
   }
+  pushToFirebaseDebounced();
 }
 
 const KNOWN_SECTION_HOURS = [
@@ -1614,29 +1704,34 @@ function lookupKnownHours(title) {
   return found ? JSON.parse(JSON.stringify(found.hours)) : null;
 }
 
-let data = loadData();
-data.forEach(section => {
-  if (!section.hours) section.hours = { type: 'none' };
-  if (section.collapsed === undefined) section.collapsed = false;
-  if (section.hours.type === 'none') {
-    const known = lookupKnownHours(section.title);
-    if (known) section.hours = known;
-  }
-  section.people.forEach(p => {
-    if (p.computedHours === undefined) {
-      updateBreaksFromTimes(p);
+function runMigrations(d) {
+  d.forEach(section => {
+    if (!section.hours) section.hours = { type: 'none' };
+    if (section.collapsed === undefined) section.collapsed = false;
+    if (section.hours.type === 'none') {
+      const known = lookupKnownHours(section.title);
+      if (known) section.hours = known;
     }
-    if (!p.quickBreak) p.quickBreak = { active: false, startedAtMs: null, coveredBy: '', log: [] };
-    p.breaks.forEach(b => {
-      if (b.doneAt === undefined) b.doneAt = null;
-      if (b.coveredBy === undefined) b.coveredBy = '';
-      if (b.startedAtMs === undefined) b.startedAtMs = null;
+    section.people.forEach(p => {
+      if (p.computedHours === undefined) {
+        updateBreaksFromTimes(p);
+      }
+      if (!p.quickBreak) p.quickBreak = { active: false, startedAtMs: null, coveredBy: '', log: [] };
+      p.breaks.forEach(b => {
+        if (b.doneAt === undefined) b.doneAt = null;
+        if (b.coveredBy === undefined) b.coveredBy = '';
+        if (b.startedAtMs === undefined) b.startedAtMs = null;
+      });
     });
   });
-});
-if (!data.some(s => s.title === 'ROSTER')) {
-  data.push({ title: 'ROSTER', hours: { type: 'none' }, people: [] });
+  if (!d.some(s => s.title === 'ROSTER')) {
+    d.push({ title: 'ROSTER', hours: { type: 'none' }, people: [] });
+  }
+  return d;
 }
+
+let data = loadData();
+runMigrations(data);
 
 function computeShiftHours(startTime, endTime) {
   const [sh, sm] = startTime.split(':').map(Number);
