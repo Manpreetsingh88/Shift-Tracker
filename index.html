@@ -128,10 +128,12 @@
     align-items: center;
     gap: 10px;
     color: white;
+    flex-wrap: wrap;
   }
   .section-header .dot {
     width: 10px; height: 10px; border-radius: 50%;
     background: rgba(255,255,255,0.85);
+    flex-shrink: 0;
   }
   .section-header input {
     background: transparent;
@@ -142,6 +144,7 @@
     letter-spacing: 1.1px;
     text-transform: uppercase;
     flex: 1;
+    min-width: 0;
   }
   .section-header input:focus { outline: 1px solid rgba(255,255,255,0.6); border-radius: 4px; }
   .section-header .icon-btn { color: white; }
@@ -319,6 +322,7 @@
     margin-left: 8px;
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
   }
   .hours-badge.open { background: rgba(255,255,255,0.25); color: white; }
   .hours-badge.closed { background: #dc2626; color: white; animation: pulseBadge 1.2s infinite; }
@@ -426,19 +430,15 @@
     font-size: 12px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    flex-wrap: wrap;
+    gap: 6px 10px;
     box-shadow: var(--elev-1);
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    white-space: nowrap;
   }
-  .top-ticker::-webkit-scrollbar { display: none; }
   .top-ticker .clock { flex-shrink: 0; }
   .top-ticker .clock { font-weight: 700; font-size: 15px; }
   .top-ticker .next-transition { color: #666; font-size: 12px; }
-  .transition-list { display: flex; flex-direction: row; gap: 12px; align-items: center; flex-shrink: 0; }
-  .transition-list .next-transition { flex-shrink: 0; }
+  .transition-list { display: flex; flex-direction: row; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
+  .transition-list .next-transition { white-space: normal; }
   .transition-list .next-primary { font-weight: 600; color: #334155; }
   body.dark .transition-list .next-primary { color: #e2e8f0; }
   body.dark .top-ticker .next-transition { color: #94a3b8; }
