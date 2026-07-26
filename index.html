@@ -95,6 +95,45 @@
   body.compact .section-body { padding: 8px; }
   body.compact .note-input { margin-bottom: 3px; }
 
+  /* ── Overview Mode: shrink everything hard so several sections and their
+     people are visible on screen at once, making moving people around
+     between checkpoints practical on a phone screen ── */
+  body.overview-mode .section { margin-bottom: 6px; border-radius: 9px; }
+  body.overview-mode .section-header { padding: 6px 10px; gap: 6px; }
+  body.overview-mode .section-header input { font-size: 10px; letter-spacing: 0.5px; min-width: 60px; }
+  body.overview-mode .hours-badge { font-size: 7px; padding: 2px 6px; }
+  body.overview-mode .section-body { padding: 5px; }
+  body.overview-mode .card { padding: 5px 7px; margin-bottom: 3px; border-radius: 9px; }
+  body.overview-mode .top-row { margin-bottom: 2px; gap: 3px; }
+  body.overview-mode .name-input { width: 68px; font-size: 11px; padding: 3px 4px; }
+  body.overview-mode .status-badge {
+    font-size: 7px;
+    padding: 2px 5px;
+    max-width: 64px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  body.overview-mode .drag-handle { display: none; }
+  body.overview-mode .top-row { flex-wrap: nowrap; }
+  body.overview-mode .name-input { min-width: 0; }
+
+  body.overview-mode .timing-row,
+  body.overview-mode .note-input,
+  body.overview-mode .meta-row,
+  body.overview-mode .timeline,
+  body.overview-mode .quick-break-row { display: none; }
+  body.overview-mode .breaks { gap: 3px; }
+  body.overview-mode .break-ring { width: 24px; height: 24px; }
+  body.overview-mode .break-ring .len { font-size: 7px; }
+  body.overview-mode .break-chip .lbl { display: none; }
+  body.overview-mode .row-controls { gap: 2px; margin-left: 2px; }
+  body.overview-mode .row-controls .icon-btn { width: 20px; height: 20px; padding: 2px; }
+  body.overview-mode .row-controls .icon-svg { width: 12px; height: 12px; }
+  body.overview-mode .move-to-select { height: 22px; font-size: 8px; padding: 2px 3px; max-width: 50px; }
+  body.overview-mode .drag-handle { width: 12px; }
+  body.overview-mode .add-person-btn { padding: 4px 8px; font-size: 10px; }
+
   h1 {
     font-size: 20px;
     margin: 0 0 2px 0;
@@ -325,6 +364,7 @@
     font-variant-numeric: tabular-nums;
     flex-shrink: 0;
   }
+  .headcount-badge { background: rgba(255,255,255,0.22); color: white; }
   .hours-badge.open { background: rgba(255,255,255,0.25); color: white; }
   .hours-badge.closed { background: #dc2626; color: white; animation: pulseBadge 1.2s infinite; }
 
@@ -375,7 +415,8 @@
     display: flex;
     align-items: center;
   }
-  .alerts-body { padding: 8px; }
+  .alerts-body { padding: 8px; max-height: 260px; overflow-y: auto; }
+  body.overview-mode .alerts-body { max-height: 130px; }
   .alert-row {
     display: flex;
     align-items: center;
@@ -933,6 +974,88 @@
   .login-submit-btn.loading .btn-label { display: none; }
   .login-submit-btn.loading .btn-spinner { display: inline-block; }
   .login-submit-btn { display: inline-flex; align-items: center; justify-content: center; }
+
+  .mfa-qr-frame {
+    position: relative;
+    width: 176px;
+    height: 176px;
+    margin: 6px auto 16px auto;
+    border-radius: 16px;
+    background: #ffffff;
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--elev-1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .mfa-qr-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.94);
+    transition: opacity 0.2s var(--ease);
+  }
+  .mfa-qr-loading.hidden { opacity: 0; pointer-events: none; }
+  .mfa-qr-spinner {
+    display: inline-block;
+    width: 26px;
+    height: 26px;
+    border: 3px solid rgba(124,58,237,0.18);
+    border-top-color: #7c3aed;
+    border-radius: 50%;
+    animation: btnSpin 0.7s linear infinite;
+  }
+
+  .mfa-manual-toggle {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background: none;
+    border: none;
+    color: #7c3aed;
+    font-size: 12px;
+    font-weight: 650;
+    padding: 4px 0 2px 0;
+    cursor: pointer;
+  }
+  body.dark .mfa-manual-toggle { color: #c4b5fd; }
+  .mfa-manual-toggle:hover { text-decoration: underline; }
+
+  .mfa-manual-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(148,163,184,0.10);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-top: 8px;
+  }
+  .mfa-manual-key {
+    flex: 1;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: 12px;
+    letter-spacing: 0.4px;
+    color: var(--text);
+    word-break: break-all;
+  }
+  .mfa-copy-btn {
+    flex-shrink: 0;
+    background: rgba(124,58,237,0.12);
+    color: #7c3aed;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 6px 11px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s var(--ease);
+  }
+  .mfa-copy-btn:hover { background: rgba(124,58,237,0.2); }
+  body.dark .mfa-copy-btn { background: rgba(196,181,253,0.14); color: #c4b5fd; }
+  body.dark .mfa-copy-btn:hover { background: rgba(196,181,253,0.22); }
   .caps-lock-warning {
     font-size: 11px;
     color: #d97706;
@@ -1024,7 +1147,21 @@
     .summary-pill { font-size: 11px; padding: 5px 9px; }
   }
 
-  .row-controls { display: flex; gap: 4px; margin-left: 4px; }
+  .row-controls { display: flex; align-items: center; gap: 4px; margin-left: 4px; }
+  .move-to-select {
+    font-size: 11px;
+    font-weight: 650;
+    padding: 6px 4px;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+    background: var(--surface);
+    color: var(--text);
+    max-width: 78px;
+    flex-shrink: 0;
+    height: 30px;
+  }
+  body.dark .move-to-select { background: rgba(42,53,80,0.85); color: #e5e7eb; }
+  body.compact .move-to-select { max-width: 62px; font-size: 10px; height: 26px; }
   .icon-btn {
     background: none; border: none; cursor: pointer; font-size: 14px;
     padding: 5px 6px; border-radius: 6px; color: #555;
@@ -1041,6 +1178,7 @@
     user-select: none;
   }
   .card.dragging { opacity: 0.35; }
+  .card.dragging .drag-handle { cursor: grabbing; }
   .section-body.drop-target { background: #eef2ff; outline: 2px dashed #6366f1; outline-offset: -4px; }
   .drag-ghost {
     position: fixed;
@@ -1761,14 +1899,15 @@
     <button class="view-tab" id="tabDashboardBtn" onclick="switchMainView('dashboard')">Dashboard</button>
   </div>
   <div class="subtitle" id="lastSaved" style="margin-bottom:6px;"></div>
-  <div id="rosterHeaderExtras">
-    <div id="topTicker"></div>
-    <div id="summaryStrip"></div>
-    <div id="alertsPanel"></div>
-    <div class="search-bar">
-      <span id="searchIconSlot"></span>
-      <input type="text" id="searchInput" name="officer-search-not-a-login-field" autocomplete="off" data-lpignore="true" data-1p-ignore placeholder="Search officers…" oninput="onSearchInput()">
-    </div>
+</div>
+
+<div id="rosterHeaderExtras">
+  <div id="topTicker"></div>
+  <div id="summaryStrip"></div>
+  <div id="alertsPanel"></div>
+  <div class="search-bar">
+    <span id="searchIconSlot"></span>
+    <input type="text" id="searchInput" name="officer-search-not-a-login-field" autocomplete="off" data-lpignore="true" data-1p-ignore placeholder="Search officers…" oninput="onSearchInput()">
   </div>
 </div>
 
@@ -1780,6 +1919,7 @@
     <button class="secondary" id="viewModeBtn" onclick="toggleViewMode()"></button>
     <button class="secondary" id="darkModeBtn" onclick="toggleDarkMode()"></button>
     <button class="secondary" id="compactBtn" onclick="toggleCompact()"></button>
+    <button class="secondary" id="overviewBtn" onclick="toggleOverviewMode()"></button>
     <button class="secondary" id="alertsBtn" onclick="toggleAlertsEnabled()"></button>
     <div class="settings-menu-divider"></div>
     <button class="secondary" onclick="generateSummary()" id="summaryBtnLabel"></button>
@@ -1791,6 +1931,7 @@
     <button class="secondary" onclick="exportText()" id="copyTextBtnLabel"></button>
     <button class="danger" onclick="resetAll()" id="resetBtnLabel"></button>
     <button class="secondary" id="faceIdToggleBtn" onclick="toggleFaceIDSetting()" style="display:none;"></button>
+    <button class="secondary" id="lockNowBtn" onclick="lockNow()" style="display:none;"></button>
     <button class="secondary" id="mfaStatusBtn" onclick="handleMfaSettingsClick()" style="display:none;"></button>
     <button class="danger" onclick="signOutUser()" id="signOutBtnLabel"></button>
     <button class="secondary" onclick="toggleSettingsMenu()" style="margin-top:6px;">Close</button>
@@ -2044,13 +2185,22 @@
     </div>
 
     <div id="mfaSetupPanel">
-      <h1 class="login-hero-title">Scan this QR code</h1>
-      <div class="login-subtitle">Use Google Authenticator, Authy, or any TOTP app</div>
-      <div style="display:flex;justify-content:center;margin-bottom:12px;">
-        <canvas id="mfaQrCanvas" width="180" height="180"></canvas>
+      <h1 class="login-hero-title">Set up two-factor auth</h1>
+      <div class="login-subtitle">Scan with Google Authenticator, Authy, or any TOTP app</div>
+
+      <div class="mfa-qr-frame">
+        <div class="mfa-qr-loading" id="mfaQrLoading"><span class="btn-spinner mfa-qr-spinner"></span></div>
+        <canvas id="mfaQrCanvas" width="176" height="176"></canvas>
       </div>
-      <div class="login-subtitle" style="font-family:monospace;font-size:11px;word-break:break-all;margin-bottom:14px;" id="mfaManualKey"></div>
-      <div class="login-field">
+
+      <button type="button" class="mfa-manual-toggle" id="mfaManualToggleBtn" onclick="toggleMfaManualKey()">Can't scan? Enter the key manually</button>
+      <div class="mfa-manual-wrap hidden" id="mfaManualWrap">
+        <div class="mfa-manual-key" id="mfaManualKeyText"></div>
+        <button type="button" class="mfa-copy-btn" id="mfaCopyKeyBtn" onclick="copyMfaKey()">Copy</button>
+      </div>
+      <div id="mfaManualError" class="login-error" style="text-align:center;"></div>
+
+      <div class="login-field" style="margin-top:16px;">
         <label for="mfaCodeInput">Enter the 6-digit code</label>
         <input type="text" id="mfaCodeInput" class="modal-input" placeholder="123456" inputmode="numeric" maxlength="6" onkeydown="if(event.key==='Enter') confirmMfaEnrollment();">
       </div>
@@ -2168,6 +2318,7 @@ const ICONS = {
   x: '<svg class="icon-svg" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
   logOut: '<svg class="icon-svg" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
   zap: '<svg class="icon-svg" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+  lock: '<svg class="icon-svg" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>',
   eye: '<svg class="icon-svg" viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>',
   eyeOff: '<svg class="icon-svg" viewBox="0 0 24 24"><path d="M17.94 17.94A10.94 10.94 0 0112 20c-7 0-11-8-11-8a18.6 18.6 0 015.06-5.94M9.9 4.24A10.4 10.4 0 0112 4c7 0 11 8 11 8a18.7 18.7 0 01-2.16 3.19M14.12 14.12a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>',
   alertTriangle: '<svg class="icon-svg" viewBox="0 0 24 24"><path d="M12 2 1 21h22z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="16.5" r="0.6" style="fill:currentColor;stroke:none"/></svg>',
@@ -2219,7 +2370,16 @@ function setSyncStatus(text) {
   if (el) el.textContent = text;
 }
 
+function hideAllAuthOverlays() {
+  ['lockScreen', 'nameCaptureScreen', 'changePasswordScreen', 'emailVerifyScreen',
+   'mfaSuggestScreen', 'mfaEnrollScreen', 'mfaChallengeScreen'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+  });
+}
+
 function showLoginScreen() {
+  hideAllAuthOverlays();
   const el = document.getElementById('loginScreen');
   if (el) el.classList.remove('hidden');
 }
@@ -2636,11 +2796,12 @@ function upsertOfficer(name, startTime, endTime) {
 }
 
 function loadSettings() {
+  const defaults = { dark: false, compact: false, alertsEnabled: false, view: 'mobile', overview: false };
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) return Object.assign({}, defaults, JSON.parse(raw));
   } catch (e) {}
-  return { dark: false, compact: false, alertsEnabled: false, view: 'mobile' };
+  return defaults;
 }
 function saveSettings() {
   try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch (e) {}
@@ -2651,12 +2812,25 @@ function applySettingsToBody() {
   if (!settings.view) settings.view = 'mobile';
   document.body.classList.toggle('dark', settings.dark);
   document.body.classList.toggle('compact', settings.compact);
+  document.body.classList.toggle('overview-mode', !!settings.overview);
   document.body.classList.toggle('view-desktop', settings.view === 'desktop');
   document.body.classList.toggle('view-mobile', settings.view !== 'desktop');
   document.getElementById('darkModeBtn').innerHTML = settings.dark ? (icon('sun') + 'Light Mode') : (icon('moon') + 'Dark Mode');
   document.getElementById('compactBtn').innerHTML = settings.compact ? (icon('layout') + 'Normal View') : (icon('layout') + 'Compact View');
+  document.getElementById('overviewBtn').innerHTML = settings.overview ? (icon('layout') + 'Exit Overview Mode') : (icon('layout') + 'Overview Mode (See Multiple Sections)');
   document.getElementById('alertsBtn').innerHTML = settings.alertsEnabled ? (icon('bellOff') + 'Disable Alerts') : (icon('bell') + 'Enable Alerts');
   document.getElementById('viewModeBtn').innerHTML = settings.view === 'desktop' ? (icon('monitor') + 'Desktop View') : (icon('smartphone') + 'Mobile View');
+}
+
+function toggleOverviewMode() {
+  settings.overview = !settings.overview;
+  saveSettings();
+  if (settings.overview) {
+    data.forEach(section => { section.collapsed = true; });
+    saveData();
+  }
+  applySettingsToBody();
+  render();
 }
 
 function toggleViewMode() {
@@ -3101,9 +3275,9 @@ function totalBreakLeft(p) {
 let dragState = null;
 
 function attachDragHandlers(handle, card) {
-  handle.addEventListener('touchstart', (e) => {
+  handle.addEventListener('pointerdown', (e) => {
     e.preventDefault();
-    const touch = e.touches[0];
+    handle.setPointerCapture(e.pointerId);
     const rect = card.getBoundingClientRect();
     const ghost = card.cloneNode(true);
     ghost.className = 'card drag-ghost';
@@ -3115,24 +3289,25 @@ function attachDragHandlers(handle, card) {
     card.classList.add('dragging');
 
     dragState = {
+      pointerId: e.pointerId,
       fromSection: Number(card.dataset.sectionIndex),
       fromPerson: Number(card.dataset.personIndex),
       ghost,
-      offsetX: touch.clientX - rect.left,
-      offsetY: touch.clientY - rect.top,
+      card,
+      offsetX: e.clientX - rect.left,
+      offsetY: e.clientY - rect.top,
       lastTarget: null
     };
-  }, { passive: false });
+  });
 
-  handle.addEventListener('touchmove', (e) => {
-    if (!dragState) return;
+  handle.addEventListener('pointermove', (e) => {
+    if (!dragState || dragState.pointerId !== e.pointerId) return;
     e.preventDefault();
-    const touch = e.touches[0];
-    dragState.ghost.style.left = (touch.clientX - dragState.offsetX) + 'px';
-    dragState.ghost.style.top = (touch.clientY - dragState.offsetY) + 'px';
+    dragState.ghost.style.left = (e.clientX - dragState.offsetX) + 'px';
+    dragState.ghost.style.top = (e.clientY - dragState.offsetY) + 'px';
 
     dragState.ghost.style.display = 'none';
-    const under = document.elementFromPoint(touch.clientX, touch.clientY);
+    const under = document.elementFromPoint(e.clientX, e.clientY);
     dragState.ghost.style.display = '';
 
     const sectionBody = under ? under.closest('.section-body') : null;
@@ -3141,30 +3316,36 @@ function attachDragHandlers(handle, card) {
     }
     if (sectionBody) sectionBody.classList.add('drop-target');
     dragState.lastTarget = sectionBody;
-  }, { passive: false });
+  });
 
-  handle.addEventListener('touchend', (e) => {
-    if (!dragState) return;
-    const touch = e.changedTouches[0];
+  function finishDrag(e) {
+    if (!dragState || dragState.pointerId !== e.pointerId) return;
     dragState.ghost.style.display = 'none';
-    const under = document.elementFromPoint(touch.clientX, touch.clientY);
+    const under = document.elementFromPoint(e.clientX, e.clientY);
     dragState.ghost.style.display = '';
     const targetBody = under ? under.closest('.section-body') : null;
 
     document.querySelectorAll('.section-body.drop-target').forEach(el => el.classList.remove('drop-target'));
     dragState.ghost.remove();
+    dragState.card.classList.remove('dragging');
 
     if (targetBody) {
       const toSection = Number(targetBody.dataset.sectionIndex);
-      const person = data[dragState.fromSection].people[dragState.fromPerson];
-      data[dragState.fromSection].people.splice(dragState.fromPerson, 1);
-      data[toSection].people.push(person);
-      saveData();
+      if (toSection !== dragState.fromSection) {
+        const person = data[dragState.fromSection].people[dragState.fromPerson];
+        data[dragState.fromSection].people.splice(dragState.fromPerson, 1);
+        data[toSection].people.push(person);
+        saveData();
+        showToast((person.name || 'Officer') + ' moved to ' + data[toSection].title, 'success');
+      }
     }
 
     dragState = null;
     render();
-  });
+  }
+
+  handle.addEventListener('pointerup', finishDrag);
+  handle.addEventListener('pointercancel', finishDrag);
 }
 
 function timeToMins(t) {
@@ -3815,6 +3996,11 @@ function render() {
 
     const now = new Date();
     const closedNow = isSectionClosedNow(section.hours, now);
+    const scheduledCount = section.people.filter(p => p.name || p.note).length;
+    const countBadge = document.createElement('span');
+    countBadge.className = 'hours-badge headcount-badge';
+    countBadge.textContent = scheduledCount + (scheduledCount === 1 ? ' officer' : ' officers');
+    header.appendChild(countBadge);
     if (section.hours && section.hours.type === '24/7') {
       const badge = document.createElement('span');
       badge.className = 'hours-badge open';
@@ -3889,6 +4075,32 @@ function render() {
 
       const controls = document.createElement('div');
       controls.className = 'row-controls';
+
+      const moveSelect = document.createElement('select');
+      moveSelect.className = 'move-to-select';
+      moveSelect.title = 'Move to another section';
+      const defaultOpt = document.createElement('option');
+      defaultOpt.textContent = 'Move to…';
+      defaultOpt.value = '';
+      moveSelect.appendChild(defaultOpt);
+      data.forEach((otherSection, otherIdx) => {
+        if (otherIdx === sIdx) return;
+        const opt = document.createElement('option');
+        opt.value = String(otherIdx);
+        opt.textContent = otherSection.title;
+        moveSelect.appendChild(opt);
+      });
+      moveSelect.onclick = (e) => e.stopPropagation();
+      moveSelect.onchange = (e) => {
+        const targetIdx = Number(e.target.value);
+        if (e.target.value === '' || isNaN(targetIdx)) return;
+        const targetTitle = data[targetIdx].title;
+        section.people.splice(pIdx, 1);
+        data[targetIdx].people.push(p);
+        saveData(); render();
+        showToast((p.name || 'Officer') + ' moved to ' + targetTitle, 'success');
+      };
+      controls.appendChild(moveSelect);
 
       if (section.title.trim().toUpperCase() !== 'ROSTER') {
         const rosterBtn = document.createElement('button');
@@ -4760,11 +4972,15 @@ async function startMfaEnrollment() {
   errEl.textContent = '';
   document.getElementById('mfaCodeInput').value = '';
   document.getElementById('mfaEnrollScreen').classList.remove('hidden');
-  document.getElementById('mfaManualKey').textContent = 'Generating your setup key…';
+  document.getElementById('mfaQrLoading').classList.remove('hidden');
+  document.getElementById('mfaManualWrap').classList.add('hidden');
+  document.getElementById('mfaManualToggleBtn').textContent = 'Can\'t scan? Enter the key manually';
+  document.getElementById('mfaManualError').textContent = '';
 
   await waitForMfaBridge();
   if (!window.__mfaBridgeReady) {
     errEl.textContent = 'Could not load the security module — check your connection and try again.';
+    document.getElementById('mfaQrLoading').classList.add('hidden');
     return;
   }
 
@@ -4779,31 +4995,58 @@ async function generateAndShowTotpSecret() {
     const secret = await window.__mfa.TotpMultiFactorGenerator.generateSecret(session);
     pendingTotpSecret = secret;
 
+    document.getElementById('mfaManualKeyText').textContent = secret.secretKey;
     const qrUrl = secret.generateQrCodeUrl(user.email, 'Shift & Break Tracker');
-    document.getElementById('mfaManualKey').textContent = 'Can\'t scan? Enter this key manually: ' + secret.secretKey;
 
     if (window.QRCode) {
-      QRCode.toCanvas(document.getElementById('mfaQrCanvas'), qrUrl, { width: 180 }, (err) => {
+      QRCode.toCanvas(document.getElementById('mfaQrCanvas'), qrUrl, { width: 176, margin: 1 }, (err) => {
+        document.getElementById('mfaQrLoading').classList.add('hidden');
         if (err) {
           console.error('QR render failed', err);
-          document.getElementById('mfaManualKey').innerHTML =
-            'Could not draw the QR code — use this key manually instead:<br><strong>' + secret.secretKey + '</strong>';
+          document.getElementById('mfaManualError').textContent = 'Could not draw the QR — use the key below instead.';
+          expandMfaManualKey();
         }
       });
     } else {
-      document.getElementById('mfaManualKey').innerHTML =
-        'QR code library didn\'t load — use this key manually instead:<br><strong>' + secret.secretKey + '</strong>';
+      document.getElementById('mfaQrLoading').classList.add('hidden');
+      document.getElementById('mfaManualError').textContent = 'QR code library didn\'t load — use the key below instead.';
+      expandMfaManualKey();
     }
   } catch (err) {
     console.error('MFA enrollment setup failed', err);
+    document.getElementById('mfaQrLoading').classList.add('hidden');
     if (err && err.code === 'auth/requires-recent-login') {
       showMfaReauthPanel();
       return;
     }
-    document.getElementById('mfaManualKey').textContent = '';
     const detail = err ? [err.code, err.message, err.customData ? JSON.stringify(err.customData) : null].filter(Boolean).join(' | ') : 'unknown error';
     errEl.textContent = 'Setup failed: ' + detail + ' — screenshot this and Cancel.';
   }
+}
+
+function toggleMfaManualKey() {
+  const wrap = document.getElementById('mfaManualWrap');
+  const btn = document.getElementById('mfaManualToggleBtn');
+  const showing = !wrap.classList.contains('hidden');
+  if (showing) {
+    wrap.classList.add('hidden');
+    btn.textContent = 'Can\'t scan? Enter the key manually';
+  } else {
+    expandMfaManualKey();
+  }
+}
+
+function expandMfaManualKey() {
+  document.getElementById('mfaManualWrap').classList.remove('hidden');
+  document.getElementById('mfaManualToggleBtn').textContent = 'Hide manual key';
+}
+
+function copyMfaKey() {
+  const key = document.getElementById('mfaManualKeyText').textContent;
+  if (!key) return;
+  navigator.clipboard.writeText(key)
+    .then(() => showToast('Key copied', 'success'))
+    .catch(() => showToast('Could not copy — select the key manually', 'error'));
 }
 
 function showMfaReauthPanel() {
@@ -4830,7 +5073,8 @@ async function confirmMfaReauth() {
     await user.reauthenticateWithCredential(credential);
     document.getElementById('mfaReauthPanel').classList.add('hidden');
     document.getElementById('mfaSetupPanel').classList.remove('hidden');
-    document.getElementById('mfaManualKey').textContent = 'Generating your setup key…';
+    document.getElementById('mfaQrLoading').classList.remove('hidden');
+    document.getElementById('mfaManualWrap').classList.add('hidden');
     await generateAndShowTotpSecret();
   } catch (err) {
     console.error('MFA reauth failed', err);
@@ -4946,15 +5190,27 @@ function updateAdminOnlyUI() {
 
 function updateFaceIDButton() {
   const btn = document.getElementById('faceIdToggleBtn');
+  const lockBtn = document.getElementById('lockNowBtn');
   if (!btn) return;
   if (!isWebAuthnSupported() || !authReady) {
     btn.style.display = 'none';
+    if (lockBtn) lockBtn.style.display = 'none';
+    updateMfaStatusButton();
     return;
   }
   btn.style.display = '';
   const enrolled = hasFaceIDEnrolled();
   btn.innerHTML = icon(enrolled ? 'eyeOff' : 'eye') + (enrolled ? 'Turn Off Face ID Unlock' : 'Enable Face ID Unlock');
+  if (lockBtn) {
+    lockBtn.style.display = enrolled ? '' : 'none';
+    lockBtn.innerHTML = icon('lock') + 'Lock Now (Test Face ID)';
+  }
   updateMfaStatusButton();
+}
+
+function lockNow() {
+  toggleSettingsMenu();
+  showLockScreen();
 }
 
 function updateMfaStatusButton() {
