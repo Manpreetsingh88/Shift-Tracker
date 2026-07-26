@@ -207,8 +207,8 @@
     background: rgba(255,255,255,0.6);
     border: 1px solid rgba(15,23,42,0.07);
     border-radius: 13px;
-    padding: 11px 13px;
-    margin-bottom: 8px;
+    padding: 9px 11px;
+    margin-bottom: 6px;
     box-shadow: var(--elev-1);
     transition: box-shadow 0.22s var(--ease), background 0.25s var(--ease),
                 border-color 0.25s var(--ease), transform 0.18s var(--ease);
@@ -223,14 +223,14 @@
     align-items: center;
     gap: 6px;
     flex-wrap: wrap;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
   }
   .timing-row {
     display: flex;
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
   }
   .name-input {
     font-weight: 650;
@@ -259,7 +259,7 @@
     font-size: 12px;
     color: #555;
     width: 100%;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
   }
   .note-input:focus { border-color: #2563eb; background: white; outline: none; }
   .note-input::placeholder { color: #aaa; }
@@ -282,7 +282,7 @@
   .meta-row {
     font-size: 10.5px;
     color: var(--text-muted);
-    margin-bottom: 7px;
+    margin-bottom: 5px;
     letter-spacing: 0.2px;
     font-weight: 500;
   }
@@ -302,8 +302,8 @@
   }
   .break-chip:active { transform: scale(0.94); }
   .break-ring {
-    width: 52px;
-    height: 52px;
+    width: 46px;
+    height: 46px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -1219,12 +1219,12 @@
   .search-bar input { padding-left: 38px; }
   .closed-notice .icon-svg { margin-right: 6px; }
   .timeline {
-    height: 8px;
+    height: 7px;
     border-radius: 99px;
     background: rgba(15,23,42,0.09);
     position: relative;
     overflow: hidden;
-    margin-bottom: 9px;
+    margin-bottom: 7px;
   }
   body.dark .timeline { background: rgba(148,163,184,0.18); }
   .timeline-progress {
@@ -1260,7 +1260,7 @@
   .timeline-quick.active { background: #0ea5e9; animation: quickPulse 1.2s ease-in-out infinite; }
   @keyframes quickPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-  .quick-break-row { margin-bottom: 8px; }
+  .quick-break-row { margin-bottom: 6px; }
   .quick-break-btn {
     display: inline-flex;
     align-items: center;
@@ -2296,7 +2296,6 @@
   window.__mfaBridgeReady = true;
   document.dispatchEvent(new Event('mfa-bridge-ready'));
 </script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script>
 const ICONS = {
   menu: '<svg class="icon-svg" viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="1.6" style="fill:currentColor;stroke:none"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="16" cy="12" r="1.6" style="fill:currentColor;stroke:none"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="11" cy="18" r="1.6" style="fill:currentColor;stroke:none"/></svg>',
@@ -2331,6 +2330,341 @@ const ICONS = {
 };
 
 function icon(name) { return ICONS[name] || ''; }
+
+
+// ── Self-contained QR encoder (no CDN dependency) ─────────────────────
+// Minimal self-contained QR Code encoder (byte mode, ECC level M, versions 1-10).
+// Embedded directly in the app so QR generation never depends on a CDN
+// (ad blockers and offline use would otherwise break it).
+function qrEncode(text) {
+  // ---- GF(256) tables, primitive polynomial 0x11D ----
+  const EXP = new Array(256), LOG = new Array(256);
+  (function () {
+    let x = 1;
+    for (let i = 0; i < 255; i++) { EXP[i] = x; LOG[x] = i; x <<= 1; if (x & 0x100) x ^= 0x11D; }
+    EXP[255] = EXP[0];
+  })();
+  const gfMul = (a, b) => (a === 0 || b === 0) ? 0 : EXP[(LOG[a] + LOG[b]) % 255];
+
+  function rsGenPoly(degree) {
+    let poly = [1];
+    for (let i = 0; i < degree; i++) {
+      const shifted = poly.concat([0]);
+      const scaled = [0].concat(poly.map(c => gfMul(c, EXP[i])));
+      poly = shifted.map((v, k) => v ^ scaled[k]);
+    }
+    return poly;
+  }
+
+  function rsRemainder(data, ecLen) {
+    const gen = rsGenPoly(ecLen);
+    const res = data.concat(new Array(ecLen).fill(0));
+    for (let i = 0; i < data.length; i++) {
+      const factor = res[i];
+      if (factor === 0) continue;
+      for (let j = 0; j < gen.length; j++) res[i + j] ^= gfMul(gen[j], factor);
+    }
+    return res.slice(data.length);
+  }
+
+  // ---- ECC level M block structure, versions 1..10 ----
+  // [ecPerBlock, blocksG1, dataG1, blocksG2, dataG2]
+  const ECC_M = {
+    1: [10, 1, 16, 0, 0], 2: [16, 1, 28, 0, 0], 3: [26, 1, 44, 0, 0],
+    4: [18, 2, 32, 0, 0], 5: [24, 2, 43, 0, 0], 6: [16, 4, 27, 0, 0],
+    7: [18, 4, 31, 0, 0], 8: [22, 2, 38, 2, 39], 9: [22, 3, 36, 2, 37],
+    10: [26, 4, 43, 1, 44]
+  };
+  const ALIGN = {
+    1: [], 2: [6, 18], 3: [6, 22], 4: [6, 26], 5: [6, 30],
+    6: [6, 34], 7: [6, 22, 38], 8: [6, 24, 42], 9: [6, 26, 46], 10: [6, 28, 50]
+  };
+
+  const bytes = [];
+  for (const ch of unescape(encodeURIComponent(text))) bytes.push(ch.charCodeAt(0));
+
+  // ---- pick smallest version that fits ----
+  let version = 0, spec = null;
+  for (let v = 1; v <= 10; v++) {
+    const s = ECC_M[v];
+    const dataCodewords = s[1] * s[2] + s[3] * s[4];
+    const countBits = v <= 9 ? 8 : 16;
+    if (4 + countBits + bytes.length * 8 <= dataCodewords * 8) { version = v; spec = s; break; }
+  }
+  if (!version) throw new Error('Data too long for QR versions 1-10');
+
+  const [ecPerBlock, blocksG1, dataG1, blocksG2, dataG2] = spec;
+  const totalBlocks = blocksG1 + blocksG2;
+  const dataCodewords = blocksG1 * dataG1 + blocksG2 * dataG2;
+  const countBits = version <= 9 ? 8 : 16;
+
+  // ---- build bit stream ----
+  const bits = [];
+  const pushBits = (val, len) => { for (let i = len - 1; i >= 0; i--) bits.push((val >> i) & 1); };
+  pushBits(0b0100, 4);              // byte mode
+  pushBits(bytes.length, countBits);
+  for (const b of bytes) pushBits(b, 8);
+
+  const capacityBits = dataCodewords * 8;
+  // terminator (up to 4 zero bits)
+  for (let i = 0; i < 4 && bits.length < capacityBits; i++) bits.push(0);
+  // pad to byte boundary
+  while (bits.length % 8 !== 0) bits.push(0);
+  // pad bytes alternating 0xEC / 0x11
+  const padBytes = [0xEC, 0x11];
+  let padIdx = 0;
+  while (bits.length < capacityBits) { pushBits(padBytes[padIdx++ % 2], 8); }
+
+  const allData = [];
+  for (let i = 0; i < bits.length; i += 8) {
+    let b = 0;
+    for (let j = 0; j < 8; j++) b = (b << 1) | bits[i + j];
+    allData.push(b);
+  }
+
+  // ---- split into blocks, compute EC, interleave ----
+  const dataBlocks = [], ecBlocks = [];
+  let pos = 0;
+  for (let i = 0; i < totalBlocks; i++) {
+    const len = i < blocksG1 ? dataG1 : dataG2;
+    const block = allData.slice(pos, pos + len);
+    pos += len;
+    dataBlocks.push(block);
+    ecBlocks.push(rsRemainder(block, ecPerBlock));
+  }
+  const finalCodewords = [];
+  const maxDataLen = Math.max(...dataBlocks.map(b => b.length));
+  for (let i = 0; i < maxDataLen; i++)
+    for (const b of dataBlocks) if (i < b.length) finalCodewords.push(b[i]);
+  for (let i = 0; i < ecPerBlock; i++)
+    for (const b of ecBlocks) finalCodewords.push(b[i]);
+
+  // ---- build matrix ----
+  const size = version * 4 + 17;
+  const modules = Array.from({ length: size }, () => new Array(size).fill(null));
+  const reserved = Array.from({ length: size }, () => new Array(size).fill(false));
+
+  function setFn(r, c, v) {
+    if (r < 0 || c < 0 || r >= size || c >= size) return;
+    modules[r][c] = v; reserved[r][c] = true;
+  }
+
+  // finder patterns
+  function placeFinder(r0, c0) {
+    for (let dr = -1; dr <= 7; dr++) for (let dc = -1; dc <= 7; dc++) {
+      const r = r0 + dr, c = c0 + dc;
+      if (r < 0 || c < 0 || r >= size || c >= size) continue;
+      const inRing = (dr >= 0 && dr <= 6 && dc >= 0 && dc <= 6) &&
+        (dr === 0 || dr === 6 || dc === 0 || dc === 6);
+      const inCore = dr >= 2 && dr <= 4 && dc >= 2 && dc <= 4;
+      setFn(r, c, (inRing || inCore) ? 1 : 0);
+    }
+  }
+  placeFinder(0, 0); placeFinder(0, size - 7); placeFinder(size - 7, 0);
+
+  // timing patterns
+  for (let i = 8; i < size - 8; i++) {
+    setFn(6, i, i % 2 === 0 ? 1 : 0);
+    setFn(i, 6, i % 2 === 0 ? 1 : 0);
+  }
+
+  // alignment patterns
+  const centers = ALIGN[version];
+  for (const r of centers) for (const c of centers) {
+    if ((r <= 8 && c <= 8) || (r <= 8 && c >= size - 9) || (r >= size - 9 && c <= 8)) continue;
+    for (let dr = -2; dr <= 2; dr++) for (let dc = -2; dc <= 2; dc++) {
+      const ring = Math.max(Math.abs(dr), Math.abs(dc));
+      setFn(r + dr, c + dc, (ring === 1) ? 0 : 1);
+    }
+  }
+
+  // dark module
+  setFn(size - 8, 8, 1);
+
+  // reserve format info areas
+  for (let i = 0; i <= 8; i++) { if (!reserved[8][i]) setFn(8, i, 0); if (!reserved[i][8]) setFn(i, 8, 0); }
+  for (let i = 0; i < 8; i++) { if (!reserved[8][size - 1 - i]) setFn(8, size - 1 - i, 0); if (!reserved[size - 1 - i][8]) setFn(size - 1 - i, 8, 0); }
+
+  // reserve version info areas (v >= 7)
+  if (version >= 7) {
+    for (let i = 0; i < 6; i++) for (let j = 0; j < 3; j++) {
+      setFn(size - 11 + j, i, 0);
+      setFn(i, size - 11 + j, 0);
+    }
+  }
+
+  // ---- place data with zigzag ----
+  let bitIdx = 0;
+  const totalBits = finalCodewords.length * 8;
+  const getBit = (idx) => idx < totalBits ? (finalCodewords[idx >> 3] >> (7 - (idx & 7))) & 1 : 0;
+
+  let upward = true;
+  for (let colRight = size - 1; colRight > 0; colRight -= 2) {
+    if (colRight === 6) colRight = 5; // skip vertical timing column
+    for (let step = 0; step < size; step++) {
+      const row = upward ? size - 1 - step : step;
+      for (const col of [colRight, colRight - 1]) {
+        if (reserved[row][col]) continue;
+        modules[row][col] = getBit(bitIdx++);
+      }
+    }
+    upward = !upward;
+  }
+
+  // ---- mask selection ----
+  const maskFns = [
+    (i, j) => (i + j) % 2 === 0,
+    (i, j) => i % 2 === 0,
+    (i, j) => j % 3 === 0,
+    (i, j) => (i + j) % 3 === 0,
+    (i, j) => (Math.floor(i / 2) + Math.floor(j / 3)) % 2 === 0,
+    (i, j) => ((i * j) % 2 + (i * j) % 3) === 0,
+    (i, j) => (((i * j) % 2 + (i * j) % 3) % 2) === 0,
+    (i, j) => (((i + j) % 2 + (i * j) % 3) % 2) === 0,
+  ];
+
+  function bchFormat(data) { // BCH(15,5), generator 0x537
+    let d = data << 10;
+    while (true) {
+      const hb = 31 - Math.clz32(d);
+      if (hb < 10) break;
+      d ^= 0x537 << (hb - 10);
+    }
+    return ((data << 10) | d) ^ 0x5412;
+  }
+
+  function bchVersion(v) { // BCH(18,6), generator 0x1F25
+    let d = v << 12;
+    while (true) {
+      const hb = 31 - Math.clz32(d);
+      if (hb < 12) break;
+      d ^= 0x1F25 << (hb - 12);
+    }
+    return (v << 12) | d;
+  }
+
+  function applyMaskAndFormat(maskId) {
+    const m = modules.map(row => row.slice());
+    for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) {
+      if (!reserved[r][c] && maskFns[maskId](r, c)) m[r][c] ^= 1;
+    }
+    // format info: ECC M = 0b00
+    const fmt = bchFormat((0b00 << 3) | maskId);
+    const fbits = [];
+    for (let i = 14; i >= 0; i--) fbits.push((fmt >> i) & 1);
+    // copy 1 (around top-left)
+    const c1 = [[8,0],[8,1],[8,2],[8,3],[8,4],[8,5],[8,7],[8,8],[7,8],[5,8],[4,8],[3,8],[2,8],[1,8],[0,8]];
+    // fbits[0] is MSB (bit 14)
+    for (let i = 0; i < 15; i++) { const [r, c] = c1[i]; m[r][c] = fbits[i]; }
+    // copy 2
+    for (let i = 0; i < 8; i++) m[size - 1 - i][8] = fbits[i];
+    for (let i = 8; i < 15; i++) m[8][size - 15 + i] = fbits[i];
+    m[size - 8][8] = 1; // dark module
+    // version info
+    if (version >= 7) {
+      const vi = bchVersion(version);
+      for (let i = 0; i < 18; i++) {
+        const bit = (vi >> i) & 1;
+        const r = Math.floor(i / 3), c = i % 3;
+        m[size - 11 + c][r] = bit;
+        m[r][size - 11 + c] = bit;
+      }
+    }
+    return m;
+  }
+
+  function penalty(m) {
+    let score = 0;
+    // rule 1: runs of 5+
+    for (let r = 0; r < size; r++) {
+      let run = 1;
+      for (let c = 1; c < size; c++) {
+        if (m[r][c] === m[r][c - 1]) { run++; } else { if (run >= 5) score += 3 + (run - 5); run = 1; }
+      }
+      if (run >= 5) score += 3 + (run - 5);
+    }
+    for (let c = 0; c < size; c++) {
+      let run = 1;
+      for (let r = 1; r < size; r++) {
+        if (m[r][c] === m[r - 1][c]) { run++; } else { if (run >= 5) score += 3 + (run - 5); run = 1; }
+      }
+      if (run >= 5) score += 3 + (run - 5);
+    }
+    // rule 2: 2x2 blocks
+    for (let r = 0; r < size - 1; r++) for (let c = 0; c < size - 1; c++) {
+      const v = m[r][c];
+      if (v === m[r][c + 1] && v === m[r + 1][c] && v === m[r + 1][c + 1]) score += 3;
+    }
+    // rule 3: finder-like patterns
+    const pat = [1,0,1,1,1,0,1];
+    const hasPat = (arr, start) => {
+      for (let k = 0; k < 7; k++) if (arr[start + k] !== pat[k]) return false;
+      return true;
+    };
+    for (let r = 0; r < size; r++) {
+      const row = m[r];
+      for (let c = 0; c + 7 <= size; c++) {
+        if (hasPat(row, c)) {
+          const before = row.slice(Math.max(0, c - 4), c);
+          const after = row.slice(c + 7, c + 11);
+          if (before.length === 4 && before.every(v => v === 0)) score += 40;
+          if (after.length === 4 && after.every(v => v === 0)) score += 40;
+        }
+      }
+    }
+    for (let c = 0; c < size; c++) {
+      const col = [];
+      for (let r = 0; r < size; r++) col.push(m[r][c]);
+      for (let r = 0; r + 7 <= size; r++) {
+        if (hasPat(col, r)) {
+          const before = col.slice(Math.max(0, r - 4), r);
+          const after = col.slice(r + 7, r + 11);
+          if (before.length === 4 && before.every(v => v === 0)) score += 40;
+          if (after.length === 4 && after.every(v => v === 0)) score += 40;
+        }
+      }
+    }
+    // rule 4: dark ratio
+    let dark = 0;
+    for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) if (m[r][c]) dark++;
+    const pct = dark * 100 / (size * size);
+    score += Math.floor(Math.abs(pct - 50) / 5) * 10;
+    return score;
+  }
+
+  let best = null, bestScore = Infinity;
+  for (let maskId = 0; maskId < 8; maskId++) {
+    const m = applyMaskAndFormat(maskId);
+    const s = penalty(m);
+    if (s < bestScore) { bestScore = s; best = m; }
+  }
+  return best;
+}
+
+function drawQrToCanvas(canvas, text, targetSize) {
+  const matrix = qrEncode(text);
+  const size = matrix.length;
+  const quiet = 4;
+  const scale = Math.max(1, Math.floor(targetSize / (size + quiet * 2)));
+  const pixelSize = (size + quiet * 2) * scale;
+
+  canvas.width = pixelSize;
+  canvas.height = pixelSize;
+  canvas.style.width = targetSize + 'px';
+  canvas.style.height = targetSize + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, pixelSize, pixelSize);
+  ctx.fillStyle = '#000000';
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      if (matrix[r][c]) {
+        ctx.fillRect((c + quiet) * scale, (r + quiet) * scale, scale, scale);
+      }
+    }
+  }
+}
 
 const STORAGE_KEY = 'shift_break_tracker_locations_v1';
 
@@ -2625,10 +2959,28 @@ function hideLockScreen() {
   resetIdleTimer();
 }
 
-// NOTE: the "lock on background/reopen" trigger was removed — switching tabs
-// or briefly checking something else shouldn't force a re-login. The
-// 30-minute idle-inactivity sign-out (see startIdleWatcher/resetIdleTimer)
-// is the only auto-security-timeout now.
+// Real device detection (not the user's manual mobile/desktop view toggle) —
+// this is what decides whether the bank-app-style auto-lock applies at all.
+const isMobileDevice = /iPhone|iPad|iPod|Android|Mobile/i.test(navigator.userAgent);
+
+// Auto-lock on background/reopen — but ONLY on actual phones, and ONLY for
+// people who've enrolled Face ID (so unlocking is a single fast scan, not a
+// retyped password every time you switch apps). Desktop is untouched, and
+// anyone without Face ID set up keeps the old lenient behavior.
+document.addEventListener('visibilitychange', () => {
+  if (!isMobileDevice || !authReady) return;
+  if (!hasFaceIDEnrolled()) return; // no fast unlock available — don't lock with only a password
+
+  if (document.hidden) {
+    lastHiddenAt = Date.now();
+  } else if (lastHiddenAt) {
+    const awayMs = Date.now() - lastHiddenAt;
+    if (awayMs > LOCK_GRACE_MS) {
+      showLockScreen();
+    }
+    lastHiddenAt = null;
+  }
+});
 
 if (firebaseAvailable) {
   const pwField = document.getElementById('loginPassword');
@@ -2656,6 +3008,10 @@ if (firebaseAvailable) {
       runOnboardingChain();
       if (justCompletedInteractiveAuth) {
         logActivity('Signed in');
+      } else if (isMobileDevice && hasFaceIDEnrolled()) {
+        // app was fully closed and relaunched (session restored, not a fresh
+        // interactive login) — bank-app style: require a quick Face ID check
+        showLockScreen();
       }
       justCompletedInteractiveAuth = false;
     } else {
@@ -2692,7 +3048,7 @@ function startFirebaseListener() {
       dataRef.set(data);
       return;
     }
-    if (isUserTyping()) return; // don't yank focus mid-edit
+    if (isUserTyping() || dragState) return; // don't yank focus mid-edit or interrupt a drag
     try {
       applyingRemoteUpdate = true;
       data = ensureArray(remote);
@@ -2767,7 +3123,7 @@ function startOfficersFirebaseListener() {
       officersRef.set(loadOfficers());
       return;
     }
-    if (isUserTyping()) return; // don't yank focus mid-edit
+    if (isUserTyping() || dragState) return; // don't yank focus mid-edit or interrupt a drag
     try {
       applyingRemoteOfficersUpdate = true;
       const officers = ensureArray(remote);
@@ -3486,7 +3842,7 @@ function isUserTyping() {
 let shiftTimerInterval = setInterval(() => {
   checkShiftTimers();
   autoMoveClosedSections();
-  if (!isUserTyping()) render();
+  if (!isUserTyping() && !dragState) render();
 }, 10000);
 
 function renderAlertsPanel() {
@@ -3941,6 +4297,7 @@ function buildTimelineBar(p) {
 }
 
 function render() {
+  document.querySelectorAll('.drag-ghost').forEach(el => el.remove()); // safety net: never leave a stuck drag ghost
   applySettingsToBody();
   renderTopTicker();
   renderSummaryStrip();
@@ -4998,18 +5355,13 @@ async function generateAndShowTotpSecret() {
     document.getElementById('mfaManualKeyText').textContent = secret.secretKey;
     const qrUrl = secret.generateQrCodeUrl(user.email, 'Shift & Break Tracker');
 
-    if (window.QRCode) {
-      QRCode.toCanvas(document.getElementById('mfaQrCanvas'), qrUrl, { width: 176, margin: 1 }, (err) => {
-        document.getElementById('mfaQrLoading').classList.add('hidden');
-        if (err) {
-          console.error('QR render failed', err);
-          document.getElementById('mfaManualError').textContent = 'Could not draw the QR — use the key below instead.';
-          expandMfaManualKey();
-        }
-      });
-    } else {
+    try {
+      drawQrToCanvas(document.getElementById('mfaQrCanvas'), qrUrl, 176);
       document.getElementById('mfaQrLoading').classList.add('hidden');
-      document.getElementById('mfaManualError').textContent = 'QR code library didn\'t load — use the key below instead.';
+    } catch (qrErr) {
+      console.error('QR render failed', qrErr);
+      document.getElementById('mfaQrLoading').classList.add('hidden');
+      document.getElementById('mfaManualError').textContent = 'Could not draw the QR — use the key below instead.';
       expandMfaManualKey();
     }
   } catch (err) {
@@ -5274,7 +5626,7 @@ window.addEventListener('pageshow', forceRepaint);
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) {
     forceRepaint();
-    if (!isUserTyping()) render();
+    if (!isUserTyping() && !dragState) render();
   }
 });
 </script>
