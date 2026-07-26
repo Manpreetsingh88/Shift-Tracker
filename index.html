@@ -1767,7 +1767,7 @@
     <div id="alertsPanel"></div>
     <div class="search-bar">
       <span id="searchIconSlot"></span>
-      <input type="text" id="searchInput" placeholder="Search officers…" oninput="onSearchInput()">
+      <input type="text" id="searchInput" name="officer-search-not-a-login-field" autocomplete="off" data-lpignore="true" data-1p-ignore placeholder="Search officers…" oninput="onSearchInput()">
     </div>
   </div>
 </div>
@@ -4804,7 +4804,8 @@ async function generateAndShowTotpSecret() {
       return;
     }
     document.getElementById('mfaManualKey').textContent = '';
-    errEl.textContent = 'Setup failed: ' + (err && (err.code || err.message) ? (err.code || err.message) : 'unknown error') + ' — tap Cancel and try again, or screenshot this for support.';
+    const detail = err ? [err.code, err.message, err.customData ? JSON.stringify(err.customData) : null].filter(Boolean).join(' | ') : 'unknown error';
+    errEl.textContent = 'Setup failed: ' + detail + ' — screenshot this and Cancel.';
   }
 }
 
