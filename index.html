@@ -2465,17 +2465,10 @@ function hideLockScreen() {
   resetIdleTimer();
 }
 
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) {
-    lastHiddenAt = Date.now();
-  } else if (lastHiddenAt && authReady) {
-    const awayMs = Date.now() - lastHiddenAt;
-    if (awayMs > LOCK_GRACE_MS) {
-      showLockScreen();
-    }
-    lastHiddenAt = null;
-  }
-});
+// NOTE: the "lock on background/reopen" trigger was removed — switching tabs
+// or briefly checking something else shouldn't force a re-login. The
+// 30-minute idle-inactivity sign-out (see startIdleWatcher/resetIdleTimer)
+// is the only auto-security-timeout now.
 
 if (firebaseAvailable) {
   const pwField = document.getElementById('loginPassword');
@@ -2503,11 +2496,6 @@ if (firebaseAvailable) {
       runOnboardingChain();
       if (justCompletedInteractiveAuth) {
         logActivity('Signed in');
-      }
-      if (!justCompletedInteractiveAuth) {
-        // this is a restored session from a previous visit (app was
-        // fully closed and reopened) — require re-entry before showing data
-        showLockScreen();
       }
       justCompletedInteractiveAuth = false;
     } else {
