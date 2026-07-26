@@ -547,7 +547,14 @@
   .modal-buttons { display: flex; gap: 8px; }
   .modal-buttons button { flex: 1; padding: 12px; font-size: 14px; }
 
-  #loginScreen {
+  #loginScreen,
+  #lockScreen,
+  #nameCaptureScreen,
+  #changePasswordScreen,
+  #emailVerifyScreen,
+  #mfaSuggestScreen,
+  #mfaEnrollScreen,
+  #mfaChallengeScreen {
     position: fixed;
     inset: 0;
     z-index: 20000;
@@ -562,7 +569,14 @@
       radial-gradient(ellipse 70% 60% at 50% 108%, rgba(59,130,246,0.10), transparent 60%),
       linear-gradient(160deg, #f7f8fc 0%, #eceef6 100%);
   }
-  body.dark #loginScreen {
+  body.dark #loginScreen,
+  body.dark #lockScreen,
+  body.dark #nameCaptureScreen,
+  body.dark #changePasswordScreen,
+  body.dark #emailVerifyScreen,
+  body.dark #mfaSuggestScreen,
+  body.dark #mfaEnrollScreen,
+  body.dark #mfaChallengeScreen {
     background-color: #0a0e17;
     background-image:
       radial-gradient(ellipse 70% 55% at 12% -8%, rgba(99,102,241,0.22), transparent 60%),
@@ -570,7 +584,14 @@
       radial-gradient(ellipse 70% 60% at 50% 108%, rgba(59,130,246,0.14), transparent 60%),
       linear-gradient(160deg, #0d121e 0%, #060911 100%);
   }
-  #loginScreen.hidden { display: none; }
+  #loginScreen.hidden,
+  #lockScreen.hidden,
+  #nameCaptureScreen.hidden,
+  #changePasswordScreen.hidden,
+  #emailVerifyScreen.hidden,
+  #mfaSuggestScreen.hidden,
+  #mfaEnrollScreen.hidden,
+  #mfaChallengeScreen.hidden { display: none; }
 
   /* ── Pearson ops theme: planes taking off & landing behind the login card ── */
   .airport-bg {
@@ -592,15 +613,71 @@
     background: linear-gradient(180deg, transparent, rgba(99,102,241,0.10));
   }
 
-  .plane {
+  /* slow drifting clouds, far background, well below the planes */
+  .cloud {
     position: absolute;
-    font-size: 26px;
-    color: #64748b;
+    border-radius: 50%;
+    background: rgba(148,163,184,0.10);
+    filter: blur(18px);
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+  body.dark .cloud { background: rgba(148,163,184,0.06); }
+  .cloud-1 { width: 180px; height: 60px; top: 12%; left: -20%; animation-name: cloudDriftA; animation-duration: 70s; }
+  .cloud-2 { width: 240px; height: 70px; top: 55%; left: -25%; animation-name: cloudDriftB; animation-duration: 95s; animation-delay: 20s; }
+  .cloud-3 { width: 150px; height: 50px; top: 76%; left: -15%; animation-name: cloudDriftA; animation-duration: 80s; animation-delay: 40s; }
+  @keyframes cloudDriftA { from { transform: translateX(0); } to { transform: translateX(140vw); } }
+  @keyframes cloudDriftB { from { transform: translateX(0); } to { transform: translateX(150vw); } }
+
+  /* each plane is a unit: contrail + glyph + blinking wingtip nav lights,
+     all rotating and fading together as one rigid group */
+  .plane-unit {
+    position: absolute;
+    display: flex;
+    align-items: center;
     opacity: 0;
+    --max-op: 0.5;
     will-change: transform, opacity;
+  }
+  .plane-unit .plane {
+    display: block;
+    font-size: 26px;
+    line-height: 1;
+    color: #64748b;
     filter: drop-shadow(0 2px 3px rgba(0,0,0,0.08));
   }
-  body.dark .plane { color: #94a3b8; }
+  body.dark .plane-unit .plane { color: #94a3b8; }
+
+  .contrail {
+    display: inline-block;
+    width: 34px;
+    height: 2px;
+    margin-right: -6px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, transparent, rgba(100,116,139,0.35));
+  }
+  body.dark .contrail { background: linear-gradient(90deg, transparent, rgba(148,163,184,0.3)); }
+
+  .nav-light {
+    position: absolute;
+    top: 50%;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    transform: translateY(-50%);
+  }
+  .nav-red   { left: 26%; background: #ef4444; animation: navBlink 1.6s ease-in-out infinite; }
+  .nav-green { right: 26%; background: #22c55e; animation: navBlink 1.6s ease-in-out infinite 0.8s; }
+  @keyframes navBlink {
+    0%, 82%, 100% { opacity: 0; }
+    88%, 94% { opacity: 1; }
+  }
+
+  /* farther-back planes: smaller, slightly blurred, dimmer — reads as depth */
+  .plane-far .plane { font-size: 16px; filter: blur(0.4px) drop-shadow(0 1px 2px rgba(0,0,0,0.05)); }
+  .plane-far .contrail { width: 20px; height: 1.5px; }
+  .plane-far .nav-light { width: 3px; height: 3px; }
+  .plane-far { --max-op: 0.28; }
 
   .plane-takeoff {
     left: -8%;
@@ -621,35 +698,37 @@
     animation-iteration-count: infinite;
   }
 
-  .plane-t1 { bottom: 12%;  transform: rotate(-28deg); animation-duration: 16s; animation-delay: 0s; }
-  .plane-t2 { bottom: -4%;  transform: rotate(-28deg); animation-duration: 19s; animation-delay: 7s; font-size: 20px; }
-  .plane-l1 { top: 8%;      transform: rotate(152deg); animation-duration: 17s; animation-delay: 3s; }
-  .plane-l2 { top: -4%;     transform: rotate(152deg); animation-duration: 21s; animation-delay: 11s; font-size: 20px; }
-  .plane-c1 { top: 38%;     transform: rotate(-6deg);  animation-duration: 24s; animation-delay: 9s; font-size: 18px; opacity: 0; }
+  .plane-t1 { bottom: 12%; transform: rotate(-28deg); animation-duration: 16s; animation-delay: 0s; }
+  .plane-t2 { bottom: -4%; transform: rotate(-28deg); animation-duration: 19s; animation-delay: 7s; }
+  .plane-l1 { top: 8%;     transform: rotate(152deg); animation-duration: 17s; animation-delay: 3s; }
+  .plane-l2 { top: -4%;    transform: rotate(152deg); animation-duration: 21s; animation-delay: 11s; }
+  .plane-c1 { top: 38%;    transform: rotate(-6deg);  animation-duration: 24s; animation-delay: 9s; }
 
   @keyframes takeoffPath {
     0%   { transform: translate(0, 0) rotate(-28deg); opacity: 0; }
-    8%   { opacity: 0.5; }
-    45%  { opacity: 0.5; }
+    8%   { opacity: var(--max-op); }
+    45%  { opacity: var(--max-op); }
     60%  { transform: translate(70vw, -55vh) rotate(-28deg); opacity: 0; }
     100% { transform: translate(70vw, -55vh) rotate(-28deg); opacity: 0; }
   }
   @keyframes landPath {
     0%   { transform: translate(0, 0) rotate(152deg); opacity: 0; }
-    8%   { opacity: 0.5; }
-    45%  { opacity: 0.5; }
+    8%   { opacity: var(--max-op); }
+    45%  { opacity: var(--max-op); }
     60%  { transform: translate(-70vw, 55vh) rotate(152deg); opacity: 0; }
     100% { transform: translate(-70vw, 55vh) rotate(152deg); opacity: 0; }
   }
   @keyframes cruisePath {
     0%   { transform: translate(0, 0) rotate(-6deg); opacity: 0; }
-    10%  { opacity: 0.35; }
-    90%  { opacity: 0.35; }
+    10%  { opacity: var(--max-op); }
+    90%  { opacity: var(--max-op); }
     100% { transform: translate(115vw, -4vh) rotate(-6deg); opacity: 0; }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .plane { animation: none !important; opacity: 0.25; }
+    .plane-unit, .cloud { animation: none !important; }
+    .plane-unit { opacity: 0.2; }
+    .nav-light { animation: none !important; opacity: 0.6; }
   }
 
   .login-card {
@@ -884,6 +963,14 @@
     border-radius: 999px;
     margin-left: 6px;
     vertical-align: 1px;
+  }
+  .admin-badge.role-badge {
+    background: rgba(100,116,139,0.18);
+    color: #475569;
+  }
+  body.dark .admin-badge.role-badge {
+    background: rgba(148,163,184,0.16);
+    color: #cbd5e1;
   }
 
   /* Desktop view: multi-column section grid, centered container */
@@ -1464,6 +1551,121 @@
     margin-bottom: 4px;
   }
   .header-top h1 { margin: 0; }
+
+  .view-tabs {
+    display: flex;
+    gap: 4px;
+    background: rgba(148,163,184,0.14);
+    border-radius: 10px;
+    padding: 3px;
+    margin-bottom: 8px;
+  }
+  .view-tab {
+    flex: 1;
+    background: none;
+    color: var(--text-muted);
+    font-size: 12.5px;
+    font-weight: 650;
+    padding: 7px 0;
+    border-radius: 8px;
+    transition: background 0.18s var(--ease), color 0.18s var(--ease), box-shadow 0.18s var(--ease);
+  }
+  .view-tab.active {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--elev-1);
+  }
+  #dashboardView.hidden, #rosterView.hidden { display: none; }
+
+  .dash-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 14px;
+    box-shadow: var(--elev-1);
+  }
+  .dash-card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .dash-empty { font-size: 12.5px; color: var(--text-muted); padding: 6px 0; }
+
+  .dash-greeting { background: linear-gradient(135deg, rgba(99,102,241,0.10), rgba(217,70,239,0.08)); }
+  .dash-greeting-text { font-size: 16px; font-weight: 650; color: var(--text); margin-bottom: 4px; }
+  .dash-greeting-sub { font-size: 12.5px; color: var(--text-muted); }
+
+  .dash-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    gap: 10px;
+  }
+  .dash-stat-tile {
+    background: rgba(148,163,184,0.10);
+    border-radius: 12px;
+    padding: 12px 8px;
+    text-align: center;
+  }
+  .dash-stat-tile.tone-amber { background: rgba(245,158,11,0.12); }
+  .dash-stat-tile.tone-red { background: rgba(239,68,68,0.12); }
+  .dash-stat-tile.tone-green { background: rgba(34,197,94,0.12); }
+  .dash-stat-value { font-size: 22px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+  .dash-stat-label { font-size: 10px; font-weight: 650; letter-spacing: 0.4px; text-transform: uppercase; color: var(--text-muted); margin-top: 2px; }
+
+  .dash-staffing-list { display: flex; flex-direction: column; gap: 8px; }
+  .dash-staffing-row { display: flex; align-items: center; gap: 8px; }
+  .dash-staffing-label { font-size: 11.5px; font-weight: 650; color: var(--text); width: 90px; flex-shrink: 0; }
+  .dash-staffing-bar-track { flex: 1; height: 8px; border-radius: 99px; background: rgba(148,163,184,0.16); overflow: hidden; }
+  .dash-staffing-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #6366f1, #8b5cf6); transition: width 0.5s var(--ease); }
+  .dash-staffing-count { font-size: 12px; font-weight: 700; color: var(--text); width: 20px; text-align: right; flex-shrink: 0; }
+
+  .dash-actions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; }
+  .dash-action-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    background: rgba(148,163,184,0.10);
+    color: var(--text);
+    border-radius: 12px;
+    padding: 14px 8px;
+    font-size: 11.5px;
+    font-weight: 650;
+    transition: background 0.15s var(--ease), transform 0.15s var(--ease);
+  }
+  .dash-action-tile:hover { background: rgba(139,92,246,0.14); }
+  .dash-action-tile:active { transform: scale(0.96); }
+  .dash-action-tile .icon-svg { width: 20px; height: 20px; margin: 0; stroke: #7c3aed; }
+
+  .dash-timeline-list { display: flex; flex-direction: column; gap: 10px; max-height: 320px; overflow-y: auto; }
+  .dash-timeline-row { }
+  .dash-timeline-label { font-size: 11.5px; font-weight: 650; color: var(--text); margin-bottom: 4px; }
+
+  .dash-trend-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 5px;
+    height: 90px;
+  }
+  .dash-trend-bar {
+    flex: 1;
+    border-radius: 4px 4px 0 0;
+    min-height: 6px;
+    transition: height 0.4s var(--ease);
+  }
+
+  .dash-activity-list { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; }
+  .dash-activity-row { display: flex; justify-content: space-between; gap: 8px; font-size: 11.5px; padding-bottom: 6px; border-bottom: 1px solid var(--glass-border); }
+  .dash-activity-action { color: var(--text); font-weight: 600; }
+  .dash-activity-time { color: var(--text-muted); flex-shrink: 0; white-space: nowrap; }
+
+
   .gear-btn {
     background: var(--glass-bg);
     backdrop-filter: blur(20px) saturate(180%);
@@ -1553,13 +1755,19 @@
     </div>
     <button class="gear-btn" id="menuBtnLabel" onclick="toggleSettingsMenu()"></button>
   </div>
+  <div class="view-tabs">
+    <button class="view-tab active" id="tabRosterBtn" onclick="switchMainView('roster')">Roster</button>
+    <button class="view-tab" id="tabDashboardBtn" onclick="switchMainView('dashboard')">Dashboard</button>
+  </div>
   <div class="subtitle" id="lastSaved" style="margin-bottom:6px;"></div>
-  <div id="topTicker"></div>
-  <div id="summaryStrip"></div>
-  <div id="alertsPanel"></div>
-  <div class="search-bar">
-    <span id="searchIconSlot"></span>
-    <input type="text" id="searchInput" placeholder="Search officers…" oninput="onSearchInput()">
+  <div id="rosterHeaderExtras">
+    <div id="topTicker"></div>
+    <div id="summaryStrip"></div>
+    <div id="alertsPanel"></div>
+    <div class="search-bar">
+      <span id="searchIconSlot"></span>
+      <input type="text" id="searchInput" placeholder="Search officers…" oninput="onSearchInput()">
+    </div>
   </div>
 </div>
 
@@ -1581,6 +1789,8 @@
     <div class="settings-menu-divider"></div>
     <button class="secondary" onclick="exportText()" id="copyTextBtnLabel"></button>
     <button class="danger" onclick="resetAll()" id="resetBtnLabel"></button>
+    <button class="secondary" id="faceIdToggleBtn" onclick="toggleFaceIDSetting()" style="display:none;"></button>
+    <button class="secondary" id="mfaStatusBtn" onclick="handleMfaSettingsClick()" style="display:none;"></button>
     <button class="danger" onclick="signOutUser()" id="signOutBtnLabel"></button>
     <button class="secondary" onclick="toggleSettingsMenu()" style="margin-top:6px;">Close</button>
   </div>
@@ -1598,11 +1808,39 @@
 <div id="loginScreen">
   <div class="airport-bg" aria-hidden="true">
     <div class="runway-glow"></div>
-    <span class="plane plane-takeoff plane-t1">✈</span>
-    <span class="plane plane-takeoff plane-t2">✈</span>
-    <span class="plane plane-land plane-l1">✈</span>
-    <span class="plane plane-land plane-l2">✈</span>
-    <span class="plane plane-cruise plane-c1">✈</span>
+    <div class="cloud cloud-1"></div>
+    <div class="cloud cloud-2"></div>
+    <div class="cloud cloud-3"></div>
+    <div class="plane-unit plane-takeoff plane-t1">
+      <span class="contrail"></span>
+      <span class="plane">✈</span>
+      <span class="nav-light nav-red"></span>
+      <span class="nav-light nav-green"></span>
+    </div>
+    <div class="plane-unit plane-takeoff plane-t2 plane-far">
+      <span class="contrail"></span>
+      <span class="plane">✈</span>
+      <span class="nav-light nav-red"></span>
+      <span class="nav-light nav-green"></span>
+    </div>
+    <div class="plane-unit plane-land plane-l1">
+      <span class="contrail"></span>
+      <span class="plane">✈</span>
+      <span class="nav-light nav-red"></span>
+      <span class="nav-light nav-green"></span>
+    </div>
+    <div class="plane-unit plane-land plane-l2 plane-far">
+      <span class="contrail"></span>
+      <span class="plane">✈</span>
+      <span class="nav-light nav-red"></span>
+      <span class="nav-light nav-green"></span>
+    </div>
+    <div class="plane-unit plane-cruise plane-c1 plane-far">
+      <span class="contrail"></span>
+      <span class="plane">✈</span>
+      <span class="nav-light nav-red"></span>
+      <span class="nav-light nav-green"></span>
+    </div>
   </div>
   <div class="login-card">
     <div class="login-brand">
@@ -1642,11 +1880,201 @@
   </div>
 </div>
 
-<div id="board"></div>
+<div id="lockScreen" class="hidden">
+  <div class="login-card">
+    <div class="login-icon-wrap">
+      <div class="mj-badge login-flip flip-badge">
+        <div class="flip-badge-inner">
+          <div class="flip-face flip-face-front"><span>MJ</span></div>
+          <div class="flip-face flip-face-back"><svg viewBox="0 0 24 24" fill="white"><path d="M3 17l1.8-9.2L9 12.3l3-7.6 3 7.6 4.2-4.5L21 17H3z"/><rect x="3" y="18.2" width="18" height="2.2" rx="1"/></svg></div>
+        </div>
+      </div>
+    </div>
+    <h1 class="login-hero-title">Welcome back</h1>
+    <div class="login-subtitle" id="lockScreenEmail"></div>
 
-<div class="add-section-wrap">
-  <button class="secondary admin-only-add-section" onclick="addSection()" id="addSectionBtnBottom"></button>
+    <button id="faceIdUnlockBtn" class="login-submit-btn" style="display:none; margin-bottom:10px;" onclick="unlockWithFaceID()">
+      <span class="btn-label">🔐 Unlock with Face ID</span>
+      <span class="btn-spinner"></span>
+    </button>
+
+    <div class="login-field">
+      <label for="lockPassword">Password</label>
+      <div class="password-wrap">
+        <input type="password" id="lockPassword" placeholder="••••••••" autocomplete="current-password">
+        <button type="button" class="pw-toggle" id="lockPwToggleBtn" onclick="toggleLockPasswordVisibility()" aria-label="Show password"></button>
+      </div>
+    </div>
+    <div id="lockError" class="login-error"></div>
+    <button id="lockSubmitBtn" class="login-submit-btn" onclick="attemptUnlock()">
+      <span class="btn-label">Unlock</span>
+      <span class="btn-spinner"></span>
+    </button>
+    <div class="login-footnote"><a href="#" onclick="signOutUser(); return false;" style="color:inherit;">Not you? Sign out</a></div>
+  </div>
 </div>
+
+<div id="nameCaptureScreen" class="hidden">
+  <div class="login-card">
+    <div class="login-icon-wrap">
+      <div class="mj-badge login-flip flip-badge">
+        <div class="flip-badge-inner">
+          <div class="flip-face flip-face-front"><span>MJ</span></div>
+          <div class="flip-face flip-face-back"><svg viewBox="0 0 24 24" fill="white"><path d="M3 17l1.8-9.2L9 12.3l3-7.6 3 7.6 4.2-4.5L21 17H3z"/><rect x="3" y="18.2" width="18" height="2.2" rx="1"/></svg></div>
+        </div>
+      </div>
+    </div>
+    <h1 class="login-hero-title">What should we call you?</h1>
+    <div class="login-subtitle">This is just so the app can greet you by name</div>
+    <div class="login-field">
+      <label for="nameCaptureInput">Your name</label>
+      <input type="text" id="nameCaptureInput" class="modal-input" placeholder="e.g. Manpreet" onkeydown="if(event.key==='Enter') saveName();">
+    </div>
+    <div id="nameCaptureError" class="login-error"></div>
+    <button id="nameCaptureSubmitBtn" class="login-submit-btn" onclick="saveName()">
+      <span class="btn-label">Continue</span>
+      <span class="btn-spinner"></span>
+    </button>
+  </div>
+</div>
+
+<div id="changePasswordScreen" class="hidden">
+  <div class="login-card">
+    <div class="login-icon-wrap">
+      <div class="mj-badge login-flip flip-badge">
+        <div class="flip-badge-inner">
+          <div class="flip-face flip-face-front"><span>MJ</span></div>
+          <div class="flip-face flip-face-back"><svg viewBox="0 0 24 24" fill="white"><path d="M3 17l1.8-9.2L9 12.3l3-7.6 3 7.6 4.2-4.5L21 17H3z"/><rect x="3" y="18.2" width="18" height="2.2" rx="1"/></svg></div>
+        </div>
+      </div>
+    </div>
+    <h1 class="login-hero-title">Set a new password</h1>
+    <div class="login-subtitle">You signed in with a temporary password — choose your own to continue</div>
+    <div class="login-field">
+      <label for="newPasswordInput">New password</label>
+      <div class="password-wrap">
+        <input type="password" id="newPasswordInput" placeholder="At least 6 characters" autocomplete="new-password">
+        <button type="button" class="pw-toggle" id="newPwToggleBtn" onclick="toggleNewPasswordVisibility('newPasswordInput','newPwToggleBtn')" aria-label="Show password"></button>
+      </div>
+    </div>
+    <div class="login-field">
+      <label for="confirmPasswordInput">Confirm password</label>
+      <div class="password-wrap">
+        <input type="password" id="confirmPasswordInput" placeholder="Type it again" autocomplete="new-password" onkeydown="if(event.key==='Enter') submitNewPassword();">
+        <button type="button" class="pw-toggle" id="confirmPwToggleBtn" onclick="toggleNewPasswordVisibility('confirmPasswordInput','confirmPwToggleBtn')" aria-label="Show password"></button>
+      </div>
+    </div>
+    <div id="newPasswordError" class="login-error"></div>
+    <button id="newPasswordSubmitBtn" class="login-submit-btn" onclick="submitNewPassword()">
+      <span class="btn-label">Set Password &amp; Continue</span>
+      <span class="btn-spinner"></span>
+    </button>
+  </div>
+</div>
+
+<div id="emailVerifyScreen" class="hidden">
+  <div class="login-card">
+    <div class="login-icon-wrap">
+      <div class="mj-badge login-flip flip-badge">
+        <div class="flip-badge-inner">
+          <div class="flip-face flip-face-front"><span>MJ</span></div>
+          <div class="flip-face flip-face-back"><svg viewBox="0 0 24 24" fill="white"><path d="M3 17l1.8-9.2L9 12.3l3-7.6 3 7.6 4.2-4.5L21 17H3z"/><rect x="3" y="18.2" width="18" height="2.2" rx="1"/></svg></div>
+        </div>
+      </div>
+    </div>
+    <h1 class="login-hero-title">Verify your email</h1>
+    <div class="login-subtitle" id="emailVerifyTarget"></div>
+    <div id="emailVerifyError" class="login-error"></div>
+    <button id="emailVerifyContinueBtn" class="login-submit-btn" onclick="checkEmailVerified()">
+      <span class="btn-label">I've verified — Continue</span>
+      <span class="btn-spinner"></span>
+    </button>
+    <div class="login-footnote"><a href="#" onclick="resendVerificationEmail(); return false;" style="color:inherit;">Resend verification email</a> · <a href="#" onclick="signOutUser(); return false;" style="color:inherit;">Sign out</a></div>
+  </div>
+</div>
+
+<div id="mfaSuggestScreen" class="hidden">
+  <div class="login-card">
+    <div class="login-icon-wrap">
+      <div class="mj-badge login-flip flip-badge">
+        <div class="flip-badge-inner">
+          <div class="flip-face flip-face-front"><span>MJ</span></div>
+          <div class="flip-face flip-face-back"><svg viewBox="0 0 24 24" fill="white"><path d="M3 17l1.8-9.2L9 12.3l3-7.6 3 7.6 4.2-4.5L21 17H3z"/><rect x="3" y="18.2" width="18" height="2.2" rx="1"/></svg></div>
+        </div>
+      </div>
+    </div>
+    <h1 class="login-hero-title">Add extra security?</h1>
+    <div class="login-subtitle">Set up an authenticator app for a second layer of protection on your account.</div>
+    <button id="mfaSuggestSetupBtn" class="login-submit-btn" onclick="startMfaEnrollment()">
+      <span class="btn-label">Set Up Now</span>
+      <span class="btn-spinner"></span>
+    </button>
+    <div class="login-footnote"><a href="#" onclick="skipMfaSuggestion(); return false;" style="color:inherit;">Not now</a></div>
+  </div>
+</div>
+
+<div id="mfaEnrollScreen" class="hidden">
+  <div class="login-card">
+    <div class="login-icon-wrap">
+      <div class="mj-badge login-flip flip-badge">
+        <div class="flip-badge-inner">
+          <div class="flip-face flip-face-front"><span>MJ</span></div>
+          <div class="flip-face flip-face-back"><svg viewBox="0 0 24 24" fill="white"><path d="M3 17l1.8-9.2L9 12.3l3-7.6 3 7.6 4.2-4.5L21 17H3z"/><rect x="3" y="18.2" width="18" height="2.2" rx="1"/></svg></div>
+        </div>
+      </div>
+    </div>
+    <h1 class="login-hero-title">Scan this QR code</h1>
+    <div class="login-subtitle">Use Google Authenticator, Authy, or any TOTP app</div>
+    <div style="display:flex;justify-content:center;margin-bottom:12px;">
+      <canvas id="mfaQrCanvas" width="180" height="180"></canvas>
+    </div>
+    <div class="login-subtitle" style="font-family:monospace;font-size:11px;word-break:break-all;margin-bottom:14px;" id="mfaManualKey"></div>
+    <div class="login-field">
+      <label for="mfaCodeInput">Enter the 6-digit code</label>
+      <input type="text" id="mfaCodeInput" class="modal-input" placeholder="123456" inputmode="numeric" maxlength="6" onkeydown="if(event.key==='Enter') confirmMfaEnrollment();">
+    </div>
+    <div id="mfaEnrollError" class="login-error"></div>
+    <button id="mfaEnrollSubmitBtn" class="login-submit-btn" onclick="confirmMfaEnrollment()">
+      <span class="btn-label">Verify &amp; Enable</span>
+      <span class="btn-spinner"></span>
+    </button>
+    <div class="login-footnote"><a href="#" onclick="cancelMfaEnrollment(); return false;" style="color:inherit;">Cancel</a></div>
+  </div>
+</div>
+
+<div id="mfaChallengeScreen" class="hidden">
+  <div class="login-card">
+    <div class="login-icon-wrap">
+      <div class="mj-badge login-flip flip-badge">
+        <div class="flip-badge-inner">
+          <div class="flip-face flip-face-front"><span>MJ</span></div>
+          <div class="flip-face flip-face-back"><svg viewBox="0 0 24 24" fill="white"><path d="M3 17l1.8-9.2L9 12.3l3-7.6 3 7.6 4.2-4.5L21 17H3z"/><rect x="3" y="18.2" width="18" height="2.2" rx="1"/></svg></div>
+        </div>
+      </div>
+    </div>
+    <h1 class="login-hero-title">Enter your code</h1>
+    <div class="login-subtitle">Open your authenticator app and enter the current code</div>
+    <div class="login-field">
+      <label for="mfaChallengeInput">6-digit code</label>
+      <input type="text" id="mfaChallengeInput" class="modal-input" placeholder="123456" inputmode="numeric" maxlength="6" onkeydown="if(event.key==='Enter') submitMfaChallenge();">
+    </div>
+    <div id="mfaChallengeError" class="login-error"></div>
+    <button id="mfaChallengeSubmitBtn" class="login-submit-btn" onclick="submitMfaChallenge()">
+      <span class="btn-label">Verify</span>
+      <span class="btn-spinner"></span>
+    </button>
+  </div>
+</div>
+
+<div id="rosterView">
+  <div id="board"></div>
+
+  <div class="add-section-wrap">
+    <button class="secondary admin-only-add-section" onclick="addSection()" id="addSectionBtnBottom"></button>
+  </div>
+</div>
+
+<div id="dashboardView" class="hidden"></div>
 
 <div class="footer-note">Autosaves to this file's browser storage. Keep reopening it from the Files app (not the Claude preview) to keep your progress.</div>
 
@@ -1671,6 +2099,32 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script type="module">
+  // TOTP MFA only exists in Firebase's modular SDK, not the compat SDK the
+  // rest of this app uses. Rather than rewriting everything, we load just
+  // the modular auth functions we need here and bridge them onto window
+  // so the classic script below can call them. The compat Auth/User objects
+  // are the same underlying instances internally, so passing them into
+  // these modular functions is a supported interop pattern.
+  import {
+    multiFactor,
+    TotpMultiFactorGenerator,
+    getMultiFactorResolver,
+    EmailAuthProvider,
+    reauthenticateWithCredential
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+
+  window.__mfa = {
+    multiFactor,
+    TotpMultiFactorGenerator,
+    getMultiFactorResolver,
+    EmailAuthProvider,
+    reauthenticateWithCredential
+  };
+  window.__mfaBridgeReady = true;
+  document.dispatchEvent(new Event('mfa-bridge-ready'));
+</script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script>
 const ICONS = {
   menu: '<svg class="icon-svg" viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="1.6" style="fill:currentColor;stroke:none"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="16" cy="12" r="1.6" style="fill:currentColor;stroke:none"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="11" cy="18" r="1.6" style="fill:currentColor;stroke:none"/></svg>',
@@ -1691,6 +2145,7 @@ const ICONS = {
   drop: '<svg class="icon-svg" viewBox="0 0 24 24"><path d="M12 2s7 8.7 7 13a7 7 0 01-14 0c0-4.3 7-13 7-13z"/></svg>',
   x: '<svg class="icon-svg" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
   logOut: '<svg class="icon-svg" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>',
+  zap: '<svg class="icon-svg" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
   eye: '<svg class="icon-svg" viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>',
   eyeOff: '<svg class="icon-svg" viewBox="0 0 24 24"><path d="M17.94 17.94A10.94 10.94 0 0112 20c-7 0-11-8-11-8a18.6 18.6 0 015.06-5.94M9.9 4.24A10.4 10.4 0 0112 4c7 0 11 8 11 8a18.7 18.7 0 01-2.16 3.19M14.12 14.12a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>',
   alertTriangle: '<svg class="icon-svg" viewBox="0 0 24 24"><path d="M12 2 1 21h22z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="16.5" r="0.6" style="fill:currentColor;stroke:none"/></svg>',
@@ -1720,6 +2175,7 @@ const firebaseConfig = {
 let dataRef = null;
 let firebaseAvailable = false;
 let authReady = false;
+let justCompletedInteractiveAuth = false;
 let currentUserEmail = '';
 const ADMIN_EMAIL = 'manpreetsingh88.msk@gmail.com';
 function isAdmin() {
@@ -1801,10 +2257,16 @@ function attemptLogin() {
   }
   btn.disabled = true;
   btn.classList.add('loading');
+  justCompletedInteractiveAuth = true;
   firebase.auth().signInWithEmailAndPassword(email, password)
     .catch((err) => {
+      if (err.code === 'auth/multi-factor-auth-required') {
+        handleMfaSignInChallenge(err);
+        return;
+      }
       errEl.textContent = friendlyAuthError(err);
       triggerLoginShake();
+      justCompletedInteractiveAuth = false;
     })
     .finally(() => {
       btn.disabled = false;
@@ -1815,6 +2277,183 @@ function attemptLogin() {
 function signOutUser() {
   firebase.auth().signOut();
 }
+
+// ── Auto sign-out after 30 minutes of inactivity ────────────────────
+const IDLE_LIMIT_MS = 30 * 60 * 1000; // 30 minutes
+let idleTimer = null;
+
+function resetIdleTimer() {
+  if (!authReady) return; // only track idle time while actually signed in
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    showToast('Signed out after 30 minutes of inactivity', 'info');
+    signOutUser();
+  }, IDLE_LIMIT_MS);
+}
+
+function startIdleWatcher() {
+  ['click', 'keydown', 'touchstart', 'mousemove', 'scroll'].forEach(evt => {
+    document.addEventListener(evt, resetIdleTimer, { passive: true });
+  });
+  resetIdleTimer();
+}
+
+function stopIdleWatcher() {
+  clearTimeout(idleTimer);
+  idleTimer = null;
+}
+
+// ── App lock: require re-entry after the app was closed/backgrounded ──
+const LOCK_GRACE_MS = 20 * 1000; // brief app-switches under this don't lock
+let lastHiddenAt = null;
+let isAppLocked = false;
+const WEBAUTHN_KEY_PREFIX = 'shift_tracker_webauthn_';
+
+function isWebAuthnSupported() {
+  return !!(window.PublicKeyCredential && navigator.credentials);
+}
+
+function webauthnCredentialKey() {
+  return WEBAUTHN_KEY_PREFIX + (currentUserEmail || '').toLowerCase();
+}
+
+function hasFaceIDEnrolled() {
+  return !!localStorage.getItem(webauthnCredentialKey());
+}
+
+function randomChallenge() {
+  const arr = new Uint8Array(32);
+  crypto.getRandomValues(arr);
+  return arr;
+}
+
+async function enrollFaceID() {
+  if (!isWebAuthnSupported()) {
+    showToast('Face ID / Touch ID isn\'t available on this device', 'error');
+    return;
+  }
+  try {
+    const cred = await navigator.credentials.create({
+      publicKey: {
+        challenge: randomChallenge(),
+        rp: { name: 'Shift & Break Tracker' },
+        user: {
+          id: new TextEncoder().encode(currentUserEmail || 'user'),
+          name: currentUserEmail || 'user',
+          displayName: currentUserEmail || 'user'
+        },
+        pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+        authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
+        timeout: 60000
+      }
+    });
+    if (cred) {
+      const idB64 = btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
+      localStorage.setItem(webauthnCredentialKey(), idB64);
+      showToast('Face ID enabled for quick unlock', 'success');
+      updateAdminOnlyUI();
+    }
+  } catch (err) {
+    console.error('Face ID enrollment failed', err);
+    showToast('Couldn\'t set up Face ID on this device', 'error');
+  }
+}
+
+function disableFaceID() {
+  localStorage.removeItem(webauthnCredentialKey());
+  showToast('Face ID unlock turned off', 'info');
+  updateAdminOnlyUI();
+}
+
+async function unlockWithFaceID() {
+  const idB64 = localStorage.getItem(webauthnCredentialKey());
+  if (!idB64) return;
+  const btn = document.getElementById('faceIdUnlockBtn');
+  try {
+    if (btn) btn.classList.add('loading');
+    const rawId = Uint8Array.from(atob(idB64), c => c.charCodeAt(0));
+    const assertion = await navigator.credentials.get({
+      publicKey: {
+        challenge: randomChallenge(),
+        allowCredentials: [{ id: rawId, type: 'public-key' }],
+        userVerification: 'required',
+        timeout: 60000
+      }
+    });
+    if (assertion) {
+      hideLockScreen();
+    }
+  } catch (err) {
+    console.error('Face ID unlock failed', err);
+    document.getElementById('lockError').textContent = 'Face ID didn\'t match — use your password instead.';
+  } finally {
+    if (btn) btn.classList.remove('loading');
+  }
+}
+
+function toggleLockPasswordVisibility() {
+  const input = document.getElementById('lockPassword');
+  const btn = document.getElementById('lockPwToggleBtn');
+  const showing = input.type === 'text';
+  input.type = showing ? 'password' : 'text';
+  btn.innerHTML = icon(showing ? 'eye' : 'eyeOff');
+}
+
+function attemptUnlock() {
+  const password = document.getElementById('lockPassword').value;
+  const errEl = document.getElementById('lockError');
+  const btn = document.getElementById('lockSubmitBtn');
+  errEl.textContent = '';
+  if (!password) {
+    errEl.textContent = 'Enter your password.';
+    return;
+  }
+  btn.disabled = true;
+  btn.classList.add('loading');
+  firebase.auth().signInWithEmailAndPassword(currentUserEmail, password)
+    .then(() => {
+      hideLockScreen();
+    })
+    .catch((err) => {
+      errEl.textContent = friendlyAuthError(err);
+    })
+    .finally(() => {
+      btn.disabled = false;
+      btn.classList.remove('loading');
+    });
+}
+
+function showLockScreen() {
+  if (!authReady) return; // nothing to protect if not logged in
+  isAppLocked = true;
+  document.getElementById('lockScreenEmail').textContent = currentUserEmail;
+  document.getElementById('lockPassword').value = '';
+  document.getElementById('lockError').textContent = '';
+  const faceBtn = document.getElementById('faceIdUnlockBtn');
+  if (faceBtn) faceBtn.style.display = hasFaceIDEnrolled() ? 'inline-flex' : 'none';
+  document.getElementById('lockScreen').classList.remove('hidden');
+  if (hasFaceIDEnrolled()) {
+    setTimeout(() => unlockWithFaceID(), 400); // prompt Face ID automatically
+  }
+}
+
+function hideLockScreen() {
+  isAppLocked = false;
+  document.getElementById('lockScreen').classList.add('hidden');
+  resetIdleTimer();
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    lastHiddenAt = Date.now();
+  } else if (lastHiddenAt && authReady) {
+    const awayMs = Date.now() - lastHiddenAt;
+    if (awayMs > LOCK_GRACE_MS) {
+      showLockScreen();
+    }
+    lastHiddenAt = null;
+  }
+});
 
 if (firebaseAvailable) {
   const pwField = document.getElementById('loginPassword');
@@ -1838,10 +2477,22 @@ if (firebaseAvailable) {
       pushToFirebaseDebounced(); // flush anything saved before auth completed
       pushOfficersToFirebaseDebounced(loadOfficers());
       updateAccountMenuLabel();
+      startIdleWatcher();
+      runOnboardingChain();
+      if (justCompletedInteractiveAuth) {
+        logActivity('Signed in');
+      }
+      if (!justCompletedInteractiveAuth) {
+        // this is a restored session from a previous visit (app was
+        // fully closed and reopened) — require re-entry before showing data
+        showLockScreen();
+      }
+      justCompletedInteractiveAuth = false;
     } else {
       authReady = false;
       currentUserEmail = '';
       showLoginScreen();
+      stopIdleWatcher();
     }
   });
 } else {
@@ -1897,6 +2548,18 @@ const SETTINGS_KEY = 'shift_break_tracker_settings_v1';
 const HISTORY_KEY = 'shift_break_tracker_history_v1';
 const OFFICERS_KEY = 'shift_break_tracker_officers_v1';
 let officersRef = null;
+let activityRef = null;
+if (firebaseAvailable) {
+  activityRef = firebase.database().ref('activityLog');
+}
+
+function logActivity(action) {
+  if (!firebaseAvailable || !authReady || !activityRef) return;
+  activityRef.push({ action, email: currentUserEmail, name: getDisplayName(), ts: Date.now() })
+    .catch(err => console.error('Activity log failed', err));
+}
+
+
 let officersFbSyncTimeout = null;
 let applyingRemoteOfficersUpdate = false;
 
@@ -2754,8 +3417,7 @@ function renderTopTicker() {
     '</div>';
 }
 
-function renderSummaryStrip() {
-  const container = document.getElementById('summaryStrip');
+function computeOpsStats() {
   const now = new Date();
   let total = 0, onBreak = 0, redCount = 0, overdueCount = 0;
   let compliant = 0, tracked = 0;
@@ -2769,7 +3431,6 @@ function renderSummaryStrip() {
       const hours = elapsedHoursSinceBreak(p, now);
       if (hours !== null && breakAlertLevel(hours) === 'red') redCount++;
 
-      // compliance: has this officer's break cadence stayed under the 2hr threshold?
       const started = computeElapsedMinutesSinceStart(p, now);
       if (started !== null && started > 0) {
         tracked++;
@@ -2778,8 +3439,13 @@ function renderSummaryStrip() {
       }
     });
   });
-
   const compliancePct = tracked ? Math.round((compliant / tracked) * 100) : 100;
+  return { total, onBreak, redCount, overdueCount, compliancePct };
+}
+
+function renderSummaryStrip() {
+  const container = document.getElementById('summaryStrip');
+  const { total, onBreak, redCount, overdueCount, compliancePct } = computeOpsStats();
   const complianceClass = compliancePct >= 90 ? '' : compliancePct >= 70 ? ' on-break' : ' red';
 
   container.innerHTML =
@@ -2791,6 +3457,228 @@ function renderSummaryStrip() {
     '<span class="summary-pill' + complianceClass + '">' + icon('check') + 'Compliance: ' + compliancePct + '%</span>' +
     '</div>';
 }
+
+let currentMainView = 'roster';
+
+function switchMainView(view) {
+  currentMainView = view;
+  document.getElementById('tabRosterBtn').classList.toggle('active', view === 'roster');
+  document.getElementById('tabDashboardBtn').classList.toggle('active', view === 'dashboard');
+  document.getElementById('rosterView').classList.toggle('hidden', view !== 'roster');
+  document.getElementById('dashboardView').classList.toggle('hidden', view !== 'dashboard');
+  document.getElementById('rosterHeaderExtras').classList.toggle('hidden', view !== 'roster');
+  if (view === 'dashboard') renderDashboard();
+}
+
+function renderDashboardIfVisible() {
+  if (currentMainView === 'dashboard') renderDashboard();
+}
+
+function renderDashboard() {
+  const el = document.getElementById('dashboardView');
+  el.innerHTML = '';
+
+  el.appendChild(buildGreetingCard());
+  el.appendChild(buildOpsOverview());
+  el.appendChild(buildStaffingBySection());
+  el.appendChild(buildQuickActions());
+  el.appendChild(buildTodayTimeline());
+  el.appendChild(buildComplianceTrend());
+  if (isAdmin()) buildActivityLog(el);
+}
+
+function buildGreetingCard() {
+  const wrap = document.createElement('div');
+  wrap.className = 'dash-card dash-greeting';
+  const hour = new Date().getHours();
+  const timeGreeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  wrap.innerHTML =
+    '<div class="dash-greeting-text">' + timeGreeting + ', <strong>' + getDisplayName() + '</strong> 👋</div>' +
+    '<div class="dash-greeting-sub">Here\'s what\'s happening across the floor right now.</div>';
+  return wrap;
+}
+
+function buildOpsOverview() {
+  const stats = computeOpsStats();
+  const wrap = document.createElement('div');
+  wrap.className = 'dash-card';
+  wrap.innerHTML = '<div class="dash-card-title">' + icon('clipboard') + 'Live Ops Overview</div>';
+  const grid = document.createElement('div');
+  grid.className = 'dash-stat-grid';
+  const tiles = [
+    { label: 'On Shift', value: stats.total, tone: '' },
+    { label: 'On Break', value: stats.onBreak, tone: 'amber' },
+    { label: 'Break Overdue', value: stats.redCount, tone: 'red' },
+    { label: 'Shift Overdue', value: stats.overdueCount, tone: 'red' },
+    { label: 'Compliance', value: stats.compliancePct + '%', tone: stats.compliancePct >= 90 ? 'green' : stats.compliancePct >= 70 ? 'amber' : 'red' },
+  ];
+  tiles.forEach(t => {
+    const tile = document.createElement('div');
+    tile.className = 'dash-stat-tile' + (t.tone ? ' tone-' + t.tone : '');
+    tile.innerHTML = '<div class="dash-stat-value">' + t.value + '</div><div class="dash-stat-label">' + t.label + '</div>';
+    grid.appendChild(tile);
+  });
+  wrap.appendChild(grid);
+  return wrap;
+}
+
+function buildStaffingBySection() {
+  const wrap = document.createElement('div');
+  wrap.className = 'dash-card';
+  wrap.innerHTML = '<div class="dash-card-title">' + icon('users') + 'Staffing by Section</div>';
+  const counts = data.map(s => ({
+    title: s.title,
+    count: s.people.filter(p => p.name || p.note).length
+  })).filter(s => s.title.trim().toUpperCase() !== 'ROSTER');
+  const max = Math.max(1, ...counts.map(c => c.count));
+  const list = document.createElement('div');
+  list.className = 'dash-staffing-list';
+  counts.forEach(c => {
+    const row = document.createElement('div');
+    row.className = 'dash-staffing-row';
+    const pct = Math.round((c.count / max) * 100);
+    row.innerHTML =
+      '<div class="dash-staffing-label">' + c.title + '</div>' +
+      '<div class="dash-staffing-bar-track"><div class="dash-staffing-bar-fill" style="width:' + pct + '%"></div></div>' +
+      '<div class="dash-staffing-count">' + c.count + '</div>';
+    list.appendChild(row);
+  });
+  if (!counts.length) {
+    const empty = document.createElement('div');
+    empty.className = 'dash-empty';
+    empty.textContent = 'No sections yet.';
+    list.appendChild(empty);
+  }
+  wrap.appendChild(list);
+  return wrap;
+}
+
+function buildQuickActions() {
+  const wrap = document.createElement('div');
+  wrap.className = 'dash-card';
+  wrap.innerHTML = '<div class="dash-card-title">' + icon('zap') + 'Quick Actions</div>';
+  const grid = document.createElement('div');
+  grid.className = 'dash-actions-grid';
+
+  const actions = [
+    { label: 'Shift Summary', iconName: 'clipboard', fn: 'generateSummary' },
+    { label: 'Save Day', iconName: 'save', fn: 'saveToHistory' },
+    { label: 'Copy as Text', iconName: 'fileText', fn: 'exportText' },
+  ];
+  if (isAdmin()) actions.push({ label: 'Add Section', iconName: 'plus', fn: 'addSection' });
+
+  actions.forEach(a => {
+    const btn = document.createElement('button');
+    btn.className = 'dash-action-tile';
+    btn.innerHTML = icon(a.iconName) + '<span>' + a.label + '</span>';
+    btn.onclick = () => window[a.fn]();
+    grid.appendChild(btn);
+  });
+  wrap.appendChild(grid);
+  return wrap;
+}
+
+function buildTodayTimeline() {
+  const wrap = document.createElement('div');
+  wrap.className = 'dash-card';
+  wrap.innerHTML = '<div class="dash-card-title">' + icon('clock') + "Today's Timeline</div>";
+  const list = document.createElement('div');
+  list.className = 'dash-timeline-list';
+
+  data.forEach(section => {
+    section.people.forEach(p => {
+      if (!p.name && !p.note) return;
+      const row = document.createElement('div');
+      row.className = 'dash-timeline-row';
+      const label = document.createElement('div');
+      label.className = 'dash-timeline-label';
+      label.textContent = (p.name || 'Unnamed') + ' — ' + section.title;
+      row.appendChild(label);
+      row.appendChild(buildTimelineBar(p));
+      list.appendChild(row);
+    });
+  });
+
+  if (!list.children.length) {
+    const empty = document.createElement('div');
+    empty.className = 'dash-empty';
+    empty.textContent = 'No one scheduled yet today.';
+    list.appendChild(empty);
+  }
+  wrap.appendChild(list);
+  return wrap;
+}
+
+function buildComplianceTrend() {
+  const wrap = document.createElement('div');
+  wrap.className = 'dash-card';
+  wrap.innerHTML = '<div class="dash-card-title">' + icon('check') + 'Compliance Trend</div>';
+  const history = loadHistory().filter(h => typeof h.compliancePct === 'number').slice(0, 14).reverse();
+
+  if (!history.length) {
+    const empty = document.createElement('div');
+    empty.className = 'dash-empty';
+    empty.textContent = 'Use "Save Day" a few times to start building a trend here.';
+    wrap.appendChild(empty);
+    return wrap;
+  }
+
+  const chart = document.createElement('div');
+  chart.className = 'dash-trend-chart';
+  history.forEach(h => {
+    const bar = document.createElement('div');
+    bar.className = 'dash-trend-bar';
+    const pct = h.compliancePct;
+    bar.style.height = Math.max(6, pct) + '%';
+    bar.style.background = pct >= 90 ? '#22c55e' : pct >= 70 ? '#f59e0b' : '#ef4444';
+    bar.title = h.date + ' — ' + pct + '%';
+    chart.appendChild(bar);
+  });
+  wrap.appendChild(chart);
+  return wrap;
+}
+
+function buildActivityLog(container) {
+  const wrap = document.createElement('div');
+  wrap.className = 'dash-card';
+  wrap.innerHTML = '<div class="dash-card-title">' + icon('history') + 'Admin Activity Log</div><div class="dash-empty" id="activityLogBody">Loading…</div>';
+  container.appendChild(wrap);
+
+  if (!firebaseAvailable || !activityRef) {
+    document.getElementById('activityLogBody').textContent = 'Not available offline.';
+    return;
+  }
+
+  activityRef.orderByChild('ts').limitToLast(15).once('value')
+    .then(snapshot => {
+      const body = document.getElementById('activityLogBody');
+      if (!body) return;
+      const entries = [];
+      snapshot.forEach(child => { entries.push(child.val()); });
+      entries.reverse();
+      if (!entries.length) {
+        body.textContent = 'No activity recorded yet.';
+        return;
+      }
+      body.className = 'dash-activity-list';
+      body.innerHTML = '';
+      entries.forEach(e => {
+        const row = document.createElement('div');
+        row.className = 'dash-activity-row';
+        const time = e.ts ? new Date(e.ts).toLocaleString() : '';
+        row.innerHTML =
+          '<div class="dash-activity-action">' + (e.name || e.email || 'Someone') + ' — ' + e.action + '</div>' +
+          '<div class="dash-activity-time">' + time + '</div>';
+        body.appendChild(row);
+      });
+    })
+    .catch(err => {
+      console.error('Failed to load activity log', err);
+      const body = document.getElementById('activityLogBody');
+      if (body) body.textContent = 'Couldn\'t load activity log.';
+    });
+}
+
 
 function buildTimelineBar(p) {
   const wrap = document.createElement('div');
@@ -2941,7 +3829,7 @@ function render() {
       delSecBtn.className = 'icon-btn';
       delSecBtn.innerHTML = icon('x');
       delSecBtn.title = 'Delete section';
-      delSecBtn.onclick = (e) => { e.stopPropagation(); if (confirm('Delete section "'+section.title+'"?')) { data.splice(sIdx,1); saveData(); render(); } };
+      delSecBtn.onclick = (e) => { e.stopPropagation(); if (confirm('Delete section "'+section.title+'"?')) { logActivity('Deleted section "' + section.title + '"'); data.splice(sIdx,1); saveData(); render(); } };
       header.appendChild(delSecBtn);
     }
 
@@ -3224,6 +4112,7 @@ function addSection() {
   if (!isAdmin()) { showToast('Only the admin can add sections', 'error'); return; }
   data.push({ title: 'NEW SECTION', hours: { type: 'none' }, collapsed: false, people: [newPerson('', '')] });
   saveData(); render();
+  logActivity('Added a new section');
 }
 
 function resetAll() {
@@ -3231,6 +4120,7 @@ function resetAll() {
   if (confirm('Reset to the original roster? This clears all your edits.')) {
     data = JSON.parse(JSON.stringify(defaultData));
     saveData(); render();
+    logActivity('Reset the entire roster');
   }
 }
 
@@ -3310,8 +4200,9 @@ function loadHistory() {
 
 function saveToHistory() {
   const text = buildSummaryText();
+  const stats = computeOpsStats();
   const history = loadHistory();
-  history.unshift({ date: new Date().toLocaleString(), text });
+  history.unshift({ date: new Date().toLocaleString(), text, compliancePct: stats.compliancePct, ts: Date.now() });
   while (history.length > 30) history.pop();
   try {
     localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
@@ -3320,6 +4211,7 @@ function saveToHistory() {
     showToast('Could not save history (storage unavailable)', 'error');
   }
   renderHistoryPanelIfOpen();
+  renderDashboardIfVisible();
 }
 
 let historyPanelOpen = false;
@@ -3622,6 +4514,7 @@ function showToast(message, type) {
 
 function initStaticIcons() {
   document.getElementById('pwToggleBtn').innerHTML = icon('eye');
+  document.getElementById('lockPwToggleBtn').innerHTML = icon('eye');
   document.getElementById('menuBtnLabel').innerHTML = icon('menu') + 'Menu';
   document.getElementById('summaryBtnLabel').innerHTML = icon('clipboard') + 'Shift Summary';
   document.getElementById('saveDayBtnLabel').innerHTML = icon('save') + 'Save Day';
@@ -3638,11 +4531,329 @@ initStaticIcons();
 function updateAccountMenuLabel() {
   const el = document.getElementById('accountLabel');
   if (el) {
+    const admin = isAdmin();
+    const roleBadge = admin
+      ? '<span class="admin-badge">ADMIN</span>'
+      : '<span class="admin-badge role-badge">TEAM MEMBER</span>';
     el.innerHTML = currentUserEmail
-      ? ('Signed in as ' + currentUserEmail + (isAdmin() ? ' <span class="admin-badge">ADMIN</span>' : ''))
+      ? ('Signed in as ' + currentUserEmail + ' ' + roleBadge)
       : '';
   }
   updateAdminOnlyUI();
+}
+
+function getDisplayName() {
+  try {
+    const user = firebaseAvailable ? firebase.auth().currentUser : null;
+    if (user && user.displayName) return user.displayName;
+  } catch (e) { /* firebase not available — fall through */ }
+  if (currentUserEmail) return currentUserEmail.split('@')[0];
+  return 'there';
+}
+
+function userMetaRef(uid) {
+  return firebase.database().ref('userMeta/' + uid);
+}
+
+let mfaSuggestSkippedThisSession = false;
+
+function runOnboardingChain() {
+  const user = firebase.auth().currentUser;
+  if (!user || !firebaseAvailable) return;
+
+  if (!user.emailVerified) {
+    showEmailVerifyScreen();
+    return;
+  }
+
+  userMetaRef(user.uid).once('value')
+    .then(snap => {
+      const meta = snap.val() || {};
+      if (!meta.passwordChanged) {
+        showChangePasswordScreen();
+        return;
+      }
+      if (!user.displayName) {
+        showNameCaptureScreen();
+        return;
+      }
+      if (!hasMfaEnrolledFactor(user) && !mfaSuggestSkippedThisSession) {
+        showMfaSuggestScreen();
+        return;
+      }
+      // nothing left to onboard — all screens already hidden by their own handlers
+    })
+    .catch(err => {
+      console.error('Onboarding chain check failed', err);
+      // fail open on the password/name checks rather than locking someone out;
+      // still respects the email-verify gate above since that already returned
+      if (!user.displayName) showNameCaptureScreen();
+    });
+}
+
+function showEmailVerifyScreen() {
+  const user = firebase.auth().currentUser;
+  document.getElementById('emailVerifyTarget').textContent =
+    'We sent a verification link to ' + (user ? user.email : 'your email') + '. Open it, then come back here.';
+  document.getElementById('emailVerifyError').textContent = '';
+  document.getElementById('emailVerifyScreen').classList.remove('hidden');
+}
+
+function resendVerificationEmail() {
+  const user = firebase.auth().currentUser;
+  if (!user) return;
+  user.sendEmailVerification()
+    .then(() => showToast('Verification email sent', 'success'))
+    .catch(err => showToast('Could not send email — try again shortly', 'error'));
+}
+
+function checkEmailVerified() {
+  const user = firebase.auth().currentUser;
+  const errEl = document.getElementById('emailVerifyError');
+  const btn = document.getElementById('emailVerifyContinueBtn');
+  if (!user) return;
+  btn.disabled = true;
+  btn.classList.add('loading');
+  user.reload()
+    .then(() => {
+      if (user.emailVerified) {
+        document.getElementById('emailVerifyScreen').classList.add('hidden');
+        runOnboardingChain();
+      } else {
+        errEl.textContent = 'Not verified yet — check your inbox (and spam folder).';
+      }
+    })
+    .catch(err => { errEl.textContent = friendlyAuthError(err); })
+    .finally(() => { btn.disabled = false; btn.classList.remove('loading'); });
+}
+
+function showChangePasswordScreen() {
+  document.getElementById('changePasswordScreen').classList.remove('hidden');
+  document.getElementById('newPasswordInput').value = '';
+  document.getElementById('confirmPasswordInput').value = '';
+  document.getElementById('newPasswordError').textContent = '';
+  setTimeout(() => document.getElementById('newPasswordInput').focus(), 200);
+}
+
+function toggleNewPasswordVisibility(inputId, btnId) {
+  const input = document.getElementById(inputId);
+  const btn = document.getElementById(btnId);
+  const showing = input.type === 'text';
+  input.type = showing ? 'password' : 'text';
+  btn.innerHTML = icon(showing ? 'eye' : 'eyeOff');
+}
+
+function submitNewPassword() {
+  const pw1 = document.getElementById('newPasswordInput').value;
+  const pw2 = document.getElementById('confirmPasswordInput').value;
+  const errEl = document.getElementById('newPasswordError');
+  const btn = document.getElementById('newPasswordSubmitBtn');
+  errEl.textContent = '';
+  if (!pw1 || pw1.length < 6) {
+    errEl.textContent = 'Password must be at least 6 characters.';
+    return;
+  }
+  if (pw1 !== pw2) {
+    errEl.textContent = 'Passwords don\'t match.';
+    return;
+  }
+  const user = firebase.auth().currentUser;
+  btn.disabled = true;
+  btn.classList.add('loading');
+  user.updatePassword(pw1)
+    .then(() => userMetaRef(user.uid).update({ passwordChanged: true, updatedAt: Date.now() }))
+    .then(() => {
+      document.getElementById('changePasswordScreen').classList.add('hidden');
+      showToast('Password updated', 'success');
+      runOnboardingChain();
+    })
+    .catch(err => {
+      console.error('Password update failed', err);
+      if (err.code === 'auth/requires-recent-login') {
+        errEl.textContent = 'For security, please sign out and sign in again before changing your password.';
+      } else {
+        errEl.textContent = friendlyAuthError(err);
+      }
+    })
+    .finally(() => {
+      btn.disabled = false;
+      btn.classList.remove('loading');
+    });
+}
+
+function showNameCaptureScreen() {
+  document.getElementById('nameCaptureScreen').classList.remove('hidden');
+  setTimeout(() => document.getElementById('nameCaptureInput').focus(), 200);
+}
+
+function saveName() {
+  const input = document.getElementById('nameCaptureInput');
+  const name = input.value.trim();
+  const errEl = document.getElementById('nameCaptureError');
+  if (!name) {
+    errEl.textContent = 'Enter your name to continue.';
+    return;
+  }
+  const user = firebase.auth().currentUser;
+  user.updateProfile({ displayName: name })
+    .then(() => {
+      document.getElementById('nameCaptureScreen').classList.add('hidden');
+      showToast('Welcome, ' + name + '!', 'success');
+      renderDashboardIfVisible();
+      runOnboardingChain();
+    })
+    .catch((err) => {
+      errEl.textContent = 'Couldn\'t save your name — try again.';
+      console.error(err);
+    });
+}
+
+function waitForMfaBridge() {
+  if (window.__mfaBridgeReady) return Promise.resolve();
+  return new Promise(resolve => {
+    document.addEventListener('mfa-bridge-ready', () => resolve(), { once: true });
+    setTimeout(resolve, 4000);
+  });
+}
+
+function hasMfaEnrolledFactor(user) {
+  return !!(user && user.multiFactor && user.multiFactor.enrolledFactors && user.multiFactor.enrolledFactors.length > 0);
+}
+
+function showMfaSuggestScreen() {
+  document.getElementById('mfaSuggestScreen').classList.remove('hidden');
+}
+
+function skipMfaSuggestion() {
+  mfaSuggestSkippedThisSession = true;
+  document.getElementById('mfaSuggestScreen').classList.add('hidden');
+}
+
+let pendingTotpSecret = null;
+
+async function startMfaEnrollment() {
+  document.getElementById('mfaSuggestScreen').classList.add('hidden');
+  const errEl = document.getElementById('mfaEnrollError');
+  errEl.textContent = '';
+  document.getElementById('mfaCodeInput').value = '';
+  document.getElementById('mfaEnrollScreen').classList.remove('hidden');
+  document.getElementById('mfaManualKey').textContent = 'Generating your setup key…';
+
+  await waitForMfaBridge();
+  if (!window.__mfaBridgeReady) {
+    errEl.textContent = 'Could not load the security module — check your connection and try again.';
+    return;
+  }
+
+  try {
+    const user = firebase.auth().currentUser;
+    const session = await window.__mfa.multiFactor(user).getSession();
+    const secret = await window.__mfa.TotpMultiFactorGenerator.generateSecret(session);
+    pendingTotpSecret = secret;
+
+    const qrUrl = secret.generateQrCodeUrl(user.email, 'Shift & Break Tracker');
+    document.getElementById('mfaManualKey').textContent = 'Can\'t scan? Enter this key manually: ' + secret.secretKey;
+
+    if (window.QRCode) {
+      QRCode.toCanvas(document.getElementById('mfaQrCanvas'), qrUrl, { width: 180 }, (err) => {
+        if (err) console.error('QR render failed', err);
+      });
+    }
+  } catch (err) {
+    console.error('MFA enrollment setup failed', err);
+    errEl.textContent = friendlyAuthError(err) || 'Could not start setup — try again.';
+  }
+}
+
+async function confirmMfaEnrollment() {
+  const code = document.getElementById('mfaCodeInput').value.trim();
+  const errEl = document.getElementById('mfaEnrollError');
+  const btn = document.getElementById('mfaEnrollSubmitBtn');
+  errEl.textContent = '';
+  if (!code || code.length !== 6) {
+    errEl.textContent = 'Enter the 6-digit code from your authenticator app.';
+    return;
+  }
+  if (!pendingTotpSecret) {
+    errEl.textContent = 'Setup expired — tap Cancel and try again.';
+    return;
+  }
+  btn.disabled = true;
+  btn.classList.add('loading');
+  try {
+    const assertion = window.__mfa.TotpMultiFactorGenerator.assertionForEnrollment(pendingTotpSecret, code);
+    const user = firebase.auth().currentUser;
+    await window.__mfa.multiFactor(user).enroll(assertion, 'Authenticator App');
+    pendingTotpSecret = null;
+    document.getElementById('mfaEnrollScreen').classList.add('hidden');
+    showToast('Two-factor authentication enabled', 'success');
+    updateAdminOnlyUI();
+  } catch (err) {
+    console.error('MFA enrollment failed', err);
+    errEl.textContent = friendlyAuthError(err) || 'That code didn\'t work — try again.';
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('loading');
+  }
+}
+
+function cancelMfaEnrollment() {
+  pendingTotpSecret = null;
+  document.getElementById('mfaEnrollScreen').classList.add('hidden');
+  mfaSuggestSkippedThisSession = true;
+}
+
+let pendingMfaResolver = null;
+
+async function handleMfaSignInChallenge(err) {
+  await waitForMfaBridge();
+  const errEl = document.getElementById('loginError');
+  if (!window.__mfaBridgeReady) {
+    errEl.textContent = 'Could not load the security module — check your connection and try again.';
+    return;
+  }
+  try {
+    pendingMfaResolver = window.__mfa.getMultiFactorResolver(firebase.auth(), err);
+    document.getElementById('mfaChallengeInput').value = '';
+    document.getElementById('mfaChallengeError').textContent = '';
+    document.getElementById('mfaChallengeScreen').classList.remove('hidden');
+    setTimeout(() => document.getElementById('mfaChallengeInput').focus(), 200);
+  } catch (e) {
+    console.error('Could not read MFA resolver', e);
+    errEl.textContent = 'Something went wrong starting the security check — try again.';
+  }
+}
+
+async function submitMfaChallenge() {
+  const code = document.getElementById('mfaChallengeInput').value.trim();
+  const errEl = document.getElementById('mfaChallengeError');
+  const btn = document.getElementById('mfaChallengeSubmitBtn');
+  errEl.textContent = '';
+  if (!code || code.length !== 6) {
+    errEl.textContent = 'Enter your 6-digit code.';
+    return;
+  }
+  if (!pendingMfaResolver) {
+    errEl.textContent = 'Session expired — go back and sign in again.';
+    return;
+  }
+  btn.disabled = true;
+  btn.classList.add('loading');
+  try {
+    const totpFactorId = window.__mfa.TotpMultiFactorGenerator.FACTOR_ID;
+    const hint = pendingMfaResolver.hints.find(h => h.factorId === totpFactorId);
+    if (!hint) throw new Error('No TOTP factor found on this account');
+    const assertion = window.__mfa.TotpMultiFactorGenerator.assertionForSignIn(hint.uid, code);
+    await pendingMfaResolver.resolveSignIn(assertion);
+    pendingMfaResolver = null;
+    document.getElementById('mfaChallengeScreen').classList.add('hidden');
+  } catch (err) {
+    console.error('MFA sign-in challenge failed', err);
+    errEl.textContent = friendlyAuthError(err) || 'That code didn\'t work — try again.';
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('loading');
+  }
 }
 
 function updateAdminOnlyUI() {
@@ -3652,6 +4863,50 @@ function updateAdminOnlyUI() {
   document.querySelectorAll('.admin-only-add-section').forEach(el => {
     el.style.display = admin ? '' : 'none';
   });
+  updateFaceIDButton();
+}
+
+function updateFaceIDButton() {
+  const btn = document.getElementById('faceIdToggleBtn');
+  if (!btn) return;
+  if (!isWebAuthnSupported() || !authReady) {
+    btn.style.display = 'none';
+    return;
+  }
+  btn.style.display = '';
+  const enrolled = hasFaceIDEnrolled();
+  btn.innerHTML = icon(enrolled ? 'eyeOff' : 'eye') + (enrolled ? 'Turn Off Face ID Unlock' : 'Enable Face ID Unlock');
+  updateMfaStatusButton();
+}
+
+function updateMfaStatusButton() {
+  const btn = document.getElementById('mfaStatusBtn');
+  if (!btn || !authReady) { if (btn) btn.style.display = 'none'; return; }
+  const user = firebaseAvailable ? firebase.auth().currentUser : null;
+  if (!user) { btn.style.display = 'none'; return; }
+  btn.style.display = '';
+  const enrolled = hasMfaEnrolledFactor(user);
+  btn.innerHTML = enrolled
+    ? (icon('check') + 'Two-Factor Auth: Enabled')
+    : (icon('zap') + 'Set Up Two-Factor Auth');
+}
+
+function handleMfaSettingsClick() {
+  const user = firebase.auth().currentUser;
+  if (hasMfaEnrolledFactor(user)) {
+    showToast('Two-factor auth is already enabled on this account', 'info');
+    return;
+  }
+  toggleSettingsMenu();
+  startMfaEnrollment();
+}
+
+function toggleFaceIDSetting() {
+  if (hasFaceIDEnrolled()) {
+    disableFaceID();
+  } else {
+    enrollFaceID();
+  }
 }
 
 
