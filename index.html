@@ -2023,22 +2023,43 @@
         </div>
       </div>
     </div>
-    <h1 class="login-hero-title">Scan this QR code</h1>
-    <div class="login-subtitle">Use Google Authenticator, Authy, or any TOTP app</div>
-    <div style="display:flex;justify-content:center;margin-bottom:12px;">
-      <canvas id="mfaQrCanvas" width="180" height="180"></canvas>
+
+    <div id="mfaReauthPanel" class="hidden">
+      <h1 class="login-hero-title">Confirm it's you</h1>
+      <div class="login-subtitle">For your security, re-enter your password before setting up two-factor auth</div>
+      <div class="login-field">
+        <label for="mfaReauthPassword">Password</label>
+        <div class="password-wrap">
+          <input type="password" id="mfaReauthPassword" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter') confirmMfaReauth();">
+          <button type="button" class="pw-toggle" id="mfaReauthPwToggleBtn" onclick="toggleNewPasswordVisibility('mfaReauthPassword','mfaReauthPwToggleBtn')" aria-label="Show password"></button>
+        </div>
+      </div>
+      <div id="mfaReauthError" class="login-error"></div>
+      <button id="mfaReauthSubmitBtn" class="login-submit-btn" onclick="confirmMfaReauth()">
+        <span class="btn-label">Confirm &amp; Continue</span>
+        <span class="btn-spinner"></span>
+      </button>
+      <div class="login-footnote"><a href="#" onclick="cancelMfaEnrollment(); return false;" style="color:inherit;">Cancel</a></div>
     </div>
-    <div class="login-subtitle" style="font-family:monospace;font-size:11px;word-break:break-all;margin-bottom:14px;" id="mfaManualKey"></div>
-    <div class="login-field">
-      <label for="mfaCodeInput">Enter the 6-digit code</label>
-      <input type="text" id="mfaCodeInput" class="modal-input" placeholder="123456" inputmode="numeric" maxlength="6" onkeydown="if(event.key==='Enter') confirmMfaEnrollment();">
+
+    <div id="mfaSetupPanel">
+      <h1 class="login-hero-title">Scan this QR code</h1>
+      <div class="login-subtitle">Use Google Authenticator, Authy, or any TOTP app</div>
+      <div style="display:flex;justify-content:center;margin-bottom:12px;">
+        <canvas id="mfaQrCanvas" width="180" height="180"></canvas>
+      </div>
+      <div class="login-subtitle" style="font-family:monospace;font-size:11px;word-break:break-all;margin-bottom:14px;" id="mfaManualKey"></div>
+      <div class="login-field">
+        <label for="mfaCodeInput">Enter the 6-digit code</label>
+        <input type="text" id="mfaCodeInput" class="modal-input" placeholder="123456" inputmode="numeric" maxlength="6" onkeydown="if(event.key==='Enter') confirmMfaEnrollment();">
+      </div>
+      <div id="mfaEnrollError" class="login-error"></div>
+      <button id="mfaEnrollSubmitBtn" class="login-submit-btn" onclick="confirmMfaEnrollment()">
+        <span class="btn-label">Verify &amp; Enable</span>
+        <span class="btn-spinner"></span>
+      </button>
+      <div class="login-footnote"><a href="#" onclick="cancelMfaEnrollment(); return false;" style="color:inherit;">Cancel</a></div>
     </div>
-    <div id="mfaEnrollError" class="login-error"></div>
-    <button id="mfaEnrollSubmitBtn" class="login-submit-btn" onclick="confirmMfaEnrollment()">
-      <span class="btn-label">Verify &amp; Enable</span>
-      <span class="btn-spinner"></span>
-    </button>
-    <div class="login-footnote"><a href="#" onclick="cancelMfaEnrollment(); return false;" style="color:inherit;">Cancel</a></div>
   </div>
 </div>
 
@@ -4733,6 +4754,10 @@ let pendingTotpSecret = null;
 
 async function startMfaEnrollment() {
   document.getElementById('mfaSuggestScreen').classList.add('hidden');
+  document.getElementById('mfaReauthPanel').classList.add('hidden');
+  document.getElementById('mfaSetupPanel').classList.remove('hidden');
+  document.getElementById('mfaReauthError').textContent = '';
+  document.getElementById('mfaReauthPassword').value = '';
   const errEl = document.getElementById('mfaEnrollError');
   errEl.textContent = '';
   document.getElementById('mfaCodeInput').value = '';
@@ -4745,6 +4770,11 @@ async function startMfaEnrollment() {
     return;
   }
 
+  await generateAndShowTotpSecret();
+}
+
+async function generateAndShowTotpSecret() {
+  const errEl = document.getElementById('mfaEnrollError');
   try {
     const user = firebase.auth().currentUser;
     const session = await window.__mfa.multiFactor(user).getSession();
@@ -4761,7 +4791,47 @@ async function startMfaEnrollment() {
     }
   } catch (err) {
     console.error('MFA enrollment setup failed', err);
-    errEl.textContent = friendlyAuthError(err) || 'Could not start setup — try again.';
+    if (err && err.code === 'auth/requires-recent-login') {
+      showMfaReauthPanel();
+      return;
+    }
+    document.getElementById('mfaManualKey').textContent = '';
+    errEl.textContent = 'Setup failed: ' + (err && (err.code || err.message) ? (err.code || err.message) : 'unknown error') + ' — tap Cancel and try again, or screenshot this for support.';
+  }
+}
+
+function showMfaReauthPanel() {
+  document.getElementById('mfaSetupPanel').classList.add('hidden');
+  document.getElementById('mfaReauthPanel').classList.remove('hidden');
+  document.getElementById('mfaReauthError').textContent = '';
+  setTimeout(() => document.getElementById('mfaReauthPassword').focus(), 200);
+}
+
+async function confirmMfaReauth() {
+  const password = document.getElementById('mfaReauthPassword').value;
+  const errEl = document.getElementById('mfaReauthError');
+  const btn = document.getElementById('mfaReauthSubmitBtn');
+  errEl.textContent = '';
+  if (!password) {
+    errEl.textContent = 'Enter your password.';
+    return;
+  }
+  btn.disabled = true;
+  btn.classList.add('loading');
+  try {
+    const user = firebase.auth().currentUser;
+    const credential = window.__mfa.EmailAuthProvider.credential(user.email, password);
+    await window.__mfa.reauthenticateWithCredential(user, credential);
+    document.getElementById('mfaReauthPanel').classList.add('hidden');
+    document.getElementById('mfaSetupPanel').classList.remove('hidden');
+    document.getElementById('mfaManualKey').textContent = 'Generating your setup key…';
+    await generateAndShowTotpSecret();
+  } catch (err) {
+    console.error('MFA reauth failed', err);
+    errEl.textContent = friendlyAuthError(err);
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('loading');
   }
 }
 
@@ -4800,6 +4870,8 @@ async function confirmMfaEnrollment() {
 function cancelMfaEnrollment() {
   pendingTotpSecret = null;
   document.getElementById('mfaEnrollScreen').classList.add('hidden');
+  document.getElementById('mfaReauthPanel').classList.add('hidden');
+  document.getElementById('mfaSetupPanel').classList.remove('hidden');
   mfaSuggestSkippedThisSession = true;
 }
 
