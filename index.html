@@ -4730,6 +4730,15 @@ function saveName() {
     });
 }
 
+// Firebase's compat SDK objects (firebase.auth(), user, etc.) are thin
+// wrappers around the real modular objects, stashed at "._delegate". Modular
+// functions like multiFactor()/getMultiFactorResolver() expect the real
+// underlying object, not the compat wrapper — passing the wrapper directly
+// causes vague "auth/internal-error" failures. Unwrap before every call.
+function toModular(x) {
+  return (x && x._delegate) ? x._delegate : x;
+}
+
 function waitForMfaBridge() {
   if (window.__mfaBridgeReady) return Promise.resolve();
   return new Promise(resolve => {
@@ -4778,7 +4787,7 @@ async function generateAndShowTotpSecret() {
   const errEl = document.getElementById('mfaEnrollError');
   try {
     const user = firebase.auth().currentUser;
-    const session = await window.__mfa.multiFactor(user).getSession();
+    const session = await user.multiFactor.getSession();
     const secret = await window.__mfa.TotpMultiFactorGenerator.generateSecret(session);
     pendingTotpSecret = secret;
 
@@ -4829,8 +4838,8 @@ async function confirmMfaReauth() {
   btn.classList.add('loading');
   try {
     const user = firebase.auth().currentUser;
-    const credential = window.__mfa.EmailAuthProvider.credential(user.email, password);
-    await window.__mfa.reauthenticateWithCredential(user, credential);
+    const credential = firebase.auth.EmailAuthProvider.credential(user.email, password);
+    await user.reauthenticateWithCredential(credential);
     document.getElementById('mfaReauthPanel').classList.add('hidden');
     document.getElementById('mfaSetupPanel').classList.remove('hidden');
     document.getElementById('mfaManualKey').textContent = 'Generating your setup key…';
@@ -4862,7 +4871,7 @@ async function confirmMfaEnrollment() {
   try {
     const assertion = window.__mfa.TotpMultiFactorGenerator.assertionForEnrollment(pendingTotpSecret, code);
     const user = firebase.auth().currentUser;
-    await window.__mfa.multiFactor(user).enroll(assertion, 'Authenticator App');
+    await user.multiFactor.enroll(assertion, 'Authenticator App');
     pendingTotpSecret = null;
     document.getElementById('mfaEnrollScreen').classList.add('hidden');
     showToast('Two-factor authentication enabled', 'success');
@@ -4894,7 +4903,7 @@ async function handleMfaSignInChallenge(err) {
     return;
   }
   try {
-    pendingMfaResolver = window.__mfa.getMultiFactorResolver(firebase.auth(), err);
+    pendingMfaResolver = window.__mfa.getMultiFactorResolver(toModular(firebase.auth()), err);
     document.getElementById('mfaChallengeInput').value = '';
     document.getElementById('mfaChallengeError').textContent = '';
     document.getElementById('mfaChallengeScreen').classList.remove('hidden');
