@@ -3670,7 +3670,7 @@ if (firebaseAvailable) {
       startFirebaseListener();
       startOfficersFirebaseListener();
       pushToFirebaseDebounced(); // flush anything saved before auth completed
-      pushOfficersToFirebaseDebounced(loadOfficers());
+      loadOfficers().forEach(o => pushOfficerToFirebaseDebounced(o));
       updateAccountMenuLabel();
       startIdleWatcher();
       runOnboardingChain();
@@ -3755,7 +3755,6 @@ function logActivity(action) {
 }
 
 
-let officersFbSyncTimeout = null;
 let applyingRemoteOfficersUpdate = false;
 
 if (firebaseAvailable) {
@@ -3772,15 +3771,27 @@ function loadOfficers() {
 
 function saveOfficers(officers) {
   try { localStorage.setItem(OFFICERS_KEY, JSON.stringify(officers)); } catch (e) {}
-  pushOfficersToFirebaseDebounced(officers);
 }
 
-function pushOfficersToFirebaseDebounced(officers) {
+// Each officer is pushed to Firebase under their OWN key (officersRef/{id}),
+// never as one shared array. This is the important part: editing or deleting
+// one officer can only ever touch that officer's own node, so it can never
+// silently overwrite someone else who was added moments earlier — which is
+// exactly what happened with the old "push the whole array" approach any
+// time two saves landed close together.
+let officerPushTimeouts = {};
+function pushOfficerToFirebaseDebounced(officer) {
   if (!firebaseAvailable || !authReady || applyingRemoteOfficersUpdate || !officersRef) return;
-  clearTimeout(officersFbSyncTimeout);
-  officersFbSyncTimeout = setTimeout(() => {
-    officersRef.set(officers).catch(err => console.error('Officer sync failed', err));
+  clearTimeout(officerPushTimeouts[officer.id]);
+  officerPushTimeouts[officer.id] = setTimeout(() => {
+    officersRef.child(officer.id).set(officer).catch(err => console.error('Officer sync failed', err));
   }, 400);
+}
+
+function deleteOfficerFromFirebase(id) {
+  if (!firebaseAvailable || !authReady || !officersRef) return;
+  clearTimeout(officerPushTimeouts[id]);
+  officersRef.child(id).remove().catch(err => console.error('Officer delete-sync failed', err));
 }
 
 function startOfficersFirebaseListener() {
@@ -3788,14 +3799,17 @@ function startOfficersFirebaseListener() {
   officersRef.on('value', (snapshot) => {
     const remote = snapshot.val();
     if (remote === null) {
-      // nothing on the server yet — push whatever is stored locally
-      officersRef.set(loadOfficers());
+      // nothing on the server yet — migrate whatever's stored locally, one
+      // officer at a time (never as a single overwritable blob)
+      loadOfficers().forEach(o => { if (o && o.id) officersRef.child(o.id).set(o); });
       return;
     }
     if (isUserTyping() || dragState) return; // don't yank focus mid-edit or interrupt a drag
     try {
       applyingRemoteOfficersUpdate = true;
-      const officers = ensureArray(remote);
+      // remote is an object keyed by officer id (or, for older data saved
+      // before this fix, a plain array) — Object.values() handles both
+      const officers = ensureArray(Object.values(remote));
       localStorage.setItem(OFFICERS_KEY, JSON.stringify(officers));
       if (officersPanelOpen) renderOfficersPanelIfOpen();
     } catch (e) {
@@ -3811,13 +3825,17 @@ function startOfficersFirebaseListener() {
 function upsertOfficer(name, startTime, endTime) {
   const officers = loadOfficers();
   const existing = officers.find(o => o.name.trim().toLowerCase() === name.trim().toLowerCase());
+  let officer;
   if (existing) {
     existing.startTime = startTime;
     existing.endTime = endTime;
+    officer = existing;
   } else {
-    officers.push({ id: 'o_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), name: name.trim(), startTime, endTime });
+    officer = { id: 'o_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), name: name.trim(), startTime, endTime };
+    officers.push(officer);
   }
   saveOfficers(officers);
+  pushOfficerToFirebaseDebounced(officer);
 }
 
 function loadSettings() {
@@ -5516,7 +5534,7 @@ function renderOfficersPanelIfOpen() {
     nameInput.value = o.name;
     nameInput.placeholder = 'Name';
     nameInput.style.cssText = 'flex:1 1 100px;min-width:90px;padding:7px 8px;border:1px solid var(--glass-border);border-radius:8px;background:transparent;color:var(--text);font-size:13px;';
-    nameInput.oninput = e => { o.name = e.target.value; saveOfficers(officers); };
+    nameInput.oninput = e => { o.name = e.target.value; saveOfficers(officers); pushOfficerToFirebaseDebounced(o); };
     row.appendChild(nameInput);
 
     const timeGroup = document.createElement('div');
@@ -5524,14 +5542,14 @@ function renderOfficersPanelIfOpen() {
     const startInput = document.createElement('input');
     startInput.type = 'time';
     startInput.value = o.startTime;
-    startInput.oninput = e => { o.startTime = e.target.value; saveOfficers(officers); };
+    startInput.oninput = e => { o.startTime = e.target.value; saveOfficers(officers); pushOfficerToFirebaseDebounced(o); };
     const arrow = document.createElement('span');
     arrow.textContent = '→';
     arrow.style.cssText = 'color:var(--text-muted);font-size:11px;';
     const endInput = document.createElement('input');
     endInput.type = 'time';
     endInput.value = o.endTime;
-    endInput.oninput = e => { o.endTime = e.target.value; saveOfficers(officers); };
+    endInput.oninput = e => { o.endTime = e.target.value; saveOfficers(officers); pushOfficerToFirebaseDebounced(o); };
     timeGroup.appendChild(startInput);
     timeGroup.appendChild(arrow);
     timeGroup.appendChild(endInput);
@@ -5542,8 +5560,10 @@ function renderOfficersPanelIfOpen() {
       delBtn.className = 'icon-btn';
       delBtn.innerHTML = icon('trash');
       delBtn.onclick = () => {
+        const removedId = officers[idx].id;
         officers.splice(idx, 1);
         saveOfficers(officers);
+        deleteOfficerFromFirebase(removedId);
         renderOfficersPanelIfOpen();
       };
       row.appendChild(delBtn);
@@ -5564,8 +5584,10 @@ function renderOfficersPanelIfOpen() {
   addBtn.style.marginTop = '8px';
   addBtn.innerHTML = icon('plus') + 'Add Officer';
   addBtn.onclick = () => {
-    officers.push({ id: 'o_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), name: '', startTime: '09:00', endTime: '19:00' });
+    const newOfficer = { id: 'o_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), name: '', startTime: '09:00', endTime: '19:00' };
+    officers.push(newOfficer);
     saveOfficers(officers);
+    pushOfficerToFirebaseDebounced(newOfficer);
     renderOfficersPanelIfOpen();
   };
   panel.appendChild(addBtn);
