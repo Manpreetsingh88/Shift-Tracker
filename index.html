@@ -3361,7 +3361,19 @@ try {
 
 let fbSyncTimeout = null;
 let applyingRemoteUpdate = false;
-let hasPendingLocalChanges = false; // true from the moment of a local edit until Firebase confirms it saved
+const PENDING_SYNC_KEY = 'shift_break_tracker_pending_sync_v1';
+// Restored from localStorage, not just defaulted to false — if the app was
+// fully closed (not just backgrounded) before an edit finished saving, this
+// remembers that on reopen, so the incoming listener can't silently
+// overwrite it before the retry gets a chance to actually push it.
+let hasPendingLocalChanges = localStorage.getItem(PENDING_SYNC_KEY) === 'true';
+function setPendingLocalChanges(val) {
+  hasPendingLocalChanges = val;
+  try {
+    if (val) localStorage.setItem(PENDING_SYNC_KEY, 'true');
+    else localStorage.removeItem(PENDING_SYNC_KEY);
+  } catch (e) {}
+}
 
 function setSyncStatus(text) {
   const el = document.getElementById('lastSaved');
@@ -3697,13 +3709,13 @@ if (firebaseAvailable) {
 
 function pushToFirebaseDebounced() {
   if (!firebaseAvailable || !authReady || applyingRemoteUpdate) return;
-  hasPendingLocalChanges = true; // there's now an edit Firebase hasn't confirmed yet
+  setPendingLocalChanges(true); // there's now an edit Firebase hasn't confirmed yet
   clearTimeout(fbSyncTimeout);
   setSyncStatus('Syncing…');
   fbSyncTimeout = setTimeout(() => {
     dataRef.set(data)
       .then(() => {
-        hasPendingLocalChanges = false; // confirmed saved — safe for remote updates again
+        setPendingLocalChanges(false); // confirmed saved — safe for remote updates again
         setSyncStatus('Synced · ' + new Date().toLocaleTimeString());
       })
       .catch(err => {
