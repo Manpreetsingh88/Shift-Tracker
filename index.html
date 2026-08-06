@@ -3361,6 +3361,7 @@ try {
 
 let fbSyncTimeout = null;
 let applyingRemoteUpdate = false;
+let hasPendingLocalChanges = false; // true from the moment of a local edit until Firebase confirms it saved
 
 function setSyncStatus(text) {
   const el = document.getElementById('lastSaved');
@@ -3696,14 +3697,20 @@ if (firebaseAvailable) {
 
 function pushToFirebaseDebounced() {
   if (!firebaseAvailable || !authReady || applyingRemoteUpdate) return;
+  hasPendingLocalChanges = true; // there's now an edit Firebase hasn't confirmed yet
   clearTimeout(fbSyncTimeout);
   setSyncStatus('Syncing…');
   fbSyncTimeout = setTimeout(() => {
     dataRef.set(data)
-      .then(() => setSyncStatus('Synced · ' + new Date().toLocaleTimeString()))
+      .then(() => {
+        hasPendingLocalChanges = false; // confirmed saved — safe for remote updates again
+        setSyncStatus('Synced · ' + new Date().toLocaleTimeString());
+      })
       .catch(err => {
         console.error('Firebase sync failed', err);
         setSyncStatus('Saved locally (sync failed) · ' + new Date().toLocaleTimeString());
+        // leave hasPendingLocalChanges true — this edit still hasn't reached
+        // the server, so it must keep being protected from being overwritten
       });
   }, 400);
 }
@@ -3717,7 +3724,7 @@ function startFirebaseListener() {
       dataRef.set(data);
       return;
     }
-    if (isUserTyping() || dragState) return; // don't yank focus mid-edit or interrupt a drag
+    if (isUserTyping() || dragState || hasPendingLocalChanges) return; // never overwrite an edit that hasn't been confirmed saved yet
     try {
       applyingRemoteUpdate = true;
       data = ensureArray(remote);
@@ -3738,6 +3745,16 @@ function startFirebaseListener() {
   });
 }
 // ─────────────────────────────────────────────────────────────────────
+
+// If a pending push got cut off (tab backgrounded mid-save, network drop,
+// etc.), retry the moment the app is actually usable again rather than
+// silently leaving that edit stuck forever.
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && hasPendingLocalChanges) pushToFirebaseDebounced();
+});
+window.addEventListener('online', () => {
+  if (hasPendingLocalChanges) pushToFirebaseDebounced();
+});
 
 const SETTINGS_KEY = 'shift_break_tracker_settings_v1';
 const HISTORY_KEY = 'shift_break_tracker_history_v1';
