@@ -103,17 +103,26 @@
     --warn:      #B45309;  --warn-soft: #FBEBD6;
     --crit:      #B91C1C;  --crit-soft: #FBE3E3;
 
+    /* ── UI scale: one multiplier behind every size in the app ─────
+       Set from the zoom control. Using CSS zoom or transform:scale here
+       would break the sticky header and the fixed drop rail, so the type
+       and spacing scales are derived from it instead. */
+    --ui: 1;
+
     /* ── type scale: six sizes, floor 12px, no half-pixels ────────── */
-    --t-xs:      12px;  /* meta, badges, captions                      */
-    --t-sm:      13px;  /* controls, secondary rows                    */
-    --t-md:      15px;  /* body, names                                 */
-    --t-lg:      19px;  /* section titles                              */
-    --t-xl:      26px;  /* screen titles                               */
-    --t-display: 38px;  /* big figures (dashboard counts)              */
-    --t-hero:    72px;  /* the one hero number on the landing screen   */
+    --t-xs:      calc(12px * var(--ui));  /* meta, badges, captions    */
+    --t-sm:      calc(13px * var(--ui));  /* controls, secondary rows  */
+    --t-md:      calc(15px * var(--ui));  /* body, names               */
+    --t-lg:      calc(19px * var(--ui));  /* section titles            */
+    --t-xl:      calc(26px * var(--ui));  /* screen titles             */
+    --t-display: calc(38px * var(--ui));  /* big figures               */
+    --t-hero:    calc(72px * var(--ui));  /* landing hero number       */
 
     /* ── 4px spacing grid ─────────────────────────────────────────── */
-    --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px; --s6: 24px; --s8: 32px;
+    --s1: calc(4px * var(--ui));  --s2: calc(8px * var(--ui));
+    --s3: calc(12px * var(--ui)); --s4: calc(16px * var(--ui));
+    --s5: calc(20px * var(--ui)); --s6: calc(24px * var(--ui));
+    --s8: calc(32px * var(--ui));
 
     /* ── radius & elevation ───────────────────────────────────────── */
     --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-pill: 999px;
@@ -338,6 +347,7 @@
     margin-bottom: 3px;
   }
   .name-input {
+    width: calc(140px * var(--ui));
     font-weight: 600;
     font-size: var(--t-md);
     letter-spacing: -0.2px;
@@ -346,7 +356,6 @@
     background: transparent;
     padding: 3px 5px;
     border-radius: var(--r-sm);
-    width: 140px;
     min-width: 0;
   }
   .name-input:hover { background: var(--surface-2); }
@@ -1226,7 +1235,7 @@
      needs about 420px to keep identity, state and controls on one line. */
   body.view-desktop #board {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(calc(420px * var(--ui)), 1fr));
     gap: var(--s3);
     align-items: start;
   }
@@ -1242,7 +1251,7 @@
   body.view-desktop .note-input { font-size: var(--t-xs); padding: 2px 5px; margin-bottom: 2px; }
   body.view-desktop .section-header { padding: var(--s2) var(--s3); }
   body.view-desktop .section-body { padding: 0 var(--s3); }
-  body.view-desktop .name-input { font-size: var(--t-sm); width: auto; flex: 1 1 110px; max-width: 190px; }
+  body.view-desktop .name-input { font-size: var(--t-sm); width: auto; flex: 1 1 calc(110px * var(--ui)); max-width: calc(190px * var(--ui)); }
   body.view-desktop .break-chip { padding: 3px 8px 3px 4px; }
   body.view-desktop .quick-break-btn { padding: 3px 9px; }
   /* Keep the header on one line — the add button was wrapping beneath the
@@ -1273,15 +1282,15 @@
     /* Capped: left to grow, the name eats the whole line and pushes the
        controls onto a second row — which is what happened once the M/F chip
        joined them. */
-    flex: 1 1 80px;
-    max-width: 132px;
+    flex: 1 1 calc(80px * var(--ui));
+    max-width: calc(132px * var(--ui));
     min-width: 0;
     font-size: var(--t-md);   /* 16px stops iOS zooming the page on focus */
     margin-bottom: 0;
   }
-  body.view-mobile .move-to-select { max-width: 62px; font-size: var(--t-xs); padding: 2px 4px; }
+  body.view-mobile .move-to-select { max-width: calc(62px * var(--ui)); font-size: var(--t-xs); padding: 2px 4px; }
   body.view-mobile .row-controls { gap: 2px; }
-  body.view-mobile .row-controls .icon-btn { width: 24px; height: 24px; }
+  body.view-mobile .row-controls .icon-btn { width: calc(24px * var(--ui)); height: calc(24px * var(--ui)); }
   body.view-mobile .status-badge,
   body.view-mobile .break-left {
     flex: 0 0 auto;
@@ -1314,9 +1323,9 @@
     border: 1px solid var(--rule-1);
     background: var(--surface-1);
     color: var(--ink-1);
-    max-width: 78px;
+    max-width: calc(78px * var(--ui));
     flex-shrink: 0;
-    height: 30px;
+    height: calc(30px * var(--ui));
   }
   .icon-btn {
     background: none; border: none; cursor: pointer; font-size: var(--t-sm);
@@ -2770,7 +2779,7 @@
   /* ── gender chip ───────────────────────────────────────────────── */
   .gender-chip {
     flex-shrink: 0;
-    width: 22px; height: 22px; padding: 0;
+    width: calc(22px * var(--ui)); height: calc(22px * var(--ui)); padding: 0;
     border-radius: var(--r-sm);
     font-size: var(--t-xs); font-weight: 700; line-height: 1;
     background: var(--surface-2); color: var(--ink-3);
@@ -2806,6 +2815,194 @@
   .gap-name { font-weight: 650; color: var(--ink-1); flex: 1; }
   .gap-need { font-family: var(--mono); font-size: var(--t-xs); color: var(--crit); white-space: nowrap; }
   .gap-ok   { color: var(--ok); }
+
+  /* ── drop rail: only exists while a card is in hand ─────────────── */
+  #dropRail {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 26000;
+    background: var(--surface-1);
+    border-top: 1px solid var(--rule-1);
+    box-shadow: 0 -8px 24px rgba(20,22,28,0.14);
+    padding: var(--s2) var(--s3) calc(var(--s3) + env(safe-area-inset-bottom));
+    transform: translateY(100%);
+    transition: transform 0.18s var(--ease);
+    /* NOT pointer-events:none — the drop is resolved with elementFromPoint,
+       which honours it, so the chips would be invisible to the drag. The
+       pointer is already captured by the handle, so the rail can't steal it. */
+  }
+  #dropRail.up { transform: translateY(0); }
+  .drop-rail-label {
+    font-size: var(--t-xs); font-weight: 650; letter-spacing: 0.5px;
+    text-transform: uppercase; color: var(--ink-3); margin-bottom: var(--s2);
+  }
+  .drop-rail-strip {
+    display: flex; gap: var(--s2); overflow-x: auto; padding-bottom: 2px;
+  }
+  .drop-rail-chip {
+    flex: 0 0 auto;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
+    min-width: 104px;
+    padding: var(--s2) var(--s3);
+    border: 1.5px dashed var(--rule-1);
+    border-radius: var(--r-md);
+    background: var(--surface-2);
+    transition: background 0.12s var(--ease), border-color 0.12s var(--ease), transform 0.12s var(--ease);
+  }
+  .drop-rail-chip b {
+    font-size: var(--t-xs); font-weight: 700; letter-spacing: 0.4px;
+    text-transform: uppercase; color: var(--ink-1); white-space: nowrap;
+  }
+  .drop-rail-chip span { font-size: var(--t-xs); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .drop-rail-chip.needs { border-color: var(--warn); }
+  .drop-rail-chip.needs span { color: var(--warn); }
+  .drop-rail-chip.over {
+    background: var(--accent-soft);
+    border-color: var(--accent); border-style: solid;
+    transform: translateY(-3px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #dropRail { transition: none; }
+    .drop-rail-chip { transition: none; }
+  }
+
+  /* ── zoom stepper ──────────────────────────────────────────────── */
+  .zoom-row {
+    display: flex; align-items: center; gap: 6px;
+    padding: 4px 0 8px;
+    border-bottom: 1px solid var(--rule-1);
+    margin-bottom: 6px;
+  }
+  .zoom-label {
+    flex: 1; font-size: var(--t-sm); font-weight: 600; color: var(--ink-2);
+  }
+  .zoom-btn {
+    width: 30px; height: 30px; padding: 0; flex-shrink: 0;
+    font-size: var(--t-md); font-weight: 700; line-height: 1;
+  }
+  .zoom-value {
+    min-width: 46px; text-align: center;
+    font-size: var(--t-sm); font-weight: 650; color: var(--ink-1);
+    font-variant-numeric: tabular-nums;
+  }
+  .zoom-reset { padding: 5px 10px; font-size: var(--t-xs); flex-shrink: 0; }
+
+  /* ══ the brand moment: storm, mark, then it clears itself ══════════ */
+  .mj-stage {
+    position: fixed; inset: 0; z-index: 26500;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: var(--s2);
+    background: #05070C;
+    animation: mjStageIn 0.45s var(--ease) both;
+    cursor: pointer; overflow: hidden;
+  }
+  .mj-stage.leaving { animation: mjStageOut 0.32s var(--ease) forwards; }
+  @keyframes mjStageIn  { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes mjStageOut { to { opacity: 0; } }
+
+  .mj-sky { position: absolute; inset: 0; pointer-events: none; }
+  .mj-bolts { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .mj-bolt {
+    fill: none;
+    stroke: #F2F7FF;
+    stroke-width: 0.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 0 2px #9EC5FF) drop-shadow(0 0 6px #5B8DEF);
+    opacity: 0;
+    animation: mjStrike 0.62s steps(1, end) 1;
+  }
+  /* the same path traced fat and dim underneath — gives the strike a halo
+     instead of the hairline a single stroke reads as */
+  .mj-bolt-halo {
+    stroke: #7FB0FF;
+    stroke-width: 2.2;
+    opacity: 0;
+    filter: blur(1px) drop-shadow(0 0 10px #4C7EF3);
+    animation-name: mjStrikeHalo;
+  }
+  .mj-bolt-fork { stroke-width: 0.32; }
+  .mj-bolt-fork.mj-bolt-halo { stroke-width: 1.3; }
+  /* The bolt itself is a hairline — a tiny fraction of the screen — so it can
+     flicker twice per strike the way real lightning does. */
+  @keyframes mjStrike {
+    0%   { opacity: 0; }
+    6%   { opacity: 1; }
+    13%  { opacity: 0.2; }
+    19%  { opacity: 0.95; }
+    34%  { opacity: 0.35; }
+    52%  { opacity: 0.12; }   /* afterglow — the channel cools, it doesn't cut */
+    78%  { opacity: 0; }
+    100% { opacity: 0; }
+  }
+  @keyframes mjStrikeHalo {
+    0%   { opacity: 0; }
+    6%   { opacity: 0.75; }
+    13%  { opacity: 0.15; }
+    19%  { opacity: 0.6; }
+    40%  { opacity: 0.2; }
+    62%  { opacity: 0; }
+    100% { opacity: 0; }
+  }
+
+  /* The sky-wide flash is the part that fills the screen, so it gets ONE soft
+     beat per strike and the strikes sit 0.7s apart — about 1.4 flashes a
+     second, comfortably under the three-per-second seizure threshold. It also
+     ramps rather than snapping, which the bolt does not. */
+  .mj-flash {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 25%, rgba(150,190,255,0.42), transparent 68%);
+    opacity: 0;
+    animation: mjFlash 0.62s ease-out 1;
+  }
+  @keyframes mjFlash {
+    0%   { opacity: 0; }
+    10%  { opacity: 0.5; }
+    38%  { opacity: 0.12; }
+    70%  { opacity: 0; }
+    100% { opacity: 0; }
+  }
+
+  .mj-reveal {
+    position: relative; z-index: 2;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    animation: mjReveal 0.9s cubic-bezier(0.2, 1.1, 0.3, 1.05) 0.25s both;
+  }
+  @keyframes mjReveal {
+    0%   { opacity: 0; transform: scale(0.6); filter: blur(6px); }
+    60%  { opacity: 1; transform: scale(1.06); filter: blur(0); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  .mj-reveal .mj-badge-lg {
+    width: calc(84px * var(--ui)); height: calc(84px * var(--ui));
+    border-radius: calc(24px * var(--ui));
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.12), 0 12px 48px rgba(99,102,241,0.55);
+    /* a slow breath, so the beat after the last strike still feels alive.
+       2.6s per cycle is far too slow to read as a flash. */
+    animation: mjHalo 2.6s ease-in-out 1s infinite;
+  }
+  @keyframes mjHalo {
+    0%, 100% { box-shadow: 0 0 0 1px rgba(255,255,255,0.12), 0 12px 48px rgba(99,102,241,0.55); }
+    50%      { box-shadow: 0 0 0 1px rgba(255,255,255,0.22), 0 16px 72px rgba(129,140,248,0.85); }
+  }
+  .mj-stage-name { font-size: var(--t-xl); letter-spacing: -0.5px; margin-top: var(--s3); }
+  .mj-stage-studio {
+    font-size: var(--t-sm); font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase;
+    background: var(--brand-grad);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; color: transparent;
+  }
+  .mj-stage-motto {
+    font-size: var(--t-xs); color: rgba(255,255,255,0.5);
+    letter-spacing: 1.4px; text-transform: uppercase;
+  }
+
+  /* Reduced motion: the same moment, no strobing and no storm. */
+  .mj-stage.calm { background: #0B0E15; animation-duration: 0.25s; }
+  .mj-stage.calm .mj-reveal { animation: mjCalm 0.35s var(--ease) both; }
+  .mj-stage.calm .mj-badge-lg { animation: none; }
+  @keyframes mjCalm { from { opacity: 0; } to { opacity: 1; } }
 </style>
 </head>
 <body>
@@ -2846,6 +3043,13 @@
   <div class="settings-menu">
     <div class="settings-menu-title">Settings</div>
     <div id="accountLabel" class="account-label"></div>
+    <div class="zoom-row">
+      <span class="zoom-label">Size</span>
+      <button class="secondary zoom-btn" onclick="stepZoom(-1)" aria-label="Smaller">&minus;</button>
+      <span class="zoom-value" id="zoomValue">100%</span>
+      <button class="secondary zoom-btn" onclick="stepZoom(1)" aria-label="Bigger">+</button>
+      <button class="secondary zoom-reset" onclick="setZoom(1)">Reset</button>
+    </div>
     <button class="secondary" id="viewModeBtn" onclick="toggleViewMode()"></button>
     <button class="secondary" id="darkModeBtn" onclick="toggleDarkMode()"></button>
     <button class="secondary" id="alertsBtn" onclick="toggleAlertsEnabled()"></button>
@@ -4641,6 +4845,7 @@ function saveSettings() {
 let settings = loadSettings();
 
 function applySettingsToBody() {
+  applyZoom();
   // First run picks by screen size rather than defaulting to a phone layout.
   // A laptop opening a single narrow column is not a sensible starting point,
   // and most people never find the toggle.
@@ -4654,6 +4859,34 @@ function applySettingsToBody() {
   document.getElementById('darkModeBtn').innerHTML = settings.dark ? (icon('sun') + 'Light Mode') : (icon('moon') + 'Dark Mode');
   document.getElementById('alertsBtn').innerHTML = settings.alertsEnabled ? (icon('bellOff') + 'Disable Alerts') : (icon('bell') + 'Enable Alerts');
   document.getElementById('viewModeBtn').innerHTML = settings.view === 'desktop' ? (icon('monitor') + 'Desktop View') : (icon('smartphone') + 'Mobile View');
+}
+
+// One multiplier drives every size token, so this scales the whole interface
+// without CSS zoom or transform — both of which break the sticky header and
+// the fixed drop rail.
+const ZOOM_STEPS = [0.8, 0.85, 0.9, 0.95, 1, 1.05, 1.1, 1.2, 1.3, 1.4];
+
+function applyZoom() {
+  const z = settings.zoom || 1;
+  document.documentElement.style.setProperty('--ui', String(z));
+  const el = document.getElementById('zoomValue');
+  if (el) el.textContent = Math.round(z * 100) + '%';
+}
+
+function setZoom(z) {
+  settings.zoom = Math.min(ZOOM_STEPS[ZOOM_STEPS.length - 1], Math.max(ZOOM_STEPS[0], z));
+  saveSettings();
+  applyZoom();
+  render();          // column count and row widths depend on it
+}
+
+function stepZoom(dir) {
+  const cur = settings.zoom || 1;
+  // nearest step, then move one along — so an odd stored value still behaves
+  let i = ZOOM_STEPS.reduce((best, v, k) =>
+    Math.abs(v - cur) < Math.abs(ZOOM_STEPS[best] - cur) ? k : best, 0);
+  i = Math.min(ZOOM_STEPS.length - 1, Math.max(0, i + dir));
+  setZoom(ZOOM_STEPS[i]);
 }
 
 function toggleViewMode() {
@@ -5162,6 +5395,52 @@ function totalBreakLeft(p) {
 
 let dragState = null;
 
+
+// While a card is being dragged, every checkpoint becomes reachable from a
+// fixed rail along the bottom of the screen. Dropping used to require the
+// destination to be visible, which on a laptop meant scrolling with a card in
+// hand — impossible one-handed, and the reason moving people was painful.
+function buildDropRail(fromIdx) {
+  const rail = document.createElement('div');
+  rail.id = 'dropRail';
+  const label = document.createElement('div');
+  label.className = 'drop-rail-label';
+  label.textContent = 'Drop on a checkpoint';
+  rail.appendChild(label);
+
+  const strip = document.createElement('div');
+  strip.className = 'drop-rail-strip';
+  const now = new Date();
+  data.forEach((sec, idx) => {
+    if (idx === fromIdx) return;
+    const chip = document.createElement('div');
+    const st = evaluateStaffing(sec, now);
+    chip.className = 'drop-rail-chip' + (st && !st.ok ? ' needs' : '');
+    chip.dataset.sectionIndex = String(idx);
+    const n = sec.people.filter(pp => pp.name && pp.name.trim()).length;
+    chip.innerHTML = '<b>' + sec.title + '</b><span>' +
+      (st ? n + '/' + st.required : n) + '</span>';
+    strip.appendChild(chip);
+  });
+  rail.appendChild(strip);
+  document.body.appendChild(rail);
+  requestAnimationFrame(() => rail.classList.add('up'));
+  return rail;
+}
+
+function clearDropRail() {
+  const r = document.getElementById('dropRail');
+  if (r) r.remove();
+}
+
+// Dragging near the top or bottom edge scrolls the board, so a target that is
+// only just off screen doesn't need the rail at all.
+function dragAutoScroll(y) {
+  const margin = 90, speed = 14;
+  if (y < margin) window.scrollBy(0, -speed);
+  else if (y > window.innerHeight - margin) window.scrollBy(0, speed);
+}
+
 function attachDragHandlers(handle, card) {
   handle.addEventListener('pointerdown', (e) => {
     e.preventDefault();
@@ -5184,7 +5463,9 @@ function attachDragHandlers(handle, card) {
       card,
       offsetX: e.clientX - rect.left,
       offsetY: e.clientY - rect.top,
-      lastTarget: null
+      lastTarget: null,
+      rail: buildDropRail(Number(card.dataset.sectionIndex)),
+      railChip: null
     };
   });
 
@@ -5198,7 +5479,14 @@ function attachDragHandlers(handle, card) {
     const under = document.elementFromPoint(e.clientX, e.clientY);
     dragState.ghost.style.display = '';
 
-    const sectionBody = under ? under.closest('.section-body') : null;
+    dragAutoScroll(e.clientY);
+
+    const chip = under ? under.closest('.drop-rail-chip') : null;
+    if (dragState.railChip && dragState.railChip !== chip) dragState.railChip.classList.remove('over');
+    if (chip) chip.classList.add('over');
+    dragState.railChip = chip;
+
+    const sectionBody = (!chip && under) ? under.closest('.section-body') : null;
     if (dragState.lastTarget && dragState.lastTarget !== sectionBody) {
       dragState.lastTarget.classList.remove('drop-target');
     }
@@ -5211,11 +5499,27 @@ function attachDragHandlers(handle, card) {
     dragState.ghost.style.display = 'none';
     const under = document.elementFromPoint(e.clientX, e.clientY);
     dragState.ghost.style.display = '';
-    const targetBody = under ? under.closest('.section-body') : null;
+    const railChip = under ? under.closest('.drop-rail-chip') : null;
+    const targetBody = (!railChip && under) ? under.closest('.section-body') : null;
+    clearDropRail();
 
     document.querySelectorAll('.section-body.drop-target').forEach(el => el.classList.remove('drop-target'));
     dragState.ghost.remove();
     dragState.card.classList.remove('dragging');
+
+    if (railChip) {
+      const toSection = Number(railChip.dataset.sectionIndex);
+      if (toSection !== dragState.fromSection) {
+        const person = data[dragState.fromSection].people[dragState.fromPerson];
+        data[dragState.fromSection].people.splice(dragState.fromPerson, 1);
+        data[toSection].people.push(person);
+        saveData();
+        showToast((person.name || 'Officer') + ' moved to ' + data[toSection].title, 'success');
+      }
+      dragState = null;
+      render();
+      return;
+    }
 
     if (targetBody) {
       const toSection = Number(targetBody.dataset.sectionIndex);
@@ -7255,21 +7559,89 @@ function showCelebration(iconName, title, subtitle, theme) {
   }, 2200);
 }
 
-// The MJ mark is the app's identity — this is the one place it gets a full
-// moment. Dismissed by click, Escape, or the close button.
+// Tapping the mark is the one moment the app gets to show off. The screen
+// drops to black, lightning strikes behind the badge, and it clears itself —
+// no button to hunt for.
+//
+// Flash rate is deliberately held under three per second. Faster full-screen
+// flashing is a recognised photosensitive-seizure trigger, and this fires on a
+// tap anyone might make.
+const MJ_SHOW_MS = 4200;
+
+function boltFork(mainPts, spread) {
+  // a shorter limb peeling away from a point partway down the main channel
+  const start = Math.floor(mainPts.length * (0.3 + Math.random() * 0.3));
+  const from = mainPts[start] || mainPts[0];
+  const dir = Math.random() < 0.5 ? -1 : 1;
+  let cx = from[0], d = 'M' + cx.toFixed(1) + ' ' + from[1].toFixed(1);
+  for (let y = from[1] + 7; y < from[1] + 34 && y < 108; y += 7 + Math.random() * 6) {
+    cx += dir * (2 + Math.random() * spread * 0.5);
+    d += ' L' + cx.toFixed(1) + ' ' + y.toFixed(1);
+  }
+  return d;
+}
+
+function boltPoints(x, spread) {
+  // segments that stagger left and right on the way down, so no two strikes
+  // trace the same line
+  const pts = [[x, -4]];
+  let cx = x;
+  for (let y = 6; y < 108; y += 9 + Math.random() * 7) {
+    cx += (Math.random() - 0.5) * spread;
+    pts.push([cx, y]);
+  }
+  return pts;
+}
+
+function pointsToPath(pts) {
+  return pts.map((p, i) => (i ? ' L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('');
+}
+
 function showMJSignature() {
   const container = document.getElementById('brandModalContainer');
   if (!container) return;
   container.innerHTML = '';
 
-  const overlay = document.createElement('div');
-  overlay.className = 'brand-overlay';
+  const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  const stage = document.createElement('div');
+  stage.className = 'mj-stage' + (reduced ? ' calm' : '');
+  stage.setAttribute('role', 'dialog');
+  stage.setAttribute('aria-label', 'About this app');
+
+  // ── storm ───────────────────────────────────────────────────────────
+  if (!reduced) {
+    const sky = document.createElement('div');
+    sky.className = 'mj-sky';
+    // 0.7s apart: the storm carries the whole reveal, and the full-screen
+    // flashes stay well under three a second (see .mj-flash)
+    const bolts = [
+      { x: 21, delay: 0.35, spread: 13 },
+      { x: 76, delay: 1.05, spread: 16 },
+      { x: 44, delay: 1.75, spread: 11 },
+      { x: 63, delay: 2.45, spread: 14 },
+    ];
+    sky.innerHTML =
+      '<svg viewBox="0 0 100 104" preserveAspectRatio="none" class="mj-bolts">' +
+      bolts.map(b => {
+        const pts = boltPoints(b.x, b.spread);
+        const main = pointsToPath(pts);
+        const fork = boltFork(pts, b.spread);
+        const delay = ' style="animation-delay:' + b.delay + 's"';
+        // halo first so the bright core sits on top of its own glow
+        return '<path d="' + main + '" class="mj-bolt mj-bolt-halo"' + delay + '/>' +
+               '<path d="' + fork + '" class="mj-bolt mj-bolt-fork mj-bolt-halo"' + delay + '/>' +
+               '<path d="' + main + '" class="mj-bolt"' + delay + '/>' +
+               '<path d="' + fork + '" class="mj-bolt mj-bolt-fork"' + delay + '/>';
+      }).join('') +
+      '</svg>' +
+      bolts.map(b => '<div class="mj-flash" style="animation-delay:' + b.delay + 's"></div>').join('');
+    stage.appendChild(sky);
+  }
+
+  // ── the mark ────────────────────────────────────────────────────────
   const card = document.createElement('div');
-  card.className = 'brand-card';
-  card.setAttribute('role', 'dialog');
-  card.setAttribute('aria-label', 'About this app');
-
+  card.className = 'mj-reveal';
   card.innerHTML =
     '<div class="mj-badge mj-badge-lg flip-badge">' +
       '<div class="flip-badge-inner">' +
@@ -7279,29 +7651,29 @@ function showMJSignature() {
           '<rect x="3" y="18.2" width="18" height="2.2" rx="1"/></svg></div>' +
       '</div>' +
     '</div>' +
-    '<div class="brand-name">MJ</div>' +
-    '<div class="brand-studio">Jatt Mind</div>' +
-    '<div class="brand-motto">Digital Grind</div>' +
-    '<div class="brand-product">Shift &amp; Break Tracker</div>';
+    '<div class="brand-name mj-stage-name">MJ</div>' +
+    '<div class="mj-stage-studio">Jatt Mind</div>' +
+    '<div class="mj-stage-motto">Digital Grind</div>';
+  stage.appendChild(card);
 
-  const close = document.createElement('button');
-  close.className = 'secondary brand-close';
-  close.textContent = 'Close';
-  card.appendChild(close);
-
-  function dismiss() {
+  // ── dismissal: automatic, or on any input ───────────────────────────
+  let closed = false;
+  function close() {
+    if (closed) return;
+    closed = true;
+    clearTimeout(timer);
     document.removeEventListener('keydown', onKey);
-    container.innerHTML = '';
+    stage.classList.add('leaving');
+    // remove THIS stage only. Clearing the container would let a stale
+    // leave-timer from a previous run blank a stage the user just reopened.
+    setTimeout(() => { stage.remove(); }, 320);
   }
-  function onKey(e) { if (e.key === 'Escape') dismiss(); }
-
-  close.onclick = dismiss;
-  overlay.onclick = (e) => { if (e.target === overlay) dismiss(); };
+  function onKey() { close(); }
+  const timer = setTimeout(close, MJ_SHOW_MS);
+  stage.addEventListener('click', close);
   document.addEventListener('keydown', onKey);
 
-  overlay.appendChild(card);
-  container.appendChild(overlay);
-  close.focus();
+  container.appendChild(stage);
 }
 
 function showToast(message, type) {
