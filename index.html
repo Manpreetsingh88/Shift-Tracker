@@ -24,18 +24,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #f4f6fb;
-    background-image:
-      radial-gradient(ellipse 70% 55% at 12% -8%, rgba(99,102,241,0.16), transparent 60%),
-      radial-gradient(ellipse 60% 50% at 92% 6%, rgba(217,70,239,0.13), transparent 60%),
-      linear-gradient(160deg, #f7f8fc 0%, #eceef6 100%);
-  }
-  body.dark #authCheckSplash {
-    background-color: #0a0e17;
-    background-image:
-      radial-gradient(ellipse 70% 55% at 12% -8%, rgba(99,102,241,0.22), transparent 60%),
-      radial-gradient(ellipse 60% 50% at 92% 6%, rgba(217,70,239,0.16), transparent 60%),
-      linear-gradient(160deg, #0d121e 0%, #060911 100%);
+    background: var(--paper);
   }
   #authCheckSplash.hidden { display: none; }
   #authCheckSplash .splash-content {
@@ -47,7 +36,7 @@
     gap: 22px;
   }
   .split-flap-board {
-    background: #1a1d23;
+    background: var(--ink-1);
     border-radius: 10px;
     padding: 12px 22px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.06);
@@ -57,9 +46,9 @@
   .split-flap-row {
     font-family: 'Courier New', ui-monospace, monospace;
     font-weight: 700;
-    font-size: 13px;
+    font-size: var(--t-sm);
     letter-spacing: 2px;
-    color: #f4f4f0;
+    color: var(--surface-1);
     text-transform: uppercase;
     white-space: nowrap;
     position: relative;
@@ -84,54 +73,100 @@
   @keyframes badgePulseFade { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
   * { box-sizing: border-box; }
 
+  /* ══════════════════════════════════════════════════════════════════
+     DESIGN TOKENS — the only place a color, size or space is invented.
+     Everything below this block, and every style set from JS, reads
+     from these. Dark mode is this same list with different values;
+     it is never a per-component override.
+     ══════════════════════════════════════════════════════════════════ */
   :root {
-    --glass-bg: rgba(255,255,255,0.72);
-    --glass-border: rgba(255,255,255,0.7);
-    --surface: rgba(255,255,255,0.86);
-    --text: #0f172a;
-    --text-muted: #64748b;
-    --elev-1: 0 1px 2px rgba(15,23,42,0.06), 0 2px 6px rgba(15,23,42,0.05);
-    --elev-2: 0 2px 4px rgba(15,23,42,0.06), 0 8px 20px rgba(15,23,42,0.08);
-    --elev-3: 0 8px 16px rgba(15,23,42,0.10), 0 24px 48px rgba(15,23,42,0.14);
+    /* ── ground & ink ─────────────────────────────────────────────── */
+    --paper:      #F3F4F8;   /* page background                        */
+    --surface-1:  #FFFFFF;   /* cards, rows                            */
+    --surface-2:  #EDEEF3;   /* inset wells, tracks, disabled          */
+    --surface-3:  #E2E4EC;   /* hover on inset                         */
+    --ink-1:      #14161C;   /* primary text                           */
+    --ink-2:      #4C515E;   /* secondary text                         */
+    --ink-3:      #666C7E;   /* meta, captions, placeholder — AA on paper */
+    --rule-1:     #D3D6E0;   /* borders                                */
+    --rule-2:     #E6E8EF;   /* hairlines between rows                 */
+
+    /* ── one accent, sampled from the MJ badge gradient ───────────── */
+    --accent:      #4F46E5;
+    --accent-hover:#4338CA;
+    --accent-ink:  #FFFFFF;
+    --accent-soft: #E8E7FC;
+    --brand-grad:  linear-gradient(135deg, #6366f1 0%, #8b5cf6 45%, #d946ef 100%);
+
+    /* ── state only — never decoration, never a section theme ─────── */
+    --ok:        #15803D;  --ok-soft:   #DCF2E4;
+    --warn:      #B45309;  --warn-soft: #FBEBD6;
+    --crit:      #B91C1C;  --crit-soft: #FBE3E3;
+
+    /* ── type scale: six sizes, floor 12px, no half-pixels ────────── */
+    --t-xs:      12px;  /* meta, badges, captions                      */
+    --t-sm:      13px;  /* controls, secondary rows                    */
+    --t-md:      15px;  /* body, names                                 */
+    --t-lg:      19px;  /* section titles                              */
+    --t-xl:      26px;  /* screen titles                               */
+    --t-display: 38px;  /* big figures (dashboard counts)              */
+    --t-hero:    72px;  /* the one hero number on the landing screen   */
+
+    /* ── 4px spacing grid ─────────────────────────────────────────── */
+    --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px; --s6: 24px; --s8: 32px;
+
+    /* ── radius & elevation ───────────────────────────────────────── */
+    --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-pill: 999px;
+    --elev-1: 0 1px 2px rgba(20,22,28,0.05);
+    --elev-2: 0 1px 3px rgba(20,22,28,0.07), 0 4px 12px rgba(20,22,28,0.06);
+    --elev-3: 0 8px 24px rgba(20,22,28,0.12);
+
     --ease: cubic-bezier(0.4, 0, 0.2, 1);
     --pad-top: max(20px, env(safe-area-inset-top));
     --pad-right: max(20px, env(safe-area-inset-right));
     --pad-bottom: max(20px, env(safe-area-inset-bottom));
     --pad-left: max(20px, env(safe-area-inset-left));
+
+    /* No aliases here on purpose. A custom property that refers to another
+       one is substituted where it is DECLARED, not where it is used — so an
+       alias defined only on :root keeps its light-mode value inside
+       body.dark and silently breaks dark mode. Components read the tokens
+       directly instead. */
   }
+
   body.dark {
-    --glass-bg: rgba(22,30,46,0.72);
-    --glass-border: rgba(148,163,184,0.14);
-    --surface: rgba(26,34,51,0.88);
-    --text: #e8edf5;
-    --text-muted: #94a3b8;
-    --elev-1: 0 1px 2px rgba(0,0,0,0.3), 0 2px 6px rgba(0,0,0,0.25);
-    --elev-2: 0 2px 4px rgba(0,0,0,0.35), 0 8px 20px rgba(0,0,0,0.4);
-    --elev-3: 0 8px 16px rgba(0,0,0,0.45), 0 24px 48px rgba(0,0,0,0.55);
+    --paper:      #0E1014;
+    --surface-1:  #191C23;
+    --surface-2:  #22262F;
+    --surface-3:  #2C313C;
+    --ink-1:      #E9EAF0;
+    --ink-2:      #A9AEBE;
+    --ink-3:      #848A9C;
+    --rule-1:     #2F3441;
+    --rule-2:     #23272F;
+
+    --accent:      #8B85F5;
+    --accent-hover:#A29CFF;
+    --accent-ink:  #14161C;
+    --accent-soft: #241F4D;
+
+    --ok:        #4ADE80;  --ok-soft:   #123021;
+    --warn:      #FBBF24;  --warn-soft: #3A2A0C;
+    --crit:      #F87171;  --crit-soft: #3B1618;
+
+    --elev-1: 0 1px 2px rgba(0,0,0,0.4);
+    --elev-2: 0 1px 3px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.4);
+    --elev-3: 0 8px 24px rgba(0,0,0,0.6);
   }
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     margin: 0;
     padding: var(--pad-top) var(--pad-right) var(--pad-bottom) var(--pad-left);
-    color: var(--text);
-    background-color: #e9edf4;
-    background-image:
-      radial-gradient(ellipse 80% 60% at 10% -5%, rgba(59,130,246,0.20), transparent 60%),
-      radial-gradient(ellipse 70% 50% at 95% 8%, rgba(139,92,246,0.16), transparent 60%),
-      radial-gradient(ellipse 90% 60% at 50% 105%, rgba(14,165,233,0.14), transparent 60%),
-      linear-gradient(160deg, #f2f5fa 0%, #e6ebf5 100%);
-    background-attachment: fixed;
-    transition: background-color 0.4s var(--ease), color 0.3s var(--ease);
+    color: var(--ink-1);
+    background: var(--paper);
+    transition: background-color 0.3s var(--ease), color 0.3s var(--ease);
     -webkit-font-smoothing: antialiased;
-  }
-  body.dark {
-    background-color: #080c14;
-    background-image:
-      radial-gradient(ellipse 80% 60% at 10% -5%, rgba(59,130,246,0.22), transparent 60%),
-      radial-gradient(ellipse 70% 50% at 95% 8%, rgba(139,92,246,0.20), transparent 60%),
-      radial-gradient(ellipse 90% 60% at 50% 105%, rgba(6,182,212,0.14), transparent 60%),
-      linear-gradient(160deg, #101725 0%, #070b12 100%);
   }
 
   /* tabular numerals so digits don't jitter as they tick */
@@ -141,311 +176,325 @@
     font-feature-settings: "tnum";
   }
 
-  body.dark h1 { color: #f4f7fc; }
-  body.dark .subtitle { color: var(--text-muted); }
-  body.dark .card { background: rgba(33,43,64,0.82); border-color: rgba(148,163,184,0.16); }
-  body.dark .card.on-break { background: rgba(58,47,18,0.85); border-color: #f59e0b; }
-  body.dark .card.finished { background: rgba(18,41,29,0.85); border-color: #16a34a; }
-  body.dark .name-input, body.dark .note-input { color: #e8edf5; }
-  body.dark .name-input:focus, body.dark .note-input:focus { background: rgba(42,53,80,0.9); }
-  body.dark .meta-row { color: var(--text-muted); }
-  body.dark select, body.dark input[type=time] { background: rgba(42,53,80,0.85); color: #e8edf5; border-color: rgba(148,163,184,0.2); }
-  body.dark .break-chip .lbl { color: var(--text-muted); }
-  body.dark button.secondary { background: rgba(42,53,80,0.85); color: #e8edf5; }
-  body.dark .summary-pill { background: rgba(42,53,80,0.85); color: #e8edf5; }
+  /* No body.dark overrides here: every rule below reads from the tokens,
+     so dark mode is handled entirely by the token block above. */
 
-  body.compact .card { padding: 6px 8px; margin-bottom: 5px; }
-  body.compact .top-row { margin-bottom: 3px; gap: 4px; }
-  body.compact .meta-row { margin-bottom: 4px; }
-  body.compact .name-input { width: 90px; font-size: 13px; }
-  body.compact .section-body { padding: 8px; }
-  body.compact .note-input { margin-bottom: 3px; }
 
-  /* ── Overview Mode: shrink everything hard so several sections and their
-     people are visible on screen at once, making moving people around
-     between checkpoints practical on a phone screen ── */
-  body.overview-mode .section { margin-bottom: 6px; border-radius: 9px; }
-  body.overview-mode .section-header { padding: 6px 10px; gap: 6px; }
-  body.overview-mode .section-header input { font-size: 10px; letter-spacing: 0.5px; min-width: 60px; }
-  body.overview-mode .hours-badge { font-size: 7px; padding: 2px 6px; }
-  body.overview-mode .section-body { padding: 5px; }
-  body.overview-mode .card { padding: 5px 7px; margin-bottom: 3px; border-radius: 9px; }
-  body.overview-mode .top-row { margin-bottom: 2px; gap: 3px; }
-  body.overview-mode .name-input { width: 68px; font-size: 11px; padding: 3px 4px; }
-  body.overview-mode .status-badge {
-    font-size: 7px;
-    padding: 2px 5px;
-    max-width: 64px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  body.overview-mode .drag-handle { display: none; }
-  body.overview-mode .top-row { flex-wrap: nowrap; }
-  body.overview-mode .name-input { min-width: 0; }
-
-  body.overview-mode .timing-row,
-  body.overview-mode .note-input,
-  body.overview-mode .meta-row,
-  body.overview-mode .timeline,
-  body.overview-mode .quick-break-row { display: none; }
-  body.overview-mode .breaks { gap: 3px; }
-  body.overview-mode .break-ring { width: 24px; height: 24px; }
-  body.overview-mode .break-ring .len { font-size: 7px; }
-  body.overview-mode .break-chip .lbl { display: none; }
-  body.overview-mode .row-controls { gap: 2px; margin-left: 2px; }
-  body.overview-mode .row-controls .icon-btn { width: 20px; height: 20px; padding: 2px; }
-  body.overview-mode .row-controls .icon-svg { width: 12px; height: 12px; }
-  body.overview-mode .move-to-select { height: 22px; font-size: 8px; padding: 2px 3px; max-width: 50px; }
-  body.overview-mode .drag-handle { width: 12px; }
-  body.overview-mode .add-person-btn { padding: 4px 8px; font-size: 10px; }
+  /* Compact and Overview modes removed — the officer row is dense enough at
+     full size that shrinking type to 7px is no longer how you fit a shift on
+     screen. */
 
   h1 {
-    font-size: 20px;
+    font-size: var(--t-xl);
     margin: 0 0 2px 0;
-    letter-spacing: -0.3px;
+    letter-spacing: -0.5px;
     font-weight: 700;
+    color: var(--ink-1);
   }
-  .subtitle { color: var(--text-muted); font-size: 9.5px; margin-bottom: 4px; line-height: 1; opacity: 0.75; }
-  .toolbar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .subtitle { color: var(--ink-3); font-size: var(--t-xs); margin-bottom: var(--s1); line-height: 1.3; }
+  .toolbar { display: flex; gap: var(--s2); margin-bottom: var(--s5); flex-wrap: wrap; }
   button {
-    border: none; border-radius: 10px; padding: 9px 14px;
-    font-size: 13px; font-weight: 500; cursor: pointer; background: #2563eb; color: white;
+    border: none; border-radius: var(--r-md); padding: 9px 14px;
+    font-size: var(--t-sm); font-weight: 550; cursor: pointer;
+    background: var(--accent); color: var(--accent-ink);
     display: inline-flex; align-items: center; justify-content: center;
     transition: transform 0.12s var(--ease), background 0.2s var(--ease), box-shadow 0.2s var(--ease);
   }
-  button.secondary { background: #e5e7eb; color: #1a1a1a; }
-  button.danger { background: #dc2626; }
-  button:active { transform: scale(0.96); }
-  button:hover { filter: brightness(1.04); }
+  button.secondary { background: var(--surface-2); color: var(--ink-1); }
+  button.danger { background: var(--crit); color: #fff; }
+  button:active { transform: scale(0.97); }
+  button:hover { background: var(--accent-hover); }
+  button.secondary:hover { background: var(--surface-3); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   .section {
-    border-radius: 16px;
-    margin-bottom: 18px;
+    border-radius: var(--r-lg);
+    margin-bottom: var(--s4);
     overflow: hidden;
-    box-shadow: var(--elev-2);
-    border: 1px solid var(--glass-border);
-    transition: box-shadow 0.25s var(--ease);
+    box-shadow: var(--elev-1);
+    border: 1px solid var(--rule-1);
+    background: var(--surface-1);
   }
-  .section:hover { box-shadow: var(--elev-3); }
+  /* The header is a quiet label bar, not a colored banner. Identity comes from
+     the accent rail on the left, so seven checkpoints no longer read as seven
+     unrelated brands. */
   .section-header {
-    padding: 12px 16px;
+    padding: var(--s3) var(--s4);
     display: flex;
     align-items: center;
-    gap: 10px;
-    color: white;
+    gap: var(--s2);
+    color: var(--ink-1);
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--rule-1);
+    border-left: 3px solid var(--section-hue, var(--accent));
     flex-wrap: wrap;
   }
   .section-header .dot {
-    width: 10px; height: 10px; border-radius: 50%;
-    background: rgba(255,255,255,0.85);
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--section-hue, var(--accent));
     flex-shrink: 0;
   }
   .section-header input {
     background: transparent;
     border: none;
-    color: white;
+    color: var(--ink-1);
     font-weight: 700;
-    font-size: 12px;
-    letter-spacing: 1.1px;
+    font-size: var(--t-xs);
+    letter-spacing: 0.9px;
     text-transform: uppercase;
     flex: 1 1 auto;
     min-width: 120px;
   }
-  .section-header input:focus { outline: 1px solid rgba(255,255,255,0.6); border-radius: 4px; }
-  .section-header .icon-btn { color: white; flex-shrink: 0; }
+  .section-header input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-radius: 3px; }
+  .section-header .icon-btn { color: var(--ink-3); flex-shrink: 0; }
+  .section-header .icon-btn:hover { color: var(--ink-1); }
   .section-body {
-    background: var(--surface);
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
-    padding: 12px;
+    background: var(--surface-1);
+    padding: 0 var(--s4);
   }
 
-  .theme-0 { background: linear-gradient(135deg,#2563eb,#1d4ed8); }
-  .theme-1 { background: linear-gradient(135deg,#7c3aed,#6d28d9); }
-  .theme-2 { background: linear-gradient(135deg,#0891b2,#0e7490); }
-  .theme-3 { background: linear-gradient(135deg,#059669,#047857); }
-  .theme-4 { background: linear-gradient(135deg,#d97706,#b45309); }
-  .theme-5 { background: linear-gradient(135deg,#db2777,#be185d); }
-  .theme-6 { background: linear-gradient(135deg,#4b5563,#374151); }
+  /* Section identity is a single hue on a 3px rail — no gradients, no banner. */
+  .theme-0 { --section-hue: #4F46E5; }
+  .theme-1 { --section-hue: #7C3AED; }
+  .theme-2 { --section-hue: #0891B2; }
+  .theme-3 { --section-hue: #059669; }
+  .theme-4 { --section-hue: #D97706; }
+  .theme-5 { --section-hue: #DB2777; }
+  .theme-6 { --section-hue: #64748B; }
 
+  /* ── the officer row ──────────────────────────────────────────────
+     One surface, one line of identity, one line of detail. State reads
+     from the left stripe before a single word is read. ── */
   .card {
-    background: rgba(255,255,255,0.6);
-    border: 1px solid rgba(15,23,42,0.07);
-    border-radius: 13px;
-    padding: 9px 11px;
-    margin-bottom: 6px;
-    box-shadow: var(--elev-1);
-    transition: box-shadow 0.22s var(--ease), background 0.25s var(--ease),
-                border-color 0.25s var(--ease), transform 0.18s var(--ease);
+    position: relative;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--rule-2);
+    border-radius: 0;
+    padding: var(--s3) 0 var(--s3) var(--s3);
+    margin: 0;
+    box-shadow: none;
+    transition: background 0.15s var(--ease);
   }
-  .card:hover { box-shadow: var(--elev-2); }
-  .card.on-break { border-color: #f59e0b; background: rgba(255,248,236,0.9); }
-  .card.finished { border-color: #16a34a; background: rgba(240,253,244,0.85); opacity: 0.9; }
-  .card:last-child { margin-bottom: 0; }
+  .card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 10px; bottom: 10px;
+    width: 3px; border-radius: 2px;
+    background: var(--rule-1);
+    transition: background 0.2s var(--ease);
+  }
+  .card:hover { background: var(--surface-2); }
+  .card.on-break::before { background: var(--warn); }
+  .card.finished::before { background: var(--ok); }
+  .card.finished { opacity: 0.72; }
+  .card:last-child { border-bottom: none; }
 
   .top-row {
     display: flex;
     align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
-    margin-bottom: 4px;
+    gap: var(--s2);
+    margin-bottom: 3px;
   }
   .timing-row {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--s2);
     flex-wrap: wrap;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
   }
   .name-input {
-    font-weight: 650;
-    font-size: 14.5px;
+    font-weight: 600;
+    font-size: var(--t-md);
     letter-spacing: -0.2px;
+    color: var(--ink-1);
     border: 1px solid transparent;
     background: transparent;
-    padding: 4px 6px;
-    border-radius: 6px;
-    width: 120px;
+    padding: 3px 5px;
+    border-radius: var(--r-sm);
+    width: 140px;
+    min-width: 0;
   }
-  .name-input:focus { border-color: #2563eb; background: white; outline: none; }
+  .name-input:hover { background: var(--surface-2); }
+  .name-input:focus { border-color: var(--accent); background: var(--surface-1); outline: none; }
 
   select, input[type=time] {
-    border: 1px solid #ccc;
-    border-radius: 6px;
+    border: 1px solid var(--rule-1);
+    border-radius: var(--r-sm);
     padding: 4px 6px;
-    font-size: 12px;
+    font-size: var(--t-xs);
+    background: var(--surface-1);
+    color: var(--ink-1);
   }
+  select:focus-visible, input[type=time]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
   .note-input {
     border: 1px solid transparent;
     background: transparent;
-    padding: 4px 6px;
-    border-radius: 6px;
-    font-size: 12px;
-    color: #555;
+    padding: 3px 5px;
+    border-radius: var(--r-sm);
+    font-size: var(--t-xs);
+    color: var(--ink-2);
     width: 100%;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
   }
-  .note-input:focus { border-color: #2563eb; background: white; outline: none; }
-  .note-input::placeholder { color: #aaa; }
+  .note-input:hover { background: var(--surface-2); }
+  .note-input:focus { border-color: var(--accent); background: var(--surface-1); outline: none; }
+  .note-input::placeholder { color: var(--ink-3); }
 
+  /* Status is a word next to the name, in state color — the stripe on the
+     card carries the same signal for anyone who can't separate the hues. */
   .status-badge {
-    font-size: 9.5px;
-    font-weight: 700;
-    letter-spacing: 0.7px;
+    font-size: var(--t-xs);
+    font-weight: 650;
+    letter-spacing: 0.4px;
     text-transform: uppercase;
-    padding: 4px 10px;
-    border-radius: 999px;
-    background: #e5e7eb;
-    color: #444;
-    margin-left: auto;
+    padding: 0;
+    background: none;
+    color: var(--ink-3);
     white-space: nowrap;
   }
-  .status-badge.on-break { background: #f59e0b; color: white; }
-  .status-badge.finished { background: #16a34a; color: white; }
+  .status-badge.on-break { color: var(--warn); }
+  .status-badge.finished { color: var(--ok); }
+  .status-badge.overdue  { color: var(--crit); font-weight: 750; }
 
   .meta-row {
-    font-size: 10.5px;
-    color: var(--text-muted);
-    margin-bottom: 5px;
-    letter-spacing: 0.2px;
+    font-size: var(--t-xs);
+    color: var(--ink-3);
+    margin-bottom: var(--s1);
+    letter-spacing: 0;
     font-weight: 500;
   }
 
-  .breaks { display: flex; gap: 6px; flex-wrap: wrap; }
+  /* Break chips: small pills on one line rather than 46px dials stacked in a
+     row. The ring survives as a 16px progress dot for the active break. */
+  /* Break chips: [ring] [length] [label] on one line. The ring is a 14px
+     progress dot, not a 46px dial — three of them now fit on one row. */
+  .breaks { display: flex; gap: var(--s1); flex-wrap: wrap; align-items: center; }
   .break-chip {
-    display: flex;
-    flex-direction: column;
+    display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     cursor: pointer;
     user-select: none;
-    background: none;
-    border: none;
-    padding: 2px;
-    transition: transform 0.15s var(--ease);
+    background: var(--surface-2);
+    border: 1px solid transparent;
+    border-radius: var(--r-pill);
+    padding: 4px 10px 4px 5px;
+    color: var(--ink-2);
+    font-size: var(--t-xs);
+    line-height: 1;
+    transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
   }
-  .break-chip:active { transform: scale(0.94); }
+  .break-chip:hover { background: var(--surface-3); }
+  .break-chip:active { transform: scale(0.97); }
+  .break-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
   .break-ring {
-    width: 46px;
-    height: 46px;
+    width: 14px; height: 14px;
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     position: relative;
-    background: conic-gradient(var(--ring-color, #cbd5e1) var(--ring-pct, 0%), var(--ring-track, #e2e8f0) 0);
+    flex-shrink: 0;
+    background: conic-gradient(var(--ring-color, var(--ink-3)) var(--ring-pct, 0%), var(--rule-1) 0);
     transition: background 0.4s var(--ease);
   }
   .break-ring::after {
     content: '';
     position: absolute;
-    inset: 4px;
+    inset: 3px;
     border-radius: 50%;
-    background: var(--ring-hole, #ffffff);
-    transition: background 0.3s var(--ease);
+    background: var(--surface-2);
+    transition: background 0.2s var(--ease);
   }
-  body.dark .break-ring { --ring-track: rgba(148,163,184,0.22); --ring-hole: #1b2438; }
-  .break-ring .len {
-    position: relative;
-    z-index: 1;
-    font-weight: 700;
-    font-size: 13px;
-    letter-spacing: -0.3px;
+  .break-chip:hover .break-ring::after { background: var(--surface-3); }
+  .break-chip .len {
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-1);
+    white-space: nowrap;
   }
   .break-chip .lbl {
-    font-size: 9px;
-    color: var(--text-muted);
+    color: var(--ink-3);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.4px;
     font-weight: 600;
-    text-align: center;
-    max-width: 78px;
-    line-height: 1.25;
+    white-space: nowrap;
   }
-  .break-chip.active .break-ring { --ring-color: #f59e0b; }
-  .break-chip.active .break-ring .len { color: #b45309; }
-  .break-chip.active .lbl { color: #b45309; }
-  .break-chip.done .break-ring { --ring-color: #16a34a; --ring-pct: 100%; }
-  .break-chip.done .break-ring .len { color: #15803d; }
-  .break-chip.done .lbl { color: #15803d; }
-  body.dark .break-chip.active .break-ring .len,
-  body.dark .break-chip.active .lbl { color: #fbbf24; }
-  body.dark .break-chip.done .break-ring .len,
-  body.dark .break-chip.done .lbl { color: #4ade80; }
-  .break-chip.overtime .break-ring { --ring-color: #dc2626; }
-  .break-chip.overtime .break-ring .len, .break-chip.overtime .lbl { color: #dc2626; }
-  body.compact .break-ring { width: 42px; height: 42px; }
-  body.compact .break-ring .len { font-size: 11px; }
+  .break-chip.active { background: var(--warn-soft); border-color: var(--warn); }
+  .break-chip.active .break-ring { --ring-color: var(--warn); }
+  .break-chip.active .break-ring::after { background: var(--warn-soft); }
+  .break-chip.active .len, .break-chip.active .lbl { color: var(--warn); }
+  .break-chip.done { background: var(--ok-soft); }
+  .break-chip.done .break-ring { --ring-color: var(--ok); --ring-pct: 100%; }
+  .break-chip.done .break-ring::after { background: var(--ok-soft); }
+  .break-chip.done .len, .break-chip.done .lbl { color: var(--ok); }
+  .break-chip.overtime { background: var(--crit-soft); border-color: var(--crit); }
+  .break-chip.overtime .break-ring { --ring-color: var(--crit); }
+  .break-chip.overtime .break-ring::after { background: var(--crit-soft); }
+  .break-chip.overtime .len, .break-chip.overtime .lbl { color: var(--crit); }
+
+  /* ── row internals ─────────────────────────────────────────────── */
+  .top-row { flex-wrap: nowrap; }
+  .row-controls { margin-left: auto; flex-shrink: 0; }
+  .break-left {
+    font-size: var(--t-xs);
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-2);
+    background: var(--surface-2);
+    padding: 2px 8px;
+    border-radius: var(--r-pill);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .break-left.none { color: var(--ok); background: var(--ok-soft); }
+  .timing-row .break-left { margin-left: auto; }
+  .timing-row {
+    font-size: var(--t-xs);
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .timing-row .sep { color: var(--rule-1); }
+  .timing-row input[type=time] {
+    border-color: transparent;
+    background: transparent;
+    padding: 2px 3px;
+    color: var(--ink-2);
+    font-weight: 600;
+  }
+  .timing-row input[type=time]:hover { background: var(--surface-2); }
+  /* The native picker glyph repeats what the field already says and costs
+     ~20px each — the field is still clickable without it. */
+  .timing-row input[type=time]::-webkit-calendar-picker-indicator { display: none; }
+  .timing-row { flex-wrap: nowrap; }
+  .timing-row .taken { white-space: nowrap; }
+  .timing-row input[type=time]:focus { background: var(--surface-1); border-color: var(--accent); }
+  .row-actions {
+    display: flex; align-items: center; gap: var(--s1);
+    flex-wrap: wrap; margin-top: var(--s2);
+  }
 
   .hours-badge {
-    font-size: 8.5px;
-    font-weight: 700;
-    letter-spacing: 0.7px;
-    padding: 4px 9px;
-    border-radius: 999px;
-    margin-left: 8px;
+    font-size: var(--t-xs);
+    font-weight: 650;
+    letter-spacing: 0.4px;
+    padding: 2px 8px;
+    border-radius: var(--r-pill);
+    margin-left: var(--s2);
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
     flex-shrink: 0;
   }
-  .headcount-badge { background: rgba(255,255,255,0.22); color: white; }
-  .hours-badge.open { background: rgba(255,255,255,0.25); color: white; }
-  .hours-badge.closed { background: #dc2626; color: white; animation: pulseBadge 1.2s infinite; }
-
-  @keyframes pulseBadge {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-  }
+  .headcount-badge { background: var(--surface-3); color: var(--ink-2); }
+  .hours-badge.open { background: var(--ok-soft); color: var(--ok); }
+  .hours-badge.closed { background: var(--crit-soft); color: var(--crit); }
 
   .closed-notice {
-    background: #fef2f2;
-    color: #b91c1c;
-    font-size: 12px;
+    background: var(--crit-soft);
+    color: var(--crit);
+    font-size: var(--t-xs);
     font-weight: 600;
-    padding: 8px 12px;
-    border-bottom: 1px solid #fecaca;
+    padding: var(--s2) var(--s3);
+    border-bottom: 1px solid var(--rule-1);
   }
 
   .card.overdue {
@@ -453,15 +502,13 @@
     border-width: 2px;
   }
   @keyframes flashRed {
-    0%, 100% { background: #fee2e2; border-color: #dc2626; }
-    50% { background: #fecaca; border-color: #b91c1c; }
+    0%, 100% { background: var(--crit-soft); border-color: var(--crit); }
+    50% { background: var(--crit-soft); border-color: var(--crit); }
   }
-  .status-badge.overdue { background: #dc2626; color: white; animation: pulseBadge 1s infinite; }
+  .status-badge.overdue { color: var(--crit); }
 
   .alerts-panel {
-    background: var(--glass-bg);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    background: var(--surface-1);
     border-radius: 14px;
     margin-bottom: 8px;
     overflow: hidden;
@@ -472,17 +519,15 @@
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   .alerts-header {
     text-transform: uppercase;
-    background: linear-gradient(135deg,#f59e0b,#d97706);
-    color: white;
+    background: var(--surface-2); color: var(--ink-1); border-bottom: 1px solid var(--rule-1);
     padding: 11px 16px;
     font-weight: 700;
-    font-size: 11.5px;
+    font-size: var(--t-xs);
     letter-spacing: 0.9px;
     display: flex;
     align-items: center;
   }
   .alerts-body { padding: 8px; max-height: 260px; overflow-y: auto; }
-  body.overview-mode .alerts-body { max-height: 130px; }
   .alert-row {
     display: flex;
     align-items: center;
@@ -493,34 +538,34 @@
     border-left: 6px solid #ccc;
   }
   .alert-row:last-child { margin-bottom: 0; }
-  .alert-row.yellow { background: #fffbeb; border-left-color: #f59e0b; }
-  .alert-row.orange { background: #fff7ed; border-left-color: #ea580c; }
-  .alert-row.yellow .icon-svg { color: #f59e0b; }
-  .alert-row.orange .icon-svg { color: #ea580c; }
-  .alert-row.red .icon-svg { color: #dc2626; }
+  .alert-row.yellow { background: var(--warn-soft); border-left-color: var(--warn); }
+  .alert-row.orange { background: var(--warn-soft); border-left-color: var(--warn); }
+  .alert-row.yellow .icon-svg { color: var(--warn); }
+  .alert-row.orange .icon-svg { color: var(--warn); }
+  .alert-row.red .icon-svg { color: var(--crit); }
   .alert-row.red {
-    background: #fef2f2;
-    border-left-color: #dc2626;
+    background: var(--crit-soft);
+    border-left-color: var(--crit);
     animation: flashRed 1s infinite;
   }
-  .alert-icon { font-size: 18px; }
-  .alert-text { flex: 1; font-size: 13px; }
-  .alert-text b { font-size: 14px; }
+  .alert-icon { font-size: var(--t-lg); }
+  .alert-text { flex: 1; font-size: var(--t-sm); }
+  .alert-text b { font-size: var(--t-sm); }
   .alert-time {
-    font-size: 12px;
+    font-size: var(--t-xs);
     font-weight: 700;
     padding: 3px 9px;
     border-radius: 999px;
     white-space: nowrap;
   }
-  .alert-row.yellow .alert-time { background: #f59e0b; color: white; }
-  .alert-row.orange .alert-time { background: #ea580c; color: white; }
-  .alert-row.red .alert-time { background: #dc2626; color: white; }
+  .alert-row.yellow .alert-time { background: var(--warn); color: #fff; }
+  .alert-row.orange .alert-time { background: var(--warn); color: #fff; }
+  .alert-row.red .alert-time { background: var(--crit); color: #fff; }
   .alert-row .snooze-btn {
     background: rgba(0,0,0,0.08);
     border: none;
     border-radius: 6px;
-    font-size: 11px;
+    font-size: var(--t-xs);
     padding: 5px 8px;
     cursor: pointer;
     color: inherit;
@@ -528,14 +573,12 @@
   }
 
   .top-ticker {
-    background: var(--glass-bg);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border: 1px solid var(--glass-border);
+    background: var(--surface-1);
+    border: 1px solid var(--rule-1);
     border-radius: 14px;
     padding: 8px 13px;
     margin-bottom: 8px;
-    font-size: 12px;
+    font-size: var(--t-xs);
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -543,19 +586,15 @@
     box-shadow: var(--elev-1);
   }
   .top-ticker .clock { flex-shrink: 0; }
-  .top-ticker .clock { font-weight: 700; font-size: 15px; }
-  .top-ticker .next-transition { color: #666; font-size: 12px; }
+  .top-ticker .clock { font-weight: 700; font-size: var(--t-md); }
+  .top-ticker .next-transition { color: var(--ink-3); font-size: var(--t-xs); }
   .transition-list { display: flex; flex-direction: row; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
   .transition-list .next-transition { white-space: normal; }
-  .transition-list .next-primary { font-weight: 600; color: #334155; }
-  body.dark .transition-list .next-primary { color: #e2e8f0; }
-  body.dark .top-ticker .next-transition { color: #94a3b8; }
+  .transition-list .next-primary { font-weight: 600; color: var(--ink-1); }
 
   .summary-strip {
-    background: var(--glass-bg);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border: 1px solid var(--glass-border);
+    background: var(--surface-1);
+    border: 1px solid var(--rule-1);
     border-radius: 14px;
     padding: 9px 12px;
     margin-bottom: 8px;
@@ -569,12 +608,12 @@
   }
   .summary-strip::-webkit-scrollbar { display: none; }
   .summary-pill {
-    font-size: 11px;
+    font-size: var(--t-xs);
     font-weight: 600;
     padding: 6px 12px;
     border-radius: 999px;
-    background: rgba(241,245,249,0.9);
-    color: #334155;
+    background: var(--surface-2);
+    color: var(--ink-2);
     letter-spacing: 0.2px;
     display: inline-flex;
     align-items: center;
@@ -582,21 +621,19 @@
     white-space: nowrap;
     transition: background 0.25s var(--ease);
   }
-  .summary-pill.on-break { background: #fef3c7; color: #92400e; }
-  .summary-pill.red { background: #fee2e2; color: #b91c1c; }
+  .summary-pill.on-break { background: var(--warn-soft); color: var(--warn); }
+  .summary-pill.red { background: var(--crit-soft); color: var(--crit); }
 
   .settings-row { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
 
   .history-panel {
-    background: var(--glass-bg);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border: 1px solid var(--glass-border);
+    background: var(--surface-1);
+    border: 1px solid var(--rule-1);
     box-shadow: var(--elev-2);
     border-radius: 12px;
     padding: 12px 14px;
     margin-bottom: 16px;
-    font-size: 12px;
+    font-size: var(--t-xs);
   }
   .history-entry {
     border-bottom: 1px solid #eee;
@@ -606,17 +643,15 @@
     align-items: center;
     gap: 8px;
   }
-  body.dark .history-entry { border-color: #303c56; }
   .history-entry:last-child { border-bottom: none; }
 
-  .swap-selected { outline: 3px solid #7c3aed !important; }
+  .swap-selected { outline: 3px solid var(--accent) !important; }
 
   .modal-overlay {
     position: fixed;
     inset: 0;
     background: rgba(8,12,20,0.5);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    
     animation: fadeIn 0.2s var(--ease);
     display: flex;
     align-items: center;
@@ -625,10 +660,8 @@
     padding: 20px;
   }
   .modal-box {
-    background: var(--glass-bg);
-    backdrop-filter: blur(30px) saturate(180%);
-    -webkit-backdrop-filter: blur(30px) saturate(180%);
-    border: 1px solid var(--glass-border);
+    background: var(--surface-1);
+    border: 1px solid var(--rule-1);
     border-radius: 18px;
     padding: 22px;
     width: 100%;
@@ -640,20 +673,18 @@
     from { transform: scale(0.94); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
   }
-  .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
-  .modal-subtitle { font-size: 13px; color: #666; margin-bottom: 14px; }
-  body.dark .modal-subtitle { color: #94a3b8; }
+  .modal-title { font-size: var(--t-md); font-weight: 700; margin-bottom: 4px; }
+  .modal-subtitle { font-size: var(--t-sm); color: var(--ink-3); margin-bottom: 14px; }
   .modal-input {
     width: 100%;
     padding: 12px;
-    font-size: 16px;
-    border: 2px solid #d1d5db;
+    font-size: var(--t-md);
+    border: 2px solid var(--rule-1);
     border-radius: 10px;
     margin-bottom: 14px;
   }
-  body.dark .modal-input { background: #2a3550; color: #e5e7eb; border-color: #3f4c6b; }
   .modal-buttons { display: flex; gap: 8px; }
-  .modal-buttons button { flex: 1; padding: 12px; font-size: 14px; }
+  .modal-buttons button { flex: 1; padding: 12px; font-size: var(--t-sm); }
 
   #loginScreen,
   #lockScreen,
@@ -670,12 +701,7 @@
     align-items: center;
     justify-content: center;
     padding: 20px;
-    background-color: #f4f6fb;
-    background-image:
-      radial-gradient(ellipse 70% 55% at 12% -8%, rgba(99,102,241,0.16), transparent 60%),
-      radial-gradient(ellipse 60% 50% at 92% 6%, rgba(217,70,239,0.13), transparent 60%),
-      radial-gradient(ellipse 70% 60% at 50% 108%, rgba(59,130,246,0.10), transparent 60%),
-      linear-gradient(160deg, #f7f8fc 0%, #eceef6 100%);
+    background: var(--paper);
   }
   body.dark #loginScreen,
   body.dark #lockScreen,
@@ -684,14 +710,6 @@
   body.dark #emailVerifyScreen,
   body.dark #mfaSuggestScreen,
   body.dark #mfaEnrollScreen,
-  body.dark #mfaChallengeScreen {
-    background-color: #0a0e17;
-    background-image:
-      radial-gradient(ellipse 70% 55% at 12% -8%, rgba(99,102,241,0.22), transparent 60%),
-      radial-gradient(ellipse 60% 50% at 92% 6%, rgba(217,70,239,0.16), transparent 60%),
-      radial-gradient(ellipse 70% 60% at 50% 108%, rgba(59,130,246,0.14), transparent 60%),
-      linear-gradient(160deg, #0d121e 0%, #060911 100%);
-  }
 
   #loginScreen.hidden,
   #lockScreen.hidden,
@@ -702,150 +720,16 @@
   #mfaEnrollScreen.hidden,
   #mfaChallengeScreen.hidden { display: none; }
 
-  /* ── Pearson ops theme: planes taking off & landing behind the login card ── */
-  .airport-bg {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-    pointer-events: none;
-    z-index: 0;
-  }
+  /* Airport backdrop (planes, contrails, clouds, runway glow, nav lights)
+     removed — it animated in front of the sign-in card and carried its own
+     dark-mode overrides. Brand identity lives in the MJ badge instead. */
+
   .login-card { position: relative; z-index: 1; }
-
-  .runway-glow {
-    position: absolute;
-    left: 0; right: 0; bottom: 0;
-    height: 40%;
-    background: linear-gradient(180deg, transparent, rgba(99,102,241,0.06));
-  }
-  body.dark .runway-glow {
-    background: linear-gradient(180deg, transparent, rgba(99,102,241,0.10));
-  }
-
-  /* slow drifting clouds, far background, well below the planes */
-  .cloud {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(148,163,184,0.10);
-    filter: blur(18px);
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
-  }
-  body.dark .cloud { background: rgba(148,163,184,0.06); }
-  .cloud-1 { width: 180px; height: 60px; top: 12%; left: -20%; animation-name: cloudDriftA; animation-duration: 70s; }
-  .cloud-2 { width: 240px; height: 70px; top: 55%; left: -25%; animation-name: cloudDriftB; animation-duration: 95s; animation-delay: 20s; }
-  .cloud-3 { width: 150px; height: 50px; top: 76%; left: -15%; animation-name: cloudDriftA; animation-duration: 80s; animation-delay: 40s; }
-  @keyframes cloudDriftA { from { transform: translateX(0); } to { transform: translateX(140vw); } }
-  @keyframes cloudDriftB { from { transform: translateX(0); } to { transform: translateX(150vw); } }
-
-  /* each plane is a unit: contrail + glyph + blinking wingtip nav lights,
-     all rotating and fading together as one rigid group */
-  .plane-unit {
-    position: absolute;
-    display: flex;
-    align-items: center;
-    opacity: 0;
-    --max-op: 0.5;
-    will-change: transform, opacity;
-  }
-  .plane-unit .plane {
-    display: block;
-    font-size: 26px;
-    line-height: 1;
-    color: #64748b;
-    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.08));
-  }
-  body.dark .plane-unit .plane { color: #94a3b8; }
-
-  .contrail {
-    display: inline-block;
-    width: 34px;
-    height: 2px;
-    margin-right: -6px;
-    border-radius: 2px;
-    background: linear-gradient(90deg, transparent, rgba(100,116,139,0.35));
-  }
-  body.dark .contrail { background: linear-gradient(90deg, transparent, rgba(148,163,184,0.3)); }
-
-  .nav-light {
-    position: absolute;
-    top: 50%;
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    transform: translateY(-50%);
-  }
-  .nav-red   { left: 26%; background: #ef4444; animation: navBlink 1.6s ease-in-out infinite; }
-  .nav-green { right: 26%; background: #22c55e; animation: navBlink 1.6s ease-in-out infinite 0.8s; }
-  @keyframes navBlink {
-    0%, 82%, 100% { opacity: 0; }
-    88%, 94% { opacity: 1; }
-  }
-
-  /* farther-back planes: smaller, slightly blurred, dimmer — reads as depth */
-  .plane-far .plane { font-size: 16px; filter: blur(0.4px) drop-shadow(0 1px 2px rgba(0,0,0,0.05)); }
-  .plane-far .contrail { width: 20px; height: 1.5px; }
-  .plane-far .nav-light { width: 3px; height: 3px; }
-  .plane-far { --max-op: 0.28; }
-
-  .plane-takeoff {
-    left: -8%;
-    animation-name: takeoffPath;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
-  }
-  .plane-land {
-    right: -8%;
-    animation-name: landPath;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
-  }
-  .plane-cruise {
-    left: -10%;
-    animation-name: cruisePath;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
-  }
-
-  .plane-t1 { bottom: 12%; transform: rotate(-28deg); animation-duration: 16s; animation-delay: 0s; }
-  .plane-t2 { bottom: -4%; transform: rotate(-28deg); animation-duration: 19s; animation-delay: 7s; }
-  .plane-l1 { top: 8%;     transform: rotate(152deg); animation-duration: 17s; animation-delay: 3s; }
-  .plane-l2 { top: -4%;    transform: rotate(152deg); animation-duration: 21s; animation-delay: 11s; }
-  .plane-c1 { top: 38%;    transform: rotate(-6deg);  animation-duration: 24s; animation-delay: 9s; }
-
-  @keyframes takeoffPath {
-    0%   { transform: translate(0, 0) rotate(-28deg); opacity: 0; }
-    8%   { opacity: var(--max-op); }
-    45%  { opacity: var(--max-op); }
-    60%  { transform: translate(70vw, -55vh) rotate(-28deg); opacity: 0; }
-    100% { transform: translate(70vw, -55vh) rotate(-28deg); opacity: 0; }
-  }
-  @keyframes landPath {
-    0%   { transform: translate(0, 0) rotate(152deg); opacity: 0; }
-    8%   { opacity: var(--max-op); }
-    45%  { opacity: var(--max-op); }
-    60%  { transform: translate(-70vw, 55vh) rotate(152deg); opacity: 0; }
-    100% { transform: translate(-70vw, 55vh) rotate(152deg); opacity: 0; }
-  }
-  @keyframes cruisePath {
-    0%   { transform: translate(0, 0) rotate(-6deg); opacity: 0; }
-    10%  { opacity: var(--max-op); }
-    90%  { opacity: var(--max-op); }
-    100% { transform: translate(115vw, -4vh) rotate(-6deg); opacity: 0; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .plane-unit, .cloud { animation: none !important; }
-    .plane-unit { opacity: 0.2; }
-    .nav-light { animation: none !important; opacity: 0.6; }
-  }
 
   .login-card {
     position: relative;
-    background: var(--glass-bg);
-    backdrop-filter: blur(32px) saturate(190%);
-    -webkit-backdrop-filter: blur(32px) saturate(190%);
-    border: 1px solid var(--glass-border);
+    background: var(--surface-1);
+    border: 1px solid var(--rule-1);
     border-radius: 20px;
     padding: 36px 32px 30px 32px;
     box-shadow: var(--elev-3);
@@ -916,31 +800,30 @@
   }
   .login-flip .flip-badge-inner { border-radius: 20px; }
   .login-flip .flip-face { border-radius: 20px; }
-  .login-flip .flip-face-front span { font-size: 22px; letter-spacing: 0.5px; }
+  .login-flip .flip-face-front span { font-size: var(--t-lg); letter-spacing: 0.5px; }
   .login-flip .flip-face-back svg { width: 56%; height: 56%; }
 
   .login-slogan {
-    font-size: 10.5px;
+    font-size: var(--t-xs);
     font-weight: 700;
     letter-spacing: 1.3px;
-    color: #7c3aed;
+    color: var(--accent);
     text-transform: uppercase;
   }
-  body.dark .login-slogan { color: #c4b5fd; }
   .login-slogan .tag-dot { opacity: 0.55; margin: 0 2px; }
 
   .login-hero-title {
-    font-size: 22px;
+    font-size: var(--t-lg);
     font-weight: 750;
-    color: var(--text);
+    color: var(--ink-1);
     letter-spacing: -0.4px;
     margin: 0 0 4px 0;
     line-height: 1.25;
   }
 
   .login-subtitle {
-    font-size: 12.5px;
-    color: var(--text-muted);
+    font-size: var(--t-xs);
+    color: var(--ink-3);
     margin-bottom: 24px;
   }
 
@@ -958,33 +841,31 @@
   }
   .login-field label {
     display: block;
-    font-size: 11px;
+    font-size: var(--t-xs);
     font-weight: 650;
-    color: var(--text-muted);
+    color: var(--ink-3);
     margin-bottom: 6px;
     letter-spacing: 0.2px;
   }
   .login-field input {
     width: 100%;
     padding: 12px 14px;
-    font-size: 15px;
-    border: 1.5px solid var(--glass-border);
+    font-size: var(--t-md);
+    border: 1.5px solid var(--rule-1);
     border-radius: 12px;
-    background: rgba(255,255,255,0.6);
-    color: var(--text);
+    background: var(--surface-1);
+    color: var(--ink-1);
     transition: border-color 0.18s var(--ease), box-shadow 0.18s var(--ease), background 0.18s var(--ease);
   }
-  body.dark .login-field input { background: rgba(255,255,255,0.04); }
-  .login-field input::placeholder { color: var(--text-muted); opacity: 0.6; }
+  .login-field input::placeholder { color: var(--ink-3); opacity: 0.6; }
   .login-field input:hover { border-color: rgba(139,92,246,0.4); }
   .login-field input:focus {
     outline: none;
-    border-color: #8b5cf6;
+    border-color: var(--accent);
     box-shadow: 0 0 0 4px rgba(139,92,246,0.16);
-    background: rgba(255,255,255,0.9);
+    background: var(--surface-1);
   }
-  body.dark .login-field input:focus { background: rgba(139,92,246,0.06); }
-
+  
   .password-wrap { position: relative; }
   .password-wrap input { padding-right: 42px; }
   .pw-toggle {
@@ -1000,15 +881,15 @@
     justify-content: center;
     cursor: pointer;
     border-radius: 8px;
-    color: var(--text-muted);
+    color: var(--ink-3);
     transition: background 0.15s var(--ease), color 0.15s var(--ease);
   }
-  .pw-toggle:hover { background: rgba(139,92,246,0.1); color: #7c3aed; }
+  .pw-toggle:hover { background: rgba(139,92,246,0.1); color: var(--accent); }
   .pw-toggle .icon-svg { width: 16px; height: 16px; margin: 0; }
 
   .login-error {
-    color: #dc2626;
-    font-size: 12px;
+    color: var(--crit);
+    font-size: var(--t-xs);
     font-weight: 600;
     min-height: 16px;
     margin-bottom: 6px;
@@ -1026,7 +907,7 @@
   .login-submit-btn {
     width: 100%;
     padding: 13px;
-    font-size: 14.5px;
+    font-size: var(--t-md);
     font-weight: 700;
     letter-spacing: 0.2px;
     border-radius: 12px;
@@ -1065,8 +946,8 @@
     height: 176px;
     margin: 6px auto 16px auto;
     border-radius: 16px;
-    background: #ffffff;
-    border: 1px solid var(--glass-border);
+    background: var(--surface-1);
+    border: 1px solid var(--rule-1);
     box-shadow: var(--elev-1);
     display: flex;
     align-items: center;
@@ -1079,7 +960,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255,255,255,0.94);
+    background: var(--surface-1);
     transition: opacity 0.2s var(--ease);
   }
   .mfa-qr-loading.hidden { opacity: 0; pointer-events: none; }
@@ -1088,7 +969,7 @@
     width: 26px;
     height: 26px;
     border: 3px solid rgba(124,58,237,0.18);
-    border-top-color: #7c3aed;
+    border-top-color: var(--accent);
     border-radius: 50%;
     animation: btnSpin 0.7s linear infinite;
   }
@@ -1099,13 +980,12 @@
     text-align: center;
     background: none;
     border: none;
-    color: #7c3aed;
-    font-size: 12px;
+    color: var(--accent);
+    font-size: var(--t-xs);
     font-weight: 650;
     padding: 4px 0 2px 0;
     cursor: pointer;
   }
-  body.dark .mfa-manual-toggle { color: #c4b5fd; }
   .mfa-manual-toggle:hover { text-decoration: underline; }
 
   .mfa-manual-wrap {
@@ -1120,16 +1000,16 @@
   .mfa-manual-key {
     flex: 1;
     font-family: ui-monospace, SFMono-Regular, monospace;
-    font-size: 12px;
+    font-size: var(--t-xs);
     letter-spacing: 0.4px;
-    color: var(--text);
+    color: var(--ink-1);
     word-break: break-all;
   }
   .mfa-copy-btn {
     flex-shrink: 0;
     background: rgba(124,58,237,0.12);
-    color: #7c3aed;
-    font-size: 11px;
+    color: var(--accent);
+    font-size: var(--t-xs);
     font-weight: 700;
     padding: 6px 11px;
     border-radius: 8px;
@@ -1138,23 +1018,21 @@
     transition: background 0.15s var(--ease);
   }
   .mfa-copy-btn:hover { background: rgba(124,58,237,0.2); }
-  body.dark .mfa-copy-btn { background: rgba(196,181,253,0.14); color: #c4b5fd; }
-  body.dark .mfa-copy-btn:hover { background: rgba(196,181,253,0.22); }
   .caps-lock-warning {
-    font-size: 11px;
-    color: #d97706;
+    font-size: var(--t-xs);
+    color: var(--warn);
     font-weight: 600;
     margin-top: 5px;
     display: none;
   }
   .caps-lock-warning.show { display: block; }
 
-  .login-footnote { font-size: 11.5px; color: var(--text-muted); margin-top: 18px; }
+  .login-footnote { font-size: var(--t-xs); color: var(--ink-3); margin-top: 18px; }
 
   .account-label {
-    font-size: 11px;
-    color: var(--text-muted);
-    background: rgba(148,163,184,0.14);
+    font-size: var(--t-xs);
+    color: var(--ink-3);
+    background: var(--surface-2);
     padding: 8px 10px;
     border-radius: 8px;
     margin-bottom: 10px;
@@ -1164,7 +1042,7 @@
     display: inline-block;
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
     color: white;
-    font-size: 9px;
+    font-size: var(--t-xs);
     font-weight: 800;
     letter-spacing: 0.6px;
     padding: 2px 7px;
@@ -1174,13 +1052,9 @@
   }
   .admin-badge.role-badge {
     background: rgba(100,116,139,0.18);
-    color: #475569;
+    color: var(--ink-2);
   }
-  body.dark .admin-badge.role-badge {
-    background: rgba(148,163,184,0.16);
-    color: #cbd5e1;
-  }
-
+  
   /* Desktop view: multi-column section grid, centered container */
   body.view-desktop {
     max-width: 1400px;
@@ -1198,56 +1072,59 @@
   body.view-desktop .settings-row,
   body.view-desktop .toolbar { flex-wrap: nowrap; }
 
-  /* Mobile view: force stacking so nothing gets cramped on a narrow screen */
+  /* Mobile keeps the same row shape as desktop — name and status stay on one
+     line, controls wrap beneath only when they genuinely don't fit. They used
+     to each be forced to 100% width, which is what turned one officer into a
+     four-line block. */
   body.view-mobile .top-row {
     display: flex;
     flex-wrap: wrap;
+    row-gap: var(--s1);
   }
   body.view-mobile .name-input {
-    flex: 1 1 100%;
-    width: 100%;
-    font-size: 16px;
-    margin-bottom: 4px;
+    flex: 1 1 90px;
+    min-width: 0;
+    font-size: var(--t-md);   /* 16px stops iOS zooming the page on focus */
+    margin-bottom: 0;
   }
-  body.view-mobile .status-badge {
-    flex: 1 1 100%;
+  body.view-mobile .status-badge,
+  body.view-mobile .break-left {
+    flex: 0 0 auto;
     margin-left: 0;
-    text-align: center;
-    margin-top: 4px;
-    order: 5;
+    text-align: left;
+    margin-top: 0;
+    order: 0;
   }
-  body.view-mobile .drag-handle { font-size: 20px; padding: 6px 8px; }
-  body.view-mobile .row-controls { margin-left: auto; }
-  body.view-mobile .breaks { justify-content: space-between; }
-  body.view-mobile .section-header input { font-size: 16px; }
+  body.view-mobile .drag-handle { font-size: var(--t-lg); padding: 4px 6px; }
+  body.view-mobile .row-controls { margin-left: auto; order: 1; }
+  body.view-mobile .breaks { justify-content: flex-start; }
+  body.view-mobile .section-header input { font-size: var(--t-md); }
 
   @media (max-width: 480px) {
     body { padding: 12px; }
-    h1 { font-size: 17px; letter-spacing: -0.4px; }
+    h1 { font-size: var(--t-md); letter-spacing: -0.4px; }
     .mj-badge-sm { width: 25px; height: 25px; border-radius: 8px; }
-    .mj-badge-sm span { font-size: 10px; }
+    .mj-badge-sm span { font-size: var(--t-xs); }
     .title-group { gap: 8px; }
-    .settings-row button { font-size: 12px; padding: 7px 10px; }
-    .summary-pill { font-size: 11px; padding: 5px 9px; }
+    .settings-row button { font-size: var(--t-xs); padding: 7px 10px; }
+    .summary-pill { font-size: var(--t-xs); padding: 5px 9px; }
   }
 
   .row-controls { display: flex; align-items: center; gap: 4px; margin-left: 4px; }
   .move-to-select {
-    font-size: 11px;
+    font-size: var(--t-xs);
     font-weight: 650;
     padding: 6px 4px;
     border-radius: 8px;
-    border: 1px solid var(--glass-border);
-    background: var(--surface);
-    color: var(--text);
+    border: 1px solid var(--rule-1);
+    background: var(--surface-1);
+    color: var(--ink-1);
     max-width: 78px;
     flex-shrink: 0;
     height: 30px;
   }
-  body.dark .move-to-select { background: rgba(42,53,80,0.85); color: #e5e7eb; }
-  body.compact .move-to-select { max-width: 62px; font-size: 10px; height: 26px; }
   .icon-btn {
-    background: none; border: none; cursor: pointer; font-size: 14px;
+    background: none; border: none; cursor: pointer; font-size: var(--t-sm);
     padding: 5px 6px; border-radius: 6px; color: #555;
     display: inline-flex; align-items: center; justify-content: center;
   }
@@ -1256,14 +1133,14 @@
   .drag-handle {
     cursor: grab;
     touch-action: none;
-    font-size: 16px;
+    font-size: var(--t-md);
     color: #aaa;
     padding: 2px 6px;
     user-select: none;
   }
   .card.dragging { opacity: 0.35; }
   .card.dragging .drag-handle { cursor: grabbing; }
-  .section-body.drop-target { background: #eef2ff; outline: 2px dashed #6366f1; outline-offset: -4px; }
+  .section-body.drop-target { background: var(--accent-soft); outline: 2px dashed var(--accent); outline-offset: -4px; }
   .drag-ghost {
     position: fixed;
     z-index: 9999;
@@ -1298,50 +1175,49 @@
     top: 50%;
     transform: translateY(-50%);
     margin: 0;
-    color: #999;
+    color: var(--ink-3);
   }
   .search-bar input { padding-left: 38px; }
   .closed-notice .icon-svg { margin-right: 6px; }
+  /* Shift progress track: elapsed time, break windows, and a now-marker on
+     one 6px rail. Elapsed is deliberately quiet — the breaks are the signal. */
   .timeline {
-    height: 7px;
-    border-radius: 99px;
-    background: rgba(15,23,42,0.09);
+    height: 6px;
+    border-radius: var(--r-pill);
+    background: var(--surface-2);
     position: relative;
     overflow: hidden;
-    margin-bottom: 7px;
+    margin-bottom: var(--s2);
   }
-  body.dark .timeline { background: rgba(148,163,184,0.18); }
   .timeline-progress {
     position: absolute;
     left: 0; top: 0; bottom: 0;
-    background: linear-gradient(90deg, #3b82f6, #60a5fa);
-    border-radius: 99px;
+    background: var(--rule-1);
+    border-radius: var(--r-pill);
     transition: width 0.6s var(--ease);
   }
   .timeline-break {
     position: absolute;
     top: 0; bottom: 0;
     border-radius: 2px;
-    background: #16a34a;
+    background: var(--ok);
   }
-  .timeline-break.active { background: #f59e0b; }
+  .timeline-break.active { background: var(--warn); }
   .timeline-now {
     position: absolute;
     top: -2px; bottom: -2px;
     width: 2px;
-    background: #0f172a;
+    background: var(--ink-1);
     border-radius: 2px;
   }
-  body.dark .timeline-now { background: #f8fafc; }
-
   .timeline-quick {
     position: absolute;
     top: 0; bottom: 0;
     width: 3px;
     border-radius: 2px;
-    background: #0ea5e9;
+    background: var(--accent);
   }
-  .timeline-quick.active { background: #0ea5e9; animation: quickPulse 1.2s ease-in-out infinite; }
+  .timeline-quick.active { background: var(--accent); animation: quickPulse 1.2s ease-in-out infinite; }
   @keyframes quickPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
 
   .quick-break-row { margin-bottom: 6px; }
@@ -1349,128 +1225,45 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 12px;
-    border-radius: 999px;
-    border: 1.5px dashed rgba(14,165,233,0.5);
-    background: rgba(14,165,233,0.06);
-    color: #0284c7;
-    font-size: 11.5px;
+    padding: 4px 10px;
+    border-radius: var(--r-pill);
+    border: 1px dashed var(--rule-1);
+    background: transparent;
+    color: var(--ink-3);
+    font-size: var(--t-xs);
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s var(--ease), transform 0.15s var(--ease);
+    transition: background 0.2s var(--ease), color 0.2s var(--ease), border-color 0.2s var(--ease);
   }
-  .quick-break-btn:hover { background: rgba(14,165,233,0.13); }
-  .quick-break-btn:active { transform: scale(0.96); }
-  .quick-break-btn .icon-svg { width: 13px; height: 13px; margin-right: 0; stroke: #0284c7; }
-  body.dark .quick-break-btn { color: #38bdf8; border-color: rgba(56,189,248,0.45); background: rgba(56,189,248,0.08); }
-  body.dark .quick-break-btn .icon-svg { stroke: #38bdf8; }
+  .quick-break-btn:hover { background: var(--surface-2); color: var(--ink-1); border-color: var(--ink-3); }
+  .quick-break-btn:active { transform: scale(0.97); }
+  .quick-break-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .quick-break-btn .icon-svg { width: 13px; height: 13px; margin-right: 0; stroke: currentColor; }
 
   .quick-break-active {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 7px 12px;
-    border-radius: 12px;
-    background: rgba(14,165,233,0.12);
-    border: 1px solid rgba(14,165,233,0.4);
-    font-size: 11.5px;
+    gap: var(--s2);
+    padding: 5px 10px;
+    border-radius: var(--r-md);
+    background: var(--warn-soft);
+    border: 1px solid var(--warn);
+    font-size: var(--t-xs);
     font-weight: 600;
-    color: #0284c7;
+    color: var(--warn);
   }
-  body.dark .quick-break-active { color: #38bdf8; background: rgba(56,189,248,0.1); border-color: rgba(56,189,248,0.35); }
-  .quick-break-active .icon-svg { width: 14px; height: 14px; margin-right: 0; stroke: #0284c7; animation: quickPulse 1.4s ease-in-out infinite; }
-  body.dark .quick-break-active .icon-svg { stroke: #38bdf8; }
+  .quick-break-active .icon-svg { width: 14px; height: 14px; margin-right: 0; stroke: currentColor; animation: quickPulse 1.4s ease-in-out infinite; }
   .quick-break-active .qb-text { flex: 1; }
   .quick-break-back-btn {
-    padding: 5px 10px;
-    font-size: 11px;
-    border-radius: 8px;
-    background: #0ea5e9;
-    color: white;
+    padding: 4px 10px;
+    font-size: var(--t-xs);
+    border-radius: var(--r-sm);
+    background: var(--warn);
+    color: #fff;
   }
 
-  #celebrationContainer {
-    position: fixed;
-    inset: 0;
-    z-index: 12000;
-    pointer-events: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .celebration-backdrop {
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at 50% 45%, rgba(0,0,0,0.16), transparent 65%);
-    opacity: 0;
-    animation: celebBackdropIn 0.3s var(--ease) forwards;
-  }
-  .celebration-backdrop.leaving { animation: celebBackdropOut 0.35s var(--ease) forwards; }
-  @keyframes celebBackdropIn { to { opacity: 1; } }
-  @keyframes celebBackdropOut { to { opacity: 0; } }
 
-  .celebration-card {
-    position: relative;
-    background: var(--glass-bg);
-    backdrop-filter: blur(28px) saturate(190%);
-    -webkit-backdrop-filter: blur(28px) saturate(190%);
-    border: 1px solid var(--glass-border);
-    border-radius: 22px;
-    padding: 30px 38px;
-    box-shadow: var(--elev-3);
-    text-align: center;
-    min-width: 220px;
-    max-width: 320px;
-    transform: scale(0.6) translateY(10px);
-    opacity: 0;
-    animation: celebPopIn 0.55s var(--ease) forwards;
-  }
-  .celebration-card.leaving { animation: celebPopOut 0.32s var(--ease) forwards; }
-  @keyframes celebPopIn {
-    0%   { transform: scale(0.55) translateY(14px); opacity: 0; }
-    55%  { transform: scale(1.06) translateY(-2px); opacity: 1; }
-    75%  { transform: scale(0.97) translateY(0); }
-    100% { transform: scale(1) translateY(0); opacity: 1; }
-  }
-  @keyframes celebPopOut {
-    to { transform: scale(0.85) translateY(-8px); opacity: 0; }
-  }
 
-  .celebration-icon-ring {
-    width: 74px;
-    height: 74px;
-    border-radius: 50%;
-    margin: 0 auto 14px auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    background: var(--celeb-color, #2563eb);
-    box-shadow: 0 0 0 0 var(--celeb-glow, rgba(37,99,235,0.5));
-    animation: celebRingPulse 1.6s var(--ease) infinite;
-  }
-  @keyframes celebRingPulse {
-    0%   { box-shadow: 0 0 0 0 var(--celeb-glow, rgba(37,99,235,0.45)); }
-    70%  { box-shadow: 0 0 0 18px rgba(37,99,235,0); }
-    100% { box-shadow: 0 0 0 0 rgba(37,99,235,0); }
-  }
-  .celebration-icon-ring .icon-svg {
-    width: 34px; height: 34px;
-    stroke: white;
-    margin-right: 0;
-  }
-  .celebration-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 3px;
-    letter-spacing: -0.2px;
-  }
-  .celebration-subtitle {
-    font-size: 12.5px;
-    color: var(--text-muted);
-    font-weight: 500;
-  }
 
   .confetti-piece {
     position: absolute;
@@ -1509,12 +1302,11 @@
   }
   .toast {
     background: rgba(15,23,42,0.92);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    color: #f8fafc;
+    
+    color: var(--surface-1);
     padding: 13px 18px;
     border-radius: 13px;
-    font-size: 13px;
+    font-size: var(--t-sm);
     font-weight: 500;
     box-shadow: var(--elev-3);
     display: flex;
@@ -1525,9 +1317,9 @@
     width: 100%;
   }
   .toast.leaving { animation: toastOut 0.25s var(--ease) forwards; }
-  .toast.success { border-left: 3px solid #22c55e; }
-  .toast.error { border-left: 3px solid #ef4444; }
-  .toast.info { border-left: 3px solid #3b82f6; }
+  .toast.success { border-left: 3px solid var(--ok); }
+  .toast.error { border-left: 3px solid var(--crit); }
+  .toast.info { border-left: 3px solid var(--accent); }
   @keyframes toastIn {
     from { transform: translateY(24px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
@@ -1539,7 +1331,7 @@
 
   .add-person-btn { margin-top: 4px; }
   .add-section-wrap { text-align: center; margin-top: 18px; }
-  .footer-note { font-size: 11px; color: var(--text-muted); margin-top: 28px; text-align: center; line-height: 1.6; }
+  .footer-note { font-size: var(--t-xs); color: var(--ink-3); margin-top: 28px; text-align: center; line-height: 1.6; }
 
   /* ── MJ signature ───────────────────────────── */
   .signature-block {
@@ -1552,7 +1344,7 @@
   .signature-divider {
     width: 46px;
     height: 1px;
-    background: linear-gradient(90deg, transparent, var(--text-muted), transparent);
+    background: linear-gradient(90deg, transparent, var(--ink-3), transparent);
     opacity: 0.45;
   }
   .signature-row {
@@ -1581,7 +1373,7 @@
     flex-shrink: 0;
   }
   .mj-badge span {
-    font-size: 13px;
+    font-size: var(--t-sm);
     font-weight: 800;
     color: #fff;
     letter-spacing: 0.6px;
@@ -1607,15 +1399,15 @@
 
   .signature-text { text-align: left; line-height: 1.35; }
   .signature-label {
-    font-size: 8.5px;
+    font-size: var(--t-xs);
     text-transform: uppercase;
     letter-spacing: 1.3px;
     font-weight: 700;
-    color: var(--text-muted);
+    color: var(--ink-3);
     opacity: 0.8;
   }
   .signature-name {
-    font-size: 14px;
+    font-size: var(--t-sm);
     font-weight: 750;
     letter-spacing: -0.2px;
     background: linear-gradient(100deg, #6366f1, #8b5cf6, #d946ef, #8b5cf6, #6366f1);
@@ -1637,7 +1429,7 @@
     cursor: pointer;
     transition: transform 0.22s var(--ease);
   }
-  .mj-badge-sm span { font-size: 11px; }
+  .mj-badge-sm span { font-size: var(--t-xs); }
   .mj-badge-sm:hover { transform: rotate(-6deg) scale(1.08); }
   .mj-badge-sm:active { transform: scale(0.92); }
 
@@ -1649,16 +1441,12 @@
     box-shadow: 0 8px 26px rgba(139,92,246,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
     animation: mjBadgeEntrance 0.7s var(--ease);
   }
-  .mj-badge-lg span { font-size: 25px; letter-spacing: 1px; }
+  .mj-badge-lg span { font-size: var(--t-xl); letter-spacing: 1px; }
   @keyframes mjBadgeEntrance {
     0%   { transform: scale(0.3) rotate(-25deg); opacity: 0; }
     55%  { transform: scale(1.12) rotate(6deg); opacity: 1; }
     78%  { transform: scale(0.96) rotate(-2deg); }
     100% { transform: scale(1) rotate(0deg); }
-  }
-  .mj-celebration {
-    border-color: rgba(139,92,246,0.4);
-    box-shadow: var(--elev-3), 0 0 46px rgba(139,92,246,0.28);
   }
 
   /* ── Flip badge: initials -> crown, with a color shift ───────── */
@@ -1707,18 +1495,18 @@
     transform: translateZ(0.01px);
   }
   .flip-face-front span {
-    font-size: 13px;
+    font-size: var(--t-sm);
     font-weight: 800;
     color: #fff;
     letter-spacing: 0.6px;
     text-shadow: 0 1px 2px rgba(0,0,0,0.22);
   }
   .flip-face-back svg { width: 58%; height: 58%; }
-  .mj-badge-lg .flip-face-front span { font-size: 25px; letter-spacing: 1px; }
-  .mj-badge-sm .flip-face-front span { font-size: 10px; }
+  .mj-badge-lg .flip-face-front span { font-size: var(--t-xl); letter-spacing: 1px; }
+  .mj-badge-sm .flip-face-front span { font-size: var(--t-xs); }
 
   .brand-name {
-    font-size: 14px;
+    font-size: var(--t-sm);
     font-weight: 750;
     letter-spacing: -0.2px;
     background: linear-gradient(100deg, #6366f1, #8b5cf6, #d946ef, #d97706, #6366f1);
@@ -1728,19 +1516,19 @@
     -webkit-text-fill-color: transparent;
     animation: mjGradientFlow 7s linear infinite;
   }
-  .brand-tagline { font-size: 10px; color: var(--text-muted); letter-spacing: 0.3px; }
+  .brand-tagline { font-size: var(--t-xs); color: var(--ink-3); letter-spacing: 0.3px; }
   .studio-label {
-    font-size: 10px;
+    font-size: var(--t-xs);
     font-weight: 700;
     letter-spacing: 1.6px;
     text-transform: uppercase;
-    color: var(--text-muted);
+    color: var(--ink-3);
     margin-top: 1px;
   }
   .studio-motto {
-    font-size: 10px;
+    font-size: var(--t-xs);
     font-style: italic;
-    color: var(--text-muted);
+    color: var(--ink-3);
     opacity: 0.75;
     margin-top: 1px;
   }
@@ -1751,20 +1539,16 @@
     z-index: 500;
     /* NOTE: no backdrop-filter here on purpose — backdrop-filter on a
        position:sticky element triggers an iOS repaint bug where content
-       below isn't painted until a scroll happens. The inner panels
-       (ticker / summary / search) keep their own glass blur, so the
-       frosted look is preserved. */
-    background: linear-gradient(180deg, rgba(236,239,246,0.99) 0%, rgba(233,237,244,0.97) 100%);
+       below isn't painted until a scroll happens. An opaque token
+       background avoids the issue entirely. */
+    background: var(--paper);
     padding: calc(var(--pad-top) - 10px) var(--pad-right) 5px var(--pad-left);
     margin: calc(-1 * var(--pad-top)) calc(-1 * var(--pad-right)) 8px calc(-1 * var(--pad-left));
-    border-bottom: 1px solid var(--glass-border);
+    border-bottom: 1px solid var(--rule-1);
     /* force its own compositing layer so iOS paints it correctly on load */
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
     will-change: transform;
-  }
-  body.dark #stickyHeader {
-    background: linear-gradient(180deg, rgba(10,14,23,0.99) 0%, rgba(8,12,20,0.97) 100%);
   }
 
   .header-top {
@@ -1778,7 +1562,7 @@
   .view-tabs {
     display: flex;
     gap: 4px;
-    background: rgba(148,163,184,0.14);
+    background: var(--surface-2);
     border-radius: 10px;
     padding: 3px;
     margin-bottom: 8px;
@@ -1786,40 +1570,21 @@
   .view-tab {
     flex: 1;
     background: none;
-    color: var(--text-muted);
-    font-size: 12.5px;
+    color: var(--ink-3);
+    font-size: var(--t-sm);
     font-weight: 650;
     padding: 7px 0;
     border-radius: 8px;
     transition: background 0.18s var(--ease), color 0.18s var(--ease), box-shadow 0.18s var(--ease);
   }
   .view-tab.active {
-    background: var(--surface);
-    color: var(--text);
+    background: var(--surface-1);
+    color: var(--ink-1);
     box-shadow: var(--elev-1);
   }
   #dashboardView.hidden, #rosterView.hidden { display: none; }
 
   /* ══════════ Cinematic shutter transition ══════════ */
-  #shutterTransition {
-    position: fixed;
-    inset: 0;
-    z-index: 25000;
-    pointer-events: none;
-  }
-  .shutter-panel {
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 52%;
-    background: linear-gradient(135deg, #1e1b3a 0%, #4c1d95 55%, #7c3aed 100%);
-    transition: transform 0.55s cubic-bezier(0.7,0,0.3,1);
-    box-shadow: 0 0 40px rgba(124,58,237,0.4);
-  }
-  .shutter-top { top: 0; transform: translateY(-100%); }
-  .shutter-bottom { bottom: 0; transform: translateY(100%); }
-  #shutterTransition.closed .shutter-top { transform: translateY(0); }
-  #shutterTransition.closed .shutter-bottom { transform: translateY(0); }
 
   /* ══════════ Landing screen ══════════ */
   #landingScreen {
@@ -1830,13 +1595,7 @@
       radial-gradient(ellipse 70% 50% at 15% 0%, rgba(99,102,241,0.14), transparent 60%),
       radial-gradient(ellipse 60% 45% at 90% 12%, rgba(217,70,239,0.11), transparent 60%),
       radial-gradient(ellipse 70% 55% at 50% 100%, rgba(59,130,246,0.10), transparent 60%),
-      linear-gradient(160deg, #f8f9fd 0%, #eef0f8 100%);
-  }
-  body.dark #landingScreen {
-    background:
-      radial-gradient(ellipse 70% 50% at 15% 0%, rgba(99,102,241,0.18), transparent 60%),
-      radial-gradient(ellipse 60% 45% at 90% 12%, rgba(217,70,239,0.14), transparent 60%),
-      linear-gradient(160deg, #0d121e 0%, #060911 100%);
+      var(--paper);
   }
   #landingScreen.hidden { display: none; }
 
@@ -1847,15 +1606,6 @@
     overflow: hidden;
     pointer-events: none;
   }
-  .landing-orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(50px);
-    animation: landingOrbDrift 16s ease-in-out infinite;
-  }
-  .landing-orb-1 { width: 340px; height: 340px; top: -80px; left: -80px; background: rgba(99,102,241,0.26); animation-delay: 0s; }
-  .landing-orb-2 { width: 300px; height: 300px; top: 38%; right: -110px; background: rgba(236,72,153,0.20); animation-delay: -5s; }
-  .landing-orb-3 { width: 380px; height: 380px; bottom: -140px; left: 5%; background: rgba(59,130,246,0.19); animation-delay: -10s; }
   .landing-bg-decor::before {
     content: '';
     position: absolute;
@@ -1865,32 +1615,6 @@
     mask-image: radial-gradient(ellipse 80% 80% at 50% 40%, black 40%, transparent 90%);
   }
   .landing-bg-decor { transition: transform 0.4s ease-out; }
-  .landing-radar {
-    position: absolute;
-    top: 6%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 360px;
-    height: 360px;
-    pointer-events: none;
-  }
-  .landing-radar-ring {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    border: 1px solid rgba(99,102,241,0.13);
-  }
-  .landing-radar-ring-2 { inset: 16%; border-color: rgba(139,92,246,0.11); }
-  .landing-radar-ring-3 { inset: 32%; border-color: rgba(217,70,239,0.10); }
-  .landing-radar-sweep {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    background: conic-gradient(from 0deg, rgba(99,102,241,0.24), transparent 30%);
-    animation: radarSpin 4.5s linear infinite;
-    -webkit-mask-image: radial-gradient(circle, black 62%, transparent 100%);
-    mask-image: radial-gradient(circle, black 62%, transparent 100%);
-  }
   @keyframes radarSpin {
     from { transform: rotate(0deg); }
     to   { transform: rotate(360deg); }
@@ -1899,15 +1623,6 @@
     0%, 100% { transform: translate(0, 0) scale(1); }
     50% { transform: translate(20px, -30px) scale(1.1); }
   }
-  .landing-float-plane {
-    position: absolute;
-    font-size: 22px;
-    opacity: 0.12;
-    color: #6366f1;
-    animation: landingPlaneDrift 22s linear infinite;
-  }
-  .landing-float-plane-1 { top: 12%; left: -10%; animation-duration: 26s; }
-  .landing-float-plane-2 { top: 55%; left: -10%; animation-duration: 32s; animation-delay: -12s; font-size: 16px; }
   @keyframes landingPlaneDrift {
     from { transform: translateX(0) translateY(0) rotate(3deg); }
     to   { transform: translateX(115vw) translateY(-40px) rotate(3deg); }
@@ -1963,15 +1678,15 @@
   .landing-reveal.revealed { opacity: 1; transform: translateY(0); }
 
   .landing-greeting {
-    font-size: 15px;
+    font-size: var(--t-md);
     font-weight: 650;
-    color: var(--text-muted);
+    color: var(--ink-3);
     margin-bottom: 6px;
   }
   .landing-hero-stat {
-    font-size: 92px;
+    font-size: var(--t-hero);
     font-weight: 850;
-    letter-spacing: -3px;
+    letter-spacing: -0.04em;
     line-height: 1;
     background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
     -webkit-background-clip: text;
@@ -1985,9 +1700,9 @@
     50% { transform: scale(1.025); }
   }
   .landing-hero-label {
-    font-size: 16px;
+    font-size: var(--t-md);
     font-weight: 650;
-    color: var(--text);
+    color: var(--ink-1);
     margin-top: 4px;
   }
   .landing-icon-badge {
@@ -2000,7 +1715,7 @@
     align-items: center;
     justify-content: center;
   }
-  .landing-badge-icon { width: 28px; height: 28px; stroke: #7c3aed; fill: none; stroke-width: 1.6; }
+  .landing-badge-icon { width: 28px; height: 28px; stroke: var(--accent); fill: none; stroke-width: 1.6; }
   .landing-quick-stats-row {
     display: flex;
     justify-content: center;
@@ -2009,20 +1724,20 @@
     flex-wrap: wrap;
   }
   .landing-quick-stat-chip {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
+    background: var(--surface-1);
+    border: 1px solid var(--rule-1);
     border-radius: 999px;
     padding: 7px 14px;
-    font-size: 12px;
+    font-size: var(--t-xs);
     font-weight: 700;
-    color: var(--text);
+    color: var(--ink-1);
     display: flex;
     align-items: center;
     gap: 5px;
   }
   .landing-quick-stat-chip .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
   .landing-section-eyebrow {
-    font-size: 11px;
+    font-size: var(--t-xs);
     font-weight: 750;
     letter-spacing: 1.2px;
     text-transform: uppercase;
@@ -2030,8 +1745,8 @@
     margin-bottom: 6px;
   }
   .landing-section-subtitle {
-    font-size: 13px;
-    color: var(--text-muted);
+    font-size: var(--t-sm);
+    color: var(--ink-3);
     margin-top: -14px;
     margin-bottom: 20px;
   }
@@ -2052,8 +1767,8 @@
     flex-direction: column;
     align-items: center;
     gap: 8px;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
+    background: var(--surface-1);
+    border: 1px solid var(--rule-1);
     border-radius: 16px;
     padding: 18px 10px;
     box-shadow: var(--elev-1);
@@ -2061,11 +1776,11 @@
   }
   .landing-action-tile:hover { transform: translateY(-3px); box-shadow: var(--elev-2); }
   .landing-action-tile:active { transform: scale(0.96); }
-  .landing-action-tile .icon-svg { width: 22px; height: 22px; margin: 0; stroke: #7c3aed; }
-  .landing-action-tile span { font-size: 12px; font-weight: 700; color: var(--text); }
+  .landing-action-tile .icon-svg { width: 22px; height: 22px; margin: 0; stroke: var(--accent); }
+  .landing-action-tile span { font-size: var(--t-xs); font-weight: 700; color: var(--ink-1); }
   .landing-cta-date {
-    font-size: 13px;
-    color: var(--text-muted);
+    font-size: var(--t-sm);
+    color: var(--ink-3);
     font-weight: 600;
     margin-top: -8px;
     margin-bottom: 18px;
@@ -2076,8 +1791,8 @@
     align-items: center;
     gap: 4px;
     margin-top: 48px;
-    color: var(--text-muted);
-    font-size: 12px;
+    color: var(--ink-3);
+    font-size: var(--t-xs);
     font-weight: 600;
     animation: scrollHintBob 1.8s ease-in-out infinite;
   }
@@ -2088,9 +1803,9 @@
   }
 
   .landing-section-title {
-    font-size: 22px;
+    font-size: var(--t-lg);
     font-weight: 800;
-    color: var(--text);
+    color: var(--ink-1);
     margin-bottom: 22px;
     letter-spacing: -0.3px;
   }
@@ -2102,10 +1817,8 @@
   }
   .landing-mini-card {
     position: relative;
-    background: var(--glass-bg);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid var(--glass-border);
+    background: var(--surface-1);
+    border: 1px solid var(--rule-1);
     border-radius: 18px;
     padding: 22px 14px 18px 14px;
     box-shadow: var(--elev-1);
@@ -2132,17 +1845,17 @@
     opacity: 0.08;
   }
   .landing-mini-card-count {
-    font-size: 34px;
+    font-size: var(--t-display);
     font-weight: 850;
-    color: var(--text);
+    color: var(--ink-1);
     font-variant-numeric: tabular-nums;
   }
   .landing-mini-card-title {
-    font-size: 10.5px;
+    font-size: var(--t-xs);
     font-weight: 700;
     letter-spacing: 0.5px;
     text-transform: uppercase;
-    color: var(--text-muted);
+    color: var(--ink-3);
     margin-top: 4px;
   }
 
@@ -2164,18 +1877,18 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 30px;
+    font-size: var(--t-xl);
     font-weight: 800;
-    color: var(--text);
+    color: var(--ink-1);
     font-variant-numeric: tabular-nums;
   }
-  .landing-compliance-caption { font-size: 14px; color: var(--text-muted); font-weight: 600; }
+  .landing-compliance-caption { font-size: var(--t-sm); color: var(--ink-3); font-weight: 600; }
 
   .landing-cta-row { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
   .landing-cta-btn {
     padding: 16px 28px;
     border-radius: 14px;
-    font-size: 15px;
+    font-size: var(--t-md);
     font-weight: 750;
     transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
   }
@@ -2186,35 +1899,33 @@
     box-shadow: 0 12px 28px -8px rgba(139,92,246,0.55);
   }
   .landing-cta-secondary {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    color: var(--text);
+    background: var(--surface-1);
+    border: 1px solid var(--rule-1);
+    color: var(--ink-1);
   }
 
 
   .dash-card {
-    background: var(--glass-bg);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid var(--glass-border);
+    background: var(--surface-1);
+    border: 1px solid var(--rule-1);
     border-radius: 16px;
     padding: 16px;
     margin-bottom: 14px;
     box-shadow: var(--elev-1);
   }
   .dash-card-title {
-    font-size: 13px;
+    font-size: var(--t-sm);
     font-weight: 700;
-    color: var(--text);
+    color: var(--ink-1);
     display: flex;
     align-items: center;
     margin-bottom: 12px;
   }
-  .dash-empty { font-size: 12.5px; color: var(--text-muted); padding: 6px 0; }
+  .dash-empty { font-size: var(--t-xs); color: var(--ink-3); padding: 6px 0; }
 
-  .dash-greeting { background: linear-gradient(135deg, rgba(99,102,241,0.10), rgba(217,70,239,0.08)); }
-  .dash-greeting-text { font-size: 16px; font-weight: 650; color: var(--text); margin-bottom: 4px; }
-  .dash-greeting-sub { font-size: 12.5px; color: var(--text-muted); }
+  .dash-greeting { background: var(--accent-soft); }
+  .dash-greeting-text { font-size: var(--t-md); font-weight: 650; color: var(--ink-1); margin-bottom: 4px; }
+  .dash-greeting-sub { font-size: var(--t-xs); color: var(--ink-3); }
 
   .dash-stat-grid {
     display: grid;
@@ -2227,18 +1938,18 @@
     padding: 12px 8px;
     text-align: center;
   }
-  .dash-stat-tile.tone-amber { background: rgba(245,158,11,0.12); }
-  .dash-stat-tile.tone-red { background: rgba(239,68,68,0.12); }
-  .dash-stat-tile.tone-green { background: rgba(34,197,94,0.12); }
-  .dash-stat-value { font-size: 22px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
-  .dash-stat-label { font-size: 10px; font-weight: 650; letter-spacing: 0.4px; text-transform: uppercase; color: var(--text-muted); margin-top: 2px; }
+  .dash-stat-tile.tone-amber { background: var(--warn-soft); }
+  .dash-stat-tile.tone-red { background: var(--crit-soft); }
+  .dash-stat-tile.tone-green { background: var(--ok-soft); }
+  .dash-stat-value { font-size: var(--t-lg); font-weight: 800; color: var(--ink-1); font-variant-numeric: tabular-nums; }
+  .dash-stat-label { font-size: var(--t-xs); font-weight: 650; letter-spacing: 0.4px; text-transform: uppercase; color: var(--ink-3); margin-top: 2px; }
 
   .dash-staffing-list { display: flex; flex-direction: column; gap: 8px; }
   .dash-staffing-row { display: flex; align-items: center; gap: 8px; }
-  .dash-staffing-label { font-size: 11.5px; font-weight: 650; color: var(--text); width: 90px; flex-shrink: 0; }
-  .dash-staffing-bar-track { flex: 1; height: 8px; border-radius: 99px; background: rgba(148,163,184,0.16); overflow: hidden; }
-  .dash-staffing-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #6366f1, #8b5cf6); transition: width 0.5s var(--ease); }
-  .dash-staffing-count { font-size: 12px; font-weight: 700; color: var(--text); width: 20px; text-align: right; flex-shrink: 0; }
+  .dash-staffing-label { font-size: var(--t-xs); font-weight: 650; color: var(--ink-1); width: 90px; flex-shrink: 0; }
+  .dash-staffing-bar-track { flex: 1; height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+  .dash-staffing-bar-fill { height: 100%; border-radius: 99px; background: var(--accent); transition: width 0.5s var(--ease); }
+  .dash-staffing-count { font-size: var(--t-xs); font-weight: 700; color: var(--ink-1); width: 20px; text-align: right; flex-shrink: 0; }
 
   .dash-actions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; }
   .dash-action-tile {
@@ -2247,20 +1958,20 @@
     align-items: center;
     gap: 6px;
     background: rgba(148,163,184,0.10);
-    color: var(--text);
+    color: var(--ink-1);
     border-radius: 12px;
     padding: 14px 8px;
-    font-size: 11.5px;
+    font-size: var(--t-xs);
     font-weight: 650;
     transition: background 0.15s var(--ease), transform 0.15s var(--ease);
   }
-  .dash-action-tile:hover { background: rgba(139,92,246,0.14); }
+  .dash-action-tile:hover { background: var(--accent-soft); }
   .dash-action-tile:active { transform: scale(0.96); }
-  .dash-action-tile .icon-svg { width: 20px; height: 20px; margin: 0; stroke: #7c3aed; }
+  .dash-action-tile .icon-svg { width: 20px; height: 20px; margin: 0; stroke: var(--accent); }
 
   .dash-timeline-list { display: flex; flex-direction: column; gap: 10px; max-height: 320px; overflow-y: auto; }
   .dash-timeline-row { }
-  .dash-timeline-label { font-size: 11.5px; font-weight: 650; color: var(--text); margin-bottom: 4px; }
+  .dash-timeline-label { font-size: var(--t-xs); font-weight: 650; color: var(--ink-1); margin-bottom: 4px; }
 
   .dash-trend-chart {
     display: flex;
@@ -2276,26 +1987,24 @@
   }
 
   .dash-activity-list { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; }
-  .dash-activity-row { display: flex; justify-content: space-between; gap: 8px; font-size: 11.5px; padding-bottom: 6px; border-bottom: 1px solid var(--glass-border); }
-  .dash-activity-action { color: var(--text); font-weight: 600; }
-  .dash-activity-time { color: var(--text-muted); flex-shrink: 0; white-space: nowrap; }
+  .dash-activity-row { display: flex; justify-content: space-between; gap: 8px; font-size: var(--t-xs); padding-bottom: 6px; border-bottom: 1px solid var(--rule-1); }
+  .dash-activity-action { color: var(--ink-1); font-weight: 600; }
+  .dash-activity-time { color: var(--ink-3); flex-shrink: 0; white-space: nowrap; }
 
 
   .gear-btn {
-    background: var(--glass-bg);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid var(--glass-border);
+    background: var(--surface-1);
+    border: 1px solid var(--rule-1);
     border-radius: 8px;
     width: auto;
     height: auto;
-    font-size: 13px;
+    font-size: var(--t-sm);
     font-weight: 600;
     padding: 10px 16px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    color: #1a1a1a;
+    color: var(--ink-1);
   }
-  body.dark .gear-btn { background: #1a2233; color: #e5e7eb; }
+  
 
   #settingsMenuOverlay {
     display: none;
@@ -2307,10 +2016,8 @@
   }
   #settingsMenuOverlay.open { display: flex; }
   .settings-menu {
-    background: var(--glass-bg);
-    backdrop-filter: blur(30px) saturate(180%);
-    -webkit-backdrop-filter: blur(30px) saturate(180%);
-    border-left: 1px solid var(--glass-border);
+    background: var(--surface-1);
+    border-left: 1px solid var(--rule-1);
     width: min(320px, 85vw);
     height: 100%;
     padding: 22px 16px;
@@ -2325,25 +2032,23 @@
     from { transform: translateX(100%); }
     to { transform: translateX(0); }
   }
-  .settings-menu-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .settings-menu-title { font-size: var(--t-md); font-weight: 700; margin-bottom: 6px; }
   .settings-menu button { width: 100%; justify-content: flex-start; }
-  .settings-menu-divider { border-top: 1px solid var(--glass-border); margin: 6px 0; }
+  .settings-menu-divider { border-top: 1px solid var(--rule-1); margin: 6px 0; }
 
   .search-bar { margin: 2px 0 6px 0; }
   .search-bar input {
     width: 100%;
-    padding: 12px 14px;
-    font-size: 15px;
-    border: 1px solid var(--glass-border);
+    padding: 12px 14px 12px 40px;   /* clears the magnifier at left:14px */
+    font-size: var(--t-md);
+    border: 1px solid var(--rule-1);
     border-radius: 12px;
     box-shadow: var(--elev-1);
     transition: box-shadow 0.2s var(--ease), border-color 0.2s var(--ease);
-    background: var(--glass-bg);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    color: var(--text);
+    background: var(--surface-1);
+    color: var(--ink-1);
   }
-  .search-bar input:focus { outline: none; border-color: #3b82f6; box-shadow: var(--elev-2); }
+  .search-bar input:focus { outline: none; border-color: var(--accent); box-shadow: var(--elev-2); }
 
   .section-header { transition: filter 0.2s var(--ease); }
   .section-header:active { filter: brightness(0.94); }
@@ -2353,6 +2058,124 @@
   .collapse-toggle { cursor: pointer; }
   .section-header { cursor: pointer; }
   .card.search-hidden { display: none; }
+
+  /* ── brand moment: the MJ mark, given room ─────────────────────── */
+  .brand-overlay {
+    position: fixed; inset: 0; z-index: 24000;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(10,12,16,0.55);
+    padding: var(--s5);
+    animation: brandFade 0.2s var(--ease);
+  }
+  @keyframes brandFade { from { opacity: 0; } to { opacity: 1; } }
+  .brand-card {
+    background: var(--surface-1);
+    border: 1px solid var(--rule-1);
+    border-radius: var(--r-lg);
+    box-shadow: var(--elev-3);
+    padding: var(--s8) var(--s6) var(--s6);
+    text-align: center;
+    max-width: 300px; width: 100%;
+    display: flex; flex-direction: column; align-items: center; gap: var(--s1);
+    animation: brandRise 0.24s var(--ease);
+  }
+  @keyframes brandRise {
+    from { opacity: 0; transform: translateY(8px) scale(0.98); }
+    to   { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .brand-overlay, .brand-card { animation: none; }
+  }
+  .brand-card .mj-badge-lg { margin-bottom: var(--s3); }
+  /* Scoped so the existing animated-gradient .brand-name keeps its text fill —
+     an unscoped rule here would leave the text transparent. */
+  .brand-card .brand-name { font-size: var(--t-xl); letter-spacing: -0.5px; line-height: 1.15; }
+  .brand-studio {
+    font-size: var(--t-sm); font-weight: 650; letter-spacing: 1.4px;
+    text-transform: uppercase;
+    background: var(--brand-grad);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; color: transparent;
+  }
+  .brand-motto {
+    font-size: var(--t-xs); color: var(--ink-3);
+    letter-spacing: 1px; text-transform: uppercase;
+  }
+  .brand-product {
+    font-size: var(--t-xs); color: var(--ink-3);
+    margin-top: var(--s3); padding-top: var(--s3);
+    border-top: 1px solid var(--rule-2); width: 100%;
+  }
+  .brand-close { margin-top: var(--s4); width: 100%; }
+
+  /* ── compliance: hero figure + smooth area ─────────────────────── */
+  .comp-head {
+    display: flex; align-items: baseline; gap: var(--s3);
+    flex-wrap: wrap; margin-bottom: var(--s2);
+  }
+  .comp-figure {
+    font-size: var(--t-display);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-1);
+  }
+  .comp-meta { display: flex; flex-direction: column; gap: 2px; }
+  .comp-state {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: var(--t-xs); font-weight: 650;
+    letter-spacing: 0.3px; text-transform: uppercase;
+  }
+  .comp-state .icon-svg { width: 13px; height: 13px; margin: 0; stroke: currentColor; }
+  .comp-state.ok   { color: var(--ok); }
+  .comp-state.warn { color: var(--warn); }
+  .comp-state.crit { color: var(--crit); }
+  .comp-drift { font-size: var(--t-xs); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
+  .comp-plot { position: relative; }
+  .comp-svg { display: block; width: 100%; height: 96px; overflow: visible; touch-action: pan-y; }
+  .comp-target {
+    stroke: var(--rule-1);
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+    vector-effect: non-scaling-stroke;
+  }
+  .comp-dot {
+    stroke: var(--surface-1);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+  }
+  .comp-cross {
+    stroke: var(--ink-3);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+    pointer-events: none;
+  }
+  .comp-cross.hidden, .comp-tip.hidden { display: none; }
+  .comp-tip {
+    position: absolute; top: 0;
+    background: var(--ink-1);
+    color: var(--surface-1);
+    border-radius: var(--r-sm);
+    padding: 5px 8px;
+    font-size: var(--t-xs);
+    line-height: 1.35;
+    white-space: nowrap;
+    pointer-events: none;
+    display: flex; flex-direction: column;
+    box-shadow: var(--elev-2);
+    z-index: 2;
+  }
+  .comp-tip b { font-variant-numeric: tabular-nums; font-size: var(--t-sm); }
+  .comp-tip span { opacity: 0.75; }
+  .comp-axis {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: var(--t-xs); color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+    margin-top: 2px;
+  }
+  .comp-target-key { letter-spacing: 0.3px; }
 </style>
 </head>
 <body>
@@ -2394,8 +2217,6 @@
     <div id="accountLabel" class="account-label"></div>
     <button class="secondary" id="viewModeBtn" onclick="toggleViewMode()"></button>
     <button class="secondary" id="darkModeBtn" onclick="toggleDarkMode()"></button>
-    <button class="secondary" id="compactBtn" onclick="toggleCompact()"></button>
-    <button class="secondary" id="overviewBtn" onclick="toggleOverviewMode()"></button>
     <button class="secondary" id="alertsBtn" onclick="toggleAlertsEnabled()"></button>
     <div class="settings-menu-divider"></div>
     <button class="secondary" onclick="generateSummary()" id="summaryBtnLabel"></button>
@@ -2419,47 +2240,12 @@
 
 <div id="coverageModalContainer"></div>
 
+<div id="brandModalContainer"></div>
+
 <div id="toastContainer"></div>
 
-<div id="celebrationContainer"></div>
 
 <div id="authCheckSplash">
-  <div class="airport-bg" aria-hidden="true">
-    <div class="runway-glow"></div>
-    <div class="cloud cloud-1"></div>
-    <div class="cloud cloud-2"></div>
-    <div class="cloud cloud-3"></div>
-    <div class="plane-unit plane-takeoff plane-t1">
-      <span class="contrail"></span>
-      <span class="plane">✈</span>
-      <span class="nav-light nav-red"></span>
-      <span class="nav-light nav-green"></span>
-    </div>
-    <div class="plane-unit plane-takeoff plane-t2 plane-far">
-      <span class="contrail"></span>
-      <span class="plane">✈</span>
-      <span class="nav-light nav-red"></span>
-      <span class="nav-light nav-green"></span>
-    </div>
-    <div class="plane-unit plane-land plane-l1">
-      <span class="contrail"></span>
-      <span class="plane">✈</span>
-      <span class="nav-light nav-red"></span>
-      <span class="nav-light nav-green"></span>
-    </div>
-    <div class="plane-unit plane-land plane-l2 plane-far">
-      <span class="contrail"></span>
-      <span class="plane">✈</span>
-      <span class="nav-light nav-red"></span>
-      <span class="nav-light nav-green"></span>
-    </div>
-    <div class="plane-unit plane-cruise plane-c1 plane-far">
-      <span class="contrail"></span>
-      <span class="plane">✈</span>
-      <span class="nav-light nav-red"></span>
-      <span class="nav-light nav-green"></span>
-    </div>
-  </div>
 
   <div class="splash-content">
     <div class="mj-badge login-flip flip-badge" style="width:56px;height:56px;">
@@ -2475,42 +2261,6 @@
 </div>
 
 <div id="loginScreen" class="hidden">
-  <div class="airport-bg" aria-hidden="true">
-    <div class="runway-glow"></div>
-    <div class="cloud cloud-1"></div>
-    <div class="cloud cloud-2"></div>
-    <div class="cloud cloud-3"></div>
-    <div class="plane-unit plane-takeoff plane-t1">
-      <span class="contrail"></span>
-      <span class="plane">✈</span>
-      <span class="nav-light nav-red"></span>
-      <span class="nav-light nav-green"></span>
-    </div>
-    <div class="plane-unit plane-takeoff plane-t2 plane-far">
-      <span class="contrail"></span>
-      <span class="plane">✈</span>
-      <span class="nav-light nav-red"></span>
-      <span class="nav-light nav-green"></span>
-    </div>
-    <div class="plane-unit plane-land plane-l1">
-      <span class="contrail"></span>
-      <span class="plane">✈</span>
-      <span class="nav-light nav-red"></span>
-      <span class="nav-light nav-green"></span>
-    </div>
-    <div class="plane-unit plane-land plane-l2 plane-far">
-      <span class="contrail"></span>
-      <span class="plane">✈</span>
-      <span class="nav-light nav-red"></span>
-      <span class="nav-light nav-green"></span>
-    </div>
-    <div class="plane-unit plane-cruise plane-c1 plane-far">
-      <span class="contrail"></span>
-      <span class="plane">✈</span>
-      <span class="nav-light nav-red"></span>
-      <span class="nav-light nav-green"></span>
-    </div>
-  </div>
   <div class="login-card">
     <div class="login-brand">
       <div class="login-icon-wrap">
@@ -2775,19 +2525,8 @@
 
 <div id="dashboardView" class="hidden"></div>
 
-<div id="shutterTransition">
-  <div class="shutter-panel shutter-top"></div>
-  <div class="shutter-panel shutter-bottom"></div>
-</div>
 
 <div id="landingScreen" class="hidden">
-  <div class="landing-bg-decor" id="landingBgDecor" aria-hidden="true">
-    <div class="landing-radar" id="landingRadar">
-      <div class="landing-radar-ring landing-radar-ring-1"></div>
-      <div class="landing-radar-ring landing-radar-ring-2"></div>
-      <div class="landing-radar-ring landing-radar-ring-3"></div>
-      <div class="landing-radar-sweep"></div>
-    </div>
     <div class="landing-orb landing-orb-1"></div>
     <div class="landing-orb landing-orb-2"></div>
     <div class="landing-orb landing-orb-3"></div>
@@ -3367,11 +3106,40 @@ const PENDING_SYNC_KEY = 'shift_break_tracker_pending_sync_v1';
 // remembers that on reopen, so the incoming listener can't silently
 // overwrite it before the retry gets a chance to actually push it.
 let hasPendingLocalChanges = localStorage.getItem(PENDING_SYNC_KEY) === 'true';
+
+// When that pending edit was made, on the SERVER's clock. Without this the
+// flag only says "I have an unsaved edit" and not "…and it is newer than
+// what's on the server", so a phone waking up after hours asleep would both
+// reject the newer board and then overwrite it with its own stale one.
+const PENDING_SINCE_KEY = 'shift_break_tracker_pending_since_v1';
+let pendingSince = Number(localStorage.getItem(PENDING_SINCE_KEY)) || 0;
+
+// Firebase publishes the gap between this device's clock and its own, which
+// is what makes local and remote timestamps comparable at all. A phone whose
+// clock is off by ten minutes would otherwise win or lose every conflict.
+let serverTimeOffset = 0;
+if (firebaseAvailable) {
+  firebase.database().ref('.info/serverTimeOffset')
+    .on('value', snap => { serverTimeOffset = snap.val() || 0; });
+}
+function serverNow() { return Date.now() + serverTimeOffset; }
+
 function setPendingLocalChanges(val) {
   hasPendingLocalChanges = val;
   try {
-    if (val) localStorage.setItem(PENDING_SYNC_KEY, 'true');
-    else localStorage.removeItem(PENDING_SYNC_KEY);
+    if (val) {
+      localStorage.setItem(PENDING_SYNC_KEY, 'true');
+      // keep the ORIGINAL edit time across a run of rapid edits — restamping
+      // on every keystroke would make a stale copy look permanently fresh
+      if (!pendingSince) {
+        pendingSince = serverNow();
+        localStorage.setItem(PENDING_SINCE_KEY, String(pendingSince));
+      }
+    } else {
+      pendingSince = 0;
+      localStorage.removeItem(PENDING_SYNC_KEY);
+      localStorage.removeItem(PENDING_SINCE_KEY);
+    }
   } catch (e) {}
 }
 
@@ -3681,6 +3449,7 @@ if (firebaseAvailable) {
       currentUserEmail = user.email || '';
       hideLoginScreen();
       startFirebaseListener();
+      startComplianceListener();
       startOfficersFirebaseListener();
       pushToFirebaseDebounced(); // flush anything saved before auth completed
       loadOfficers().forEach(o => pushOfficerToFirebaseDebounced(o));
@@ -3713,7 +3482,11 @@ function pushToFirebaseDebounced() {
   clearTimeout(fbSyncTimeout);
   setSyncStatus('Syncing…');
   fbSyncTimeout = setTimeout(() => {
-    dataRef.set(data)
+    dataRef.set({
+      board: data,
+      updatedAt: firebase.database.ServerValue.TIMESTAMP,
+      updatedBy: currentUserEmail || ''
+    })
       .then(() => {
         setPendingLocalChanges(false); // confirmed saved — safe for remote updates again
         setSyncStatus('Synced · ' + new Date().toLocaleTimeString());
@@ -3733,13 +3506,36 @@ function startFirebaseListener() {
     const remote = snapshot.val();
     if (remote === null) {
       // nothing on the server yet — push what we have locally
-      dataRef.set(data);
+      pushToFirebaseDebounced();
       return;
     }
-    if (isUserTyping() || dragState || hasPendingLocalChanges) return; // never overwrite an edit that hasn't been confirmed saved yet
+
+    // Boards written before this version were stored as a bare array; ones
+    // written since are { board, updatedAt, updatedBy }. Read both.
+    const isWrapped = remote && !Array.isArray(remote) && remote.board !== undefined;
+    const remoteBoard = isWrapped ? remote.board : remote;
+    const remoteUpdatedAt = isWrapped ? (remote.updatedAt || 0) : 0;
+
+    if (isUserTyping() || dragState) return;  // never yank the UI out from under an active edit
+
+    if (hasPendingLocalChanges) {
+      // An unsaved local edit only wins if it is genuinely newer than what's
+      // on the server. If the server moved on AFTER our edit was made, ours
+      // is stale — the device was asleep while someone else worked — so we
+      // drop it rather than overwrite their work.
+      if (remoteUpdatedAt > pendingSince) {
+        setPendingLocalChanges(false);
+        setSyncStatus('Newer changes from another device — local copy replaced');
+      } else {
+        return;  // ours really is the latest; protect it until the push lands
+      }
+    }
+
+    const wasLegacy = !isWrapped;
+
     try {
       applyingRemoteUpdate = true;
-      data = ensureArray(remote);
+      data = ensureArray(remoteBoard);
       runMigrations(data);
       checkShiftTimers();
       autoMoveClosedSections();
@@ -3751,6 +3547,11 @@ function startFirebaseListener() {
     } finally {
       applyingRemoteUpdate = false;
     }
+
+    // A board written by an older build carries no updatedAt, which makes it
+    // look infinitely old to every conflict check. Re-save it in the stamped
+    // shape immediately so that window closes on first contact.
+    if (wasLegacy) pushToFirebaseDebounced();
   }, (err) => {
     console.error('Firebase listener error', err);
     setSyncStatus('Offline (using local copy)');
@@ -3761,12 +3562,57 @@ function startFirebaseListener() {
 // If a pending push got cut off (tab backgrounded mid-save, network drop,
 // etc.), retry the moment the app is actually usable again rather than
 // silently leaving that edit stuck forever.
+// A pending push that got cut off (tab frozen mid-save, network drop, phone
+// asleep) is retried when the app becomes usable again — but only after
+// checking that nobody else has written since. Retrying blind is exactly how
+// a phone that has been asleep for hours clobbers a day of work from the PC.
+// Fetch and apply the server's board right now. Needed because .on('value')
+// only fires on change: once this device stops protecting a stale local copy,
+// nothing would otherwise tell it to catch up.
+function pullRemoteNow() {
+  if (!firebaseAvailable || !authReady) return;
+  dataRef.once('value')
+    .then(snap => {
+      const remote = snap.val();
+      if (remote === null) return;
+      const isWrapped = remote && !Array.isArray(remote) && remote.board !== undefined;
+      if (isUserTyping() || dragState || hasPendingLocalChanges) return;
+      try {
+        applyingRemoteUpdate = true;
+        data = ensureArray(isWrapped ? remote.board : remote);
+        runMigrations(data);
+        checkShiftTimers();
+        autoMoveClosedSections();
+        render();
+        setSyncStatus('Synced · ' + new Date().toLocaleTimeString());
+      } finally {
+        applyingRemoteUpdate = false;
+      }
+    })
+    .catch(err => console.error('Catch-up read failed', err));
+}
+
+function retryPendingPush() {
+  if (!firebaseAvailable || !authReady || !hasPendingLocalChanges) return;
+  dataRef.child('updatedAt').once('value')
+    .then(snap => {
+      const remoteUpdatedAt = snap.val() || 0;
+      if (remoteUpdatedAt > pendingSince) {
+        // someone else has written since our unsaved edit — theirs wins
+        setPendingLocalChanges(false);
+        setSyncStatus('Newer changes from another device — local copy discarded');
+        pullRemoteNow();
+        return;
+      }
+      pushToFirebaseDebounced();
+    })
+    .catch(() => pushToFirebaseDebounced());  // can't check: fall back to retrying
+}
+
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden && hasPendingLocalChanges) pushToFirebaseDebounced();
+  if (!document.hidden) retryPendingPush();
 });
-window.addEventListener('online', () => {
-  if (hasPendingLocalChanges) pushToFirebaseDebounced();
-});
+window.addEventListener('online', retryPendingPush);
 
 const SETTINGS_KEY = 'shift_break_tracker_settings_v1';
 const HISTORY_KEY = 'shift_break_tracker_history_v1';
@@ -3883,26 +3729,11 @@ let settings = loadSettings();
 function applySettingsToBody() {
   if (!settings.view) settings.view = 'mobile';
   document.body.classList.toggle('dark', settings.dark);
-  document.body.classList.toggle('compact', settings.compact);
-  document.body.classList.toggle('overview-mode', !!settings.overview);
   document.body.classList.toggle('view-desktop', settings.view === 'desktop');
   document.body.classList.toggle('view-mobile', settings.view !== 'desktop');
   document.getElementById('darkModeBtn').innerHTML = settings.dark ? (icon('sun') + 'Light Mode') : (icon('moon') + 'Dark Mode');
-  document.getElementById('compactBtn').innerHTML = settings.compact ? (icon('layout') + 'Normal View') : (icon('layout') + 'Compact View');
-  document.getElementById('overviewBtn').innerHTML = settings.overview ? (icon('layout') + 'Exit Overview Mode') : (icon('layout') + 'Overview Mode (See Multiple Sections)');
   document.getElementById('alertsBtn').innerHTML = settings.alertsEnabled ? (icon('bellOff') + 'Disable Alerts') : (icon('bell') + 'Enable Alerts');
   document.getElementById('viewModeBtn').innerHTML = settings.view === 'desktop' ? (icon('monitor') + 'Desktop View') : (icon('smartphone') + 'Mobile View');
-}
-
-function toggleOverviewMode() {
-  settings.overview = !settings.overview;
-  saveSettings();
-  if (settings.overview) {
-    data.forEach(section => { section.collapsed = true; });
-    saveData();
-  }
-  applySettingsToBody();
-  render();
 }
 
 function toggleViewMode() {
@@ -3932,12 +3763,6 @@ function toggleSectionCollapse(sIdx) {
 
 function toggleDarkMode() {
   settings.dark = !settings.dark;
-  saveSettings();
-  applySettingsToBody();
-}
-
-function toggleCompact() {
-  settings.compact = !settings.compact;
   saveSettings();
   applySettingsToBody();
 }
@@ -3990,7 +3815,7 @@ function showAddOfficerModal(section) {
     const filtered = officers.filter(o => !filter || o.name.toLowerCase().includes(filter.toLowerCase()));
     if (filtered.length === 0) {
       const empty = document.createElement('div');
-      empty.style.cssText = 'font-size:12px;color:var(--text-muted);padding:8px 0;text-align:center;';
+      empty.style.cssText = 'font-size:12px;color:var(--ink-3);padding:8px 0;text-align:center;';
       empty.textContent = officers.length === 0 ? 'No saved officers yet — add one below.' : 'No matches.';
       listWrap.appendChild(empty);
       return;
@@ -3999,8 +3824,12 @@ function showAddOfficerModal(section) {
       const row = document.createElement('button');
       row.className = 'secondary';
       row.style.cssText = 'width:100%;display:flex;justify-content:space-between;text-align:left;';
-      row.innerHTML = '<span>' + o.name + '</span><span style="font-size:11px;color:var(--text-muted);font-weight:400;">' + o.startTime + '–' + o.endTime + '</span>';
+      row.innerHTML = '<span>' + o.name + '</span><span style="font-size:11px;color:var(--ink-3);font-weight:400;">' + o.startTime + '–' + o.endTime + '</span>';
       row.onclick = () => {
+        if (!shiftLengthIsLegal(o.startTime, o.endTime)) {
+          rejectOverLongShift(o.startTime, o.endTime);
+          return;
+        }
         const p = newPerson(o.name, '');
         p.startTime = o.startTime;
         p.endTime = o.endTime;
@@ -4021,7 +3850,7 @@ function showAddOfficerModal(section) {
   box.appendChild(divider);
 
   const newLabel = document.createElement('div');
-  newLabel.style.cssText = 'font-size:12px;font-weight:600;margin-bottom:8px;color:var(--text-muted);';
+  newLabel.style.cssText = 'font-size:12px;font-weight:600;margin-bottom:8px;color:var(--ink-3);';
   newLabel.textContent = 'Add someone new:';
   box.appendChild(newLabel);
 
@@ -4036,14 +3865,14 @@ function showAddOfficerModal(section) {
   const newStart = document.createElement('input');
   newStart.type = 'time';
   newStart.value = '09:00';
-  newStart.style.cssText = 'flex:1;padding:10px;border:1px solid var(--glass-border);border-radius:8px;background:transparent;color:var(--text);';
+  newStart.style.cssText = 'flex:1;padding:10px;border:1px solid var(--rule-1);border-radius:8px;background:transparent;color:var(--ink-1);';
   const arrow2 = document.createElement('span');
   arrow2.textContent = '→';
-  arrow2.style.color = 'var(--text-muted)';
+  arrow2.style.color = 'var(--ink-3)';
   const newEnd = document.createElement('input');
   newEnd.type = 'time';
   newEnd.value = '19:00';
-  newEnd.style.cssText = 'flex:1;padding:10px;border:1px solid var(--glass-border);border-radius:8px;background:transparent;color:var(--text);';
+  newEnd.style.cssText = 'flex:1;padding:10px;border:1px solid var(--rule-1);border-radius:8px;background:transparent;color:var(--ink-1);';
   newTimeRow.appendChild(newStart);
   newTimeRow.appendChild(arrow2);
   newTimeRow.appendChild(newEnd);
@@ -4063,6 +3892,10 @@ function showAddOfficerModal(section) {
   addBtn.onclick = () => {
     const name = newNameInput.value.trim();
     if (!name) { showToast('Enter a name first', 'error'); return; }
+    if (!shiftLengthIsLegal(newStart.value, newEnd.value)) {
+      rejectOverLongShift(newStart.value, newEnd.value);
+      return;
+    }
     upsertOfficer(name, newStart.value, newEnd.value);
     const p = newPerson(name, '');
     p.startTime = newStart.value;
@@ -4167,13 +4000,20 @@ function notifyNewRedAlerts(alerts) {
   previousRedIds = currentRedIds;
 }
 
+// Entitlement bands. A shift earns the plan for the highest band it has fully
+// reached — never the next one up (see planHoursFor). 4h is the floor: anything
+// shorter still gets the single 20, and 16h is the ceiling (MAX_SHIFT_HOURS).
 const BREAK_PLANS = {
-  8: [40, 40],
+  4:  [20],
+  6:  [40, 20],
+  8:  [40, 40],
   10: [40, 40, 20],
   12: [40, 40, 40],
   14: [40, 40, 40, 20],
   16: [40, 40, 40, 40]
 };
+
+const MAX_SHIFT_HOURS = 16;
 
 function newPerson(name, note) {
   const p = {
@@ -4190,35 +4030,30 @@ function newPerson(name, note) {
   return p;
 }
 
-const defaultData = [
-  { title: 'CENTRAL', hours: { type: '24/7' }, people: [
-    newPerson('Elroy', 'Transition until 20:00'),
-    newPerson('Tyson', ''),
-    newPerson('Neesha', ''),
-  ]},
-  { title: 'PRIMARY', hours: { type: 'closes', open: '03:00' }, people: [
-    newPerson('Prince', 'Done at 9 — 40 break left'),
-    newPerson('Reshad', ''),
-    newPerson('Varinder', 'Done at midnight'),
-  ]},
-  { title: 'DOM BAG', hours: { type: '24/7' }, people: [
-    newPerson('Tad', 'Done at 22:00'),
-    newPerson('Shashi', ''),
-    newPerson('Victoria', ''),
-  ]},
-  { title: 'INT BAG', hours: { type: 'closes', open: '03:00' }, people: [
-    newPerson('Kevin', ''),
-    newPerson('Sapna', 'Done at 12 — 60 break left'),
-  ]},
-  { title: 'CUSTOMS', hours: { type: 'closes', open: '08:00' }, people: [
-    newPerson('Sunny', 'Done at midnight'),
-    newPerson('Ursilla', 'Done at 12 — 60 break left'),
-  ]},
-  { title: 'HBS NPS', hours: { type: '24/7' }, people: [
-    newPerson('Denis', 'Done at 10 — 60 break left'),
-    newPerson('Monika K', 'Done at 22:00 — 60 left'),
-  ]},
-  { title: 'ROSTER', hours: { type: 'none' }, people: [] },
+// The checkpoint structure with nobody rostered. This is what a new device
+// starts from and what Reset returns to — the sample names that used to live
+// here were demo data, and restoring them is what made Reset look like it was
+// "bringing back old data".
+function emptyBoard() {
+  return [
+    { title: 'CENTRAL',            hours: { type: '24/7' },                                  collapsed: false, people: [] },
+    { title: 'PRIMARY',            hours: { type: 'closes', open: '03:00' },                 collapsed: false, people: [] },
+    { title: 'DOM BAG',            hours: { type: '24/7' },                                  collapsed: false, people: [] },
+    { title: 'INT BAG',            hours: { type: 'closes', open: '03:00' },                 collapsed: false, people: [] },
+    { title: 'CUSTOMS',            hours: { type: 'closes', open: '08:00' },                 collapsed: false, people: [] },
+    { title: 'HBS NPS',            hours: { type: '24/7' },                                  collapsed: false, people: [] },
+    { title: 'SERVICE LEVEL',      hours: { type: 'window', open: '04:00', close: '16:00' }, collapsed: false, people: [] },
+    { title: 'SENT TO CHECKPOINT', hours: { type: 'none' },                                  collapsed: false, people: [] },
+    { title: 'ROSTER',             hours: { type: 'none' },                                  collapsed: false, people: [] },
+  ];
+}
+
+
+// Sections every board must have, in the order they should appear if missing.
+// ROSTER is handled separately in runMigrations and always sorts last.
+const REQUIRED_SECTIONS = [
+  { title: 'SERVICE LEVEL', hours: { type: 'window', open: '04:00', close: '16:00' } },
+  { title: 'SENT TO CHECKPOINT', hours: { type: 'none' } },
 ];
 
 function loadData() {
@@ -4226,7 +4061,7 @@ function loadData() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return ensureArray(JSON.parse(raw));
   } catch (e) { console.error('localStorage unavailable', e); }
-  return JSON.parse(JSON.stringify(defaultData));
+  return emptyBoard();
 }
 
 function saveData() {
@@ -4249,6 +4084,7 @@ const KNOWN_SECTION_HOURS = [
   { match: (t) => t.includes('PRIMARY'), hours: { type: 'closes', open: '03:00' } },
   { match: (t) => (t.includes('INT') && t.includes('BAG')) || t.includes('INTERNATIONAL'), hours: { type: 'closes', open: '03:00' } },
   { match: (t) => t.includes('CUSTOM'), hours: { type: 'closes', open: '08:00' } },
+  { match: (t) => t.includes('SERVICE') && t.includes('LEVEL'), hours: { type: 'window', open: '04:00', close: '16:00' } },
 ];
 
 function lookupKnownHours(title) {
@@ -4291,6 +4127,16 @@ function runMigrations(d) {
       });
     });
   });
+  // Add any required checkpoint the saved board predates, placed just above
+  // ROSTER so the two holding areas stay together at the bottom.
+  REQUIRED_SECTIONS.forEach(req => {
+    if (d.some(s => (s.title || '').trim().toUpperCase() === req.title)) return;
+    const rosterIdx = d.findIndex(s => (s.title || '').trim().toUpperCase() === 'ROSTER');
+    const section = { title: req.title, hours: JSON.parse(JSON.stringify(req.hours)), collapsed: false, people: [] };
+    if (rosterIdx === -1) d.push(section);
+    else d.splice(rosterIdx, 0, section);
+  });
+
   if (!d.some(s => s.title === 'ROSTER')) {
     d.push({ title: 'ROSTER', hours: { type: 'none' }, people: [] });
   }
@@ -4309,17 +4155,56 @@ function computeShiftHours(startTime, endTime) {
   return (endMins - startMins) / 60;
 }
 
-function closestPlanHours(hours) {
-  const keys = Object.keys(BREAK_PLANS).map(Number);
-  return keys.reduce((closest, k) => Math.abs(k - hours) < Math.abs(closest - hours) ? k : closest, keys[0]);
+// Round DOWN to the band the shift has actually earned — a 7h shift takes the
+// 6h plan, not the 8h one. Rounding to nearest would hand out break time the
+// shift hasn't worked for, which is the wrong way to be wrong about compliance.
+function planHoursFor(hours) {
+  const bands = Object.keys(BREAK_PLANS).map(Number).sort((a, b) => a - b);
+  const floor = bands[0];
+  const ceil = bands[bands.length - 1];
+  if (hours <= floor) return floor;          // under 4h still gets the single 20
+  if (hours >= ceil) return ceil;
+  return bands.reduce((earned, b) => (b <= hours ? b : earned), floor);
 }
 
 function updateBreaksFromTimes(p) {
   const hours = computeShiftHours(p.startTime, p.endTime);
-  const planHours = closestPlanHours(hours);
+  const planHours = planHoursFor(hours);
   p.shiftHours = planHours;
   p.computedHours = hours;
   p.breaks = BREAK_PLANS[planHours].map(len => ({ len, state: 'pending', startedAt: null, startedAtMs: null, doneAt: null, coveredBy: '' }));
+}
+
+// True when the window is legal to roster. Callers that build a person from
+// scratch check this before creating them; applyShiftTimeChange covers edits.
+function shiftLengthIsLegal(startTime, endTime) {
+  return computeShiftHours(startTime, endTime) <= MAX_SHIFT_HOURS;
+}
+
+function rejectOverLongShift(startTime, endTime) {
+  const hours = computeShiftHours(startTime, endTime);
+  showToast('Shift can’t exceed ' + MAX_SHIFT_HOURS + ' hours — '
+    + startTime + '–' + endTime + ' is '
+    + (hours % 1 === 0 ? hours : hours.toFixed(1)) + 'h.', 'error');
+}
+
+// Single gate for every edit to a shift's start/end. Returns true if the change
+// was accepted. Anything over MAX_SHIFT_HOURS is refused outright and the
+// person keeps their previous times, so an over-length shift can never be saved.
+function applyShiftTimeChange(p, field, value) {
+  const prev = p[field];
+  p[field] = value;
+  const hours = computeShiftHours(p.startTime, p.endTime);
+  if (hours > MAX_SHIFT_HOURS) {
+    p[field] = prev;
+    showToast('Shift can’t exceed ' + MAX_SHIFT_HOURS + ' hours — that would be '
+      + (hours % 1 === 0 ? hours : hours.toFixed(1)) + 'h. Times not changed.', 'error');
+    return false;
+  }
+  updateBreaksFromTimes(p);
+  if (p.name) upsertOfficer(p.name, p.startTime, p.endTime);
+  saveData();
+  return true;
 }
 
 function personStatus(p) {
@@ -4426,11 +4311,25 @@ function timeToMins(t) {
 }
 
 function isSectionClosedNow(hours, now) {
-  if (!hours || hours.type !== 'closes') return false;
+  if (!hours) return false;
   const nowMins = now.getHours() * 60 + now.getMinutes();
-  const openMins = timeToMins(hours.open);
-  // Section closes at midnight (00:00) and reopens at hours.open
-  return nowMins < openMins;
+
+  // 'closes': open from hours.open until midnight.
+  if (hours.type === 'closes') return nowMins < timeToMins(hours.open);
+
+  // 'window': open between hours.open and hours.close on the same day
+  // (e.g. Service Level, 04:00–16:00). A window that wraps past midnight
+  // is treated as open on both sides of the wrap.
+  if (hours.type === 'window') {
+    const openMins = timeToMins(hours.open);
+    const closeMins = timeToMins(hours.close);
+    if (openMins === closeMins) return false;
+    return closeMins > openMins
+      ? (nowMins < openMins || nowMins >= closeMins)
+      : (nowMins < openMins && nowMins >= closeMins);
+  }
+
+  return false;
 }
 
 function computeElapsedMinutesSinceStart(p, now) {
@@ -4550,9 +4449,20 @@ function checkShiftTimers() {
   if (changed) saveData();
 }
 
+// Focus alone is NOT typing. A field keeps focus after the phone is locked or
+// the tab is backgrounded, so testing activeElement by itself meant one tap on
+// the search box could stop this device accepting synced changes indefinitely.
+// Gate on genuinely recent keystrokes instead, which still protects a field
+// from being re-rendered out from under someone mid-edit.
+const TYPING_GRACE_MS = 3000;
+let lastTypedAt = 0;
+document.addEventListener('input', () => { lastTypedAt = Date.now(); }, true);
+document.addEventListener('keydown', () => { lastTypedAt = Date.now(); }, true);
+
 function isUserTyping() {
   const el = document.activeElement;
-  return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT');
+  const editable = el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT');
+  return !!editable && (Date.now() - lastTypedAt) < TYPING_GRACE_MS;
 }
 
 let shiftTimerInterval = setInterval(() => {
@@ -4645,12 +4555,24 @@ function renderTopTicker() {
   // Collect every upcoming transition, then group the ones sharing a time
   const transitions = [];
   data.forEach(section => {
-    if (!section.hours || section.hours.type !== 'closes') return;
-    const openMins = timeToMins(section.hours.open);
-    if (isSectionClosedNow(section.hours, now)) {
-      transitions.push({ minsUntil: openMins - nowMins, kind: 'opens', at: section.hours.open, title: section.title });
-    } else {
-      transitions.push({ minsUntil: 1440 - nowMins, kind: 'closes', at: '00:00', title: section.title });
+    if (!section.hours) return;
+    const closedNow = isSectionClosedNow(section.hours, now);
+
+    if (section.hours.type === 'closes') {
+      const openMins = timeToMins(section.hours.open);
+      if (closedNow) {
+        transitions.push({ minsUntil: openMins - nowMins, kind: 'opens', at: section.hours.open, title: section.title });
+      } else {
+        transitions.push({ minsUntil: 1440 - nowMins, kind: 'closes', at: '00:00', title: section.title });
+      }
+      return;
+    }
+
+    if (section.hours.type === 'window') {
+      const target = closedNow ? section.hours.open : section.hours.close;
+      let minsUntil = timeToMins(target) - nowMins;
+      if (minsUntil < 0) minsUntil += 1440;  // next occurrence is tomorrow
+      transitions.push({ minsUntil, kind: closedNow ? 'opens' : 'closes', at: target, title: section.title });
     }
   });
 
@@ -4872,32 +4794,191 @@ function buildTodayTimeline() {
   return wrap;
 }
 
+// Monotone cubic (Fritsch–Carlson): smooths the line without the overshoot a
+// naive spline would give, which matters when the value is capped at 100%.
+function monotonePath(pts) {
+  const n = pts.length;
+  if (n === 0) return '';
+  if (n === 1) return 'M' + pts[0].x + ',' + pts[0].y;
+  if (n === 2) return 'M' + pts[0].x + ',' + pts[0].y + 'L' + pts[1].x + ',' + pts[1].y;
+
+  const dx = [], dy = [], slope = [];
+  for (let i = 0; i < n - 1; i++) {
+    dx[i] = pts[i + 1].x - pts[i].x;
+    dy[i] = pts[i + 1].y - pts[i].y;
+    slope[i] = dx[i] ? dy[i] / dx[i] : 0;
+  }
+  const m = [slope[0]];
+  for (let i = 1; i < n - 1; i++) {
+    if (slope[i - 1] * slope[i] <= 0) m[i] = 0;
+    else {
+      const w1 = 2 * dx[i] + dx[i - 1], w2 = dx[i] + 2 * dx[i - 1];
+      m[i] = (w1 + w2) / (w1 / slope[i - 1] + w2 / slope[i]);
+    }
+  }
+  m[n - 1] = slope[n - 2];
+
+  let d = 'M' + pts[0].x + ',' + pts[0].y;
+  for (let i = 0; i < n - 1; i++) {
+    const c = dx[i] / 3;
+    d += 'C' + (pts[i].x + c) + ',' + (pts[i].y + m[i] * c) +
+         ' ' + (pts[i + 1].x - c) + ',' + (pts[i + 1].y - m[i + 1] * c) +
+         ' ' + pts[i + 1].x + ',' + pts[i + 1].y;
+  }
+  return d;
+}
+
+const COMPLIANCE_TARGET = 90;
+
+function complianceBand(pct) {
+  if (pct >= COMPLIANCE_TARGET) return { key: 'ok',   label: 'On target',    color: 'var(--ok)'   };
+  if (pct >= 70)                return { key: 'warn', label: 'Below target', color: 'var(--warn)' };
+  return                               { key: 'crit', label: 'Critical',     color: 'var(--crit)' };
+}
+
 function buildComplianceTrend() {
   const wrap = document.createElement('div');
   wrap.className = 'dash-card';
-  wrap.innerHTML = '<div class="dash-card-title">' + icon('check') + 'Compliance Trend</div>';
-  const history = loadHistory().filter(h => typeof h.compliancePct === 'number').slice(0, 14).reverse();
+  wrap.innerHTML = '<div class="dash-card-title">' + icon('check') + 'Compliance</div>';
 
-  if (!history.length) {
+  const WINDOW_MS = 12 * 60 * 60 * 1000;
+  const cutoff = Date.now() - WINDOW_MS;
+  const samples = loadComplianceSamples()
+    .filter(x => x && typeof x.pct === 'number' && x.ts >= cutoff)
+    .sort((a, b) => a.ts - b.ts);
+
+  if (samples.length < 2) {
     const empty = document.createElement('div');
     empty.className = 'dash-empty';
-    empty.textContent = 'Use "Save Day" a few times to start building a trend here.';
+    empty.textContent = samples.length
+      ? 'Building the trend — the first readings are in, the line appears shortly.'
+      : 'Compliance is recorded automatically while the board has people on it. The trend appears here on its own.';
     wrap.appendChild(empty);
     return wrap;
   }
 
-  const chart = document.createElement('div');
-  chart.className = 'dash-trend-chart';
-  history.forEach(h => {
-    const bar = document.createElement('div');
-    bar.className = 'dash-trend-bar';
-    const pct = h.compliancePct;
-    bar.style.height = Math.max(6, pct) + '%';
-    bar.style.background = pct >= 90 ? '#22c55e' : pct >= 70 ? '#f59e0b' : '#ef4444';
-    bar.title = h.date + ' — ' + pct + '%';
-    chart.appendChild(bar);
-  });
-  wrap.appendChild(chart);
+  const latest = samples[samples.length - 1];
+  const band = complianceBand(latest.pct);
+
+  // ── headline: the number, its state in words, and the direction ──────
+  const head = document.createElement('div');
+  head.className = 'comp-head';
+
+  const figure = document.createElement('div');
+  figure.className = 'comp-figure ' + band.key;
+  figure.textContent = latest.pct + '%';
+  head.appendChild(figure);
+
+  const meta = document.createElement('div');
+  meta.className = 'comp-meta';
+
+  // status is never colour alone — it carries a word and a glyph
+  const state = document.createElement('div');
+  state.className = 'comp-state ' + band.key;
+  state.innerHTML = icon(band.key === 'ok' ? 'check' : 'alertTriangle') + '<span>' + band.label + '</span>';
+  meta.appendChild(state);
+
+  const first = samples[0];
+  const span = formatHM(Math.round((latest.ts - first.ts) / 60000));
+  const low = samples.reduce((a, b) => (b.pct < a.pct ? b : a), samples[0]);
+  const drift = document.createElement('div');
+  drift.className = 'comp-drift';
+  // A dip that has since recovered is the thing worth knowing; net change
+  // over the window would hide it entirely.
+  if (low.pct < COMPLIANCE_TARGET && low.ts !== latest.ts) {
+    drift.textContent = 'low ' + low.pct + '% at '
+      + new Date(low.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      + ' · last ' + span;
+  } else {
+    const delta = latest.pct - first.pct;
+    drift.textContent = (delta === 0 ? 'level' : (delta > 0 ? 'up ' : 'down ') + Math.abs(delta) + ' pts')
+      + ' over the last ' + span;
+  }
+  meta.appendChild(drift);
+  head.appendChild(meta);
+  wrap.appendChild(head);
+
+  // ── the plot ─────────────────────────────────────────────────────────
+  const W = 320, H = 96, PAD_T = 8, PAD_B = 18, PAD_R = 10, PAD_L = 4;
+  const lo = Math.min(COMPLIANCE_TARGET - 5, Math.floor(Math.min(...samples.map(s => s.pct)) / 10) * 10);
+  const hi = 100;
+  const xOf = t => PAD_L + ((t - samples[0].ts) / Math.max(1, latest.ts - samples[0].ts)) * (W - PAD_L - PAD_R);
+  const yOf = v => PAD_T + (1 - (v - lo) / (hi - lo)) * (H - PAD_T - PAD_B);
+
+  const pts = samples.map(s => ({ x: +xOf(s.ts).toFixed(2), y: +yOf(s.pct).toFixed(2) }));
+  const line = monotonePath(pts);
+  const area = line + 'L' + pts[pts.length - 1].x + ',' + (H - PAD_B) + 'L' + pts[0].x + ',' + (H - PAD_B) + 'Z';
+  const gid = 'compGrad' + Math.random().toString(36).slice(2, 7);
+
+  const plot = document.createElement('div');
+  plot.className = 'comp-plot';
+  plot.innerHTML =
+    '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" class="comp-svg" role="img" ' +
+      'aria-label="Compliance over the last ' + Math.round(WINDOW_MS / 3600000) + ' hours, currently ' + latest.pct + ' percent, ' + band.label + '">' +
+      '<defs>' +
+        // stroke gradient keyed to VALUE, not position: the segment that fell
+        // below target is drawn in the warning colour where it happened
+        '<linearGradient id="' + gid + 's" x1="0" y1="0" x2="1" y2="0">' +
+          samples.map((sm, i) =>
+            '<stop offset="' + ((i / Math.max(1, samples.length - 1)) * 100).toFixed(2) + '%" ' +
+            'stop-color="' + complianceBand(sm.pct).color + '"/>').join('') +
+        '</linearGradient>' +
+        '<linearGradient id="' + gid + 'f" x1="0" y1="0" x2="0" y2="1">' +
+          '<stop offset="0%" stop-color="' + band.color + '" stop-opacity="0.22"/>' +
+          '<stop offset="100%" stop-color="' + band.color + '" stop-opacity="0"/>' +
+        '</linearGradient>' +
+      '</defs>' +
+      // target line, deliberately recessive
+      '<line x1="' + PAD_L + '" y1="' + yOf(COMPLIANCE_TARGET) + '" x2="' + (W - PAD_R) + '" y2="' + yOf(COMPLIANCE_TARGET) + '" ' +
+        'class="comp-target"/>' +
+      '<path d="' + area + '" fill="url(#' + gid + 'f)"/>' +
+      '<path d="' + line + '" fill="none" stroke="url(#' + gid + 's)" stroke-width="2" ' +
+        'stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>' +
+      '<circle class="comp-dot" cx="' + pts[pts.length - 1].x + '" cy="' + pts[pts.length - 1].y + '" r="4" ' +
+        'fill="' + band.color + '"/>' +
+      '<line class="comp-cross hidden" x1="0" y1="' + PAD_T + '" x2="0" y2="' + (H - PAD_B) + '"/>' +
+    '</svg>' +
+    '<div class="comp-tip hidden"></div>' +
+    '<div class="comp-axis">' +
+      '<span>' + new Date(samples[0].ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + '</span>' +
+      '<span class="comp-target-key">' + COMPLIANCE_TARGET + '% target</span>' +
+      '<span>now</span>' +
+    '</div>';
+  wrap.appendChild(plot);
+
+  // ── crosshair + tooltip ──────────────────────────────────────────────
+  const svg = plot.querySelector('.comp-svg');
+  const cross = plot.querySelector('.comp-cross');
+  const tip = plot.querySelector('.comp-tip');
+
+  function atClientX(clientX) {
+    const r = svg.getBoundingClientRect();
+    if (!r.width) return null;
+    const vx = ((clientX - r.left) / r.width) * W;
+    let best = 0, bestD = Infinity;
+    pts.forEach((pt, i) => { const d = Math.abs(pt.x - vx); if (d < bestD) { bestD = d; best = i; } });
+    return best;
+  }
+
+  function showAt(clientX) {
+    const i = atClientX(clientX);
+    if (i === null) return;
+    const s = samples[i], pt = pts[i], r = svg.getBoundingClientRect();
+    cross.classList.remove('hidden');
+    cross.setAttribute('x1', pt.x); cross.setAttribute('x2', pt.x);
+    tip.classList.remove('hidden');
+    tip.innerHTML = '<b>' + s.pct + '%</b>' +
+      '<span>' + new Date(s.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + '</span>' +
+      (s.tracked ? '<span>' + s.tracked + ' on shift</span>' : '');
+    const px = (pt.x / W) * r.width;
+    tip.style.left = Math.max(0, Math.min(r.width - tip.offsetWidth, px - tip.offsetWidth / 2)) + 'px';
+  }
+  function hide() { cross.classList.add('hidden'); tip.classList.add('hidden'); }
+
+  plot.addEventListener('pointermove', e => showAt(e.clientX));
+  plot.addEventListener('pointerleave', hide);
+  plot.addEventListener('pointerdown', e => showAt(e.clientX));
+
   return wrap;
 }
 
@@ -5050,10 +5131,10 @@ function render() {
         else if (lvl === 'yellow' && !worst) worst = 'yellow';
       }
     });
-    if (worst === 'red') dot.style.background = '#dc2626';
-    else if (worst === 'orange') dot.style.background = '#ea580c';
-    else if (worst === 'yellow') dot.style.background = '#f59e0b';
-    else dot.style.background = '#22c55e';
+    if (worst === 'red') dot.style.background = 'var(--crit)';
+    else if (worst === 'orange') dot.style.background = 'var(--crit)';
+    else if (worst === 'yellow') dot.style.background = 'var(--warn)';
+    else dot.style.background = 'var(--ok)';
     header.appendChild(dot);
 
     const titleInput = document.createElement('input');
@@ -5083,6 +5164,13 @@ function render() {
       const badge = document.createElement('span');
       badge.className = 'hours-badge ' + (closedNow ? 'closed' : 'open');
       badge.textContent = closedNow ? ('CLOSED · opens ' + section.hours.open) : ('OPEN · closes 00:00');
+      header.appendChild(badge);
+    } else if (section.hours && section.hours.type === 'window') {
+      const badge = document.createElement('span');
+      badge.className = 'hours-badge ' + (closedNow ? 'closed' : 'open');
+      badge.textContent = closedNow
+        ? ('CLOSED · opens ' + section.hours.open)
+        : ('OPEN · closes ' + section.hours.close);
       header.appendChild(badge);
     }
 
@@ -5146,6 +5234,8 @@ function render() {
       badge.textContent = p.overdue ? 'SHIFT OVER — TAKE BREAKS' : statusLabel(p);
       topRow.appendChild(badge);
 
+
+
       const controls = document.createElement('div');
       controls.className = 'row-controls';
 
@@ -5207,7 +5297,7 @@ function render() {
       timeGroup.style.display = 'flex';
       timeGroup.style.alignItems = 'center';
       timeGroup.style.gap = '3px';
-      timeGroup.style.background = '#f1f5f9';
+      timeGroup.style.background = 'var(--surface-2)';
       timeGroup.style.borderRadius = '8px';
       timeGroup.style.padding = '3px 6px';
 
@@ -5217,12 +5307,12 @@ function render() {
       startInput.title = 'Start time';
       startInput.style.border = 'none';
       startInput.style.background = 'transparent';
-      startInput.onchange = e => { p.startTime = e.target.value; updateBreaksFromTimes(p); if (p.name) upsertOfficer(p.name, p.startTime, p.endTime); saveData(); render(); };
+      startInput.onchange = e => { applyShiftTimeChange(p, 'startTime', e.target.value); render(); };
       timeGroup.appendChild(startInput);
 
       const arrow = document.createElement('span');
       arrow.textContent = '→';
-      arrow.style.color = '#999';
+      arrow.style.color = 'var(--ink-3)';
       arrow.style.fontSize = '12px';
       timeGroup.appendChild(arrow);
 
@@ -5232,37 +5322,50 @@ function render() {
       endInput.title = 'End time';
       endInput.style.border = 'none';
       endInput.style.background = 'transparent';
-      endInput.onchange = e => { p.endTime = e.target.value; updateBreaksFromTimes(p); if (p.name) upsertOfficer(p.name, p.startTime, p.endTime); saveData(); render(); };
+      endInput.onchange = e => { applyShiftTimeChange(p, 'endTime', e.target.value); render(); };
       timeGroup.appendChild(endInput);
 
       timingRow.appendChild(timeGroup);
 
+      // Shift length and breaks-taken live on the same line as the times.
+      // The old separate .meta-row repeated all of this verbatim, so it's gone.
       const hoursLabel = document.createElement('span');
-      hoursLabel.textContent = (p.computedHours % 1 === 0 ? p.computedHours : p.computedHours.toFixed(1)) + 'hr';
-      hoursLabel.style.fontSize = '11px';
-      hoursLabel.style.fontWeight = '700';
-      hoursLabel.style.color = '#2563eb';
-      hoursLabel.style.background = '#dbeafe';
-      hoursLabel.style.padding = '3px 8px';
-      hoursLabel.style.borderRadius = '999px';
+      hoursLabel.textContent = (p.computedHours % 1 === 0 ? p.computedHours : p.computedHours.toFixed(1)) + 'h';
       timingRow.appendChild(hoursLabel);
 
+      const sep = document.createElement('span');
+      sep.className = 'sep';
+      sep.textContent = '·';
+      timingRow.appendChild(sep);
+
+      const takenLabel = document.createElement('span');
+      const takenCount = p.breaks.filter(b => b.state === 'done').length;
+      takenLabel.textContent = takenCount + ' of ' + p.breaks.length + ' taken';
+      timingRow.appendChild(takenLabel);
+
+      // Break time still owed — the number a supervisor actually scans for,
+      // so it sits at the end of the meta line where the eye lands.
+      const leftMins = totalBreakLeft(p);
+      const leftPill = document.createElement('span');
+      leftPill.className = 'break-left' + (leftMins === 0 ? ' none' : '');
+      leftPill.textContent = leftMins === 0 ? 'all taken' : leftMins + 'm left';
+      leftPill.title = 'Break time still owed';
+      timingRow.appendChild(leftPill);
+
       card.appendChild(timingRow);
+
+      card.appendChild(buildTimelineBar(p));
 
       const noteInput = document.createElement('input');
       noteInput.type = 'text';
       noteInput.className = 'note-input';
       noteInput.value = p.note;
-      noteInput.placeholder = 'Note (e.g. done at 22:00, transition, etc.)';
+      noteInput.placeholder = 'Add a note';
       noteInput.oninput = e => { p.note = e.target.value; saveData(); };
       card.appendChild(noteInput);
 
-      const meta = document.createElement('div');
-      meta.className = 'meta-row';
-      meta.textContent = 'Shift ' + p.startTime + ' → ' + p.endTime + ' (' + (p.computedHours % 1 === 0 ? p.computedHours : p.computedHours.toFixed(1)) + 'hr)' + '  ·  Break left: ' + totalBreakLeft(p) + ' min';
-      card.appendChild(meta);
-
-      card.appendChild(buildTimelineBar(p));
+      const actionRow = document.createElement('div');
+      actionRow.className = 'row-actions';
 
       const quickRow = document.createElement('div');
       quickRow.className = 'quick-break-row';
@@ -5290,7 +5393,7 @@ function render() {
           p.quickBreak.startedAtMs = null;
           p.quickBreak.coveredBy = '';
           saveData(); render();
-          showCelebration('check', 'Back from Break', (p.name || 'Officer') + ' is back on post', 'blue');
+          showToast((p.name || 'Officer') + ' back on post', 'success');
         };
         activeWrap.appendChild(backBtn);
         quickRow.appendChild(activeWrap);
@@ -5306,14 +5409,12 @@ function render() {
             p.quickBreak.startedAtMs = Date.now();
             p.quickBreak.coveredBy = coveredBy.trim();
             saveData(); render();
-            showCelebration('drop', 'Quick Break Started',
-              (p.name || 'Officer') + (p.quickBreak.coveredBy ? ' · covered by ' + p.quickBreak.coveredBy : ''),
-              'blue');
+            showToast('Quick break started · ' + (p.name || 'Officer')
+              + (p.quickBreak.coveredBy ? ' · covered by ' + p.quickBreak.coveredBy : ''), 'success');
           });
         };
         quickRow.appendChild(startBtn);
       }
-      card.appendChild(quickRow);
 
       const breaksWrap = document.createElement('div');
       breaksWrap.className = 'breaks';
@@ -5337,15 +5438,14 @@ function render() {
         ring.className = 'break-ring';
         ring.style.setProperty('--ring-pct', pct.toFixed(1) + '%');
 
-        const len = document.createElement('div');
+        const len = document.createElement('span');
         len.className = 'len';
         len.textContent = b.len + 'm';
-        ring.appendChild(len);
 
-        const lbl = document.createElement('div');
+        const lbl = document.createElement('span');
         lbl.className = 'lbl';
         if (b.state === 'pending') {
-          lbl.textContent = 'Tap to start';
+          lbl.textContent = 'Start';
         } else if (b.state === 'active') {
           const remaining = Math.round(b.len - elapsedMin);
           lbl.textContent = (overtime ? 'Over by ' + Math.abs(remaining) + 'm' : remaining + 'm left') +
@@ -5355,6 +5455,7 @@ function render() {
         }
 
         chip.appendChild(ring);
+        chip.appendChild(len);
         chip.appendChild(lbl);
         chip.onclick = () => {
           if (b.state === 'pending') {
@@ -5365,16 +5466,15 @@ function render() {
               b.startedAtMs = Date.now();
               b.coveredBy = coveredBy.trim();
               saveData(); render();
-              showCelebration('coffee', 'Break Started',
-                (p.name || 'Officer') + ' · ' + b.len + 'm' + (b.coveredBy ? ' · covered by ' + b.coveredBy : ''),
-                'amber');
+              showToast('Break started · ' + (p.name || 'Officer') + ' · ' + b.len + 'm'
+                + (b.coveredBy ? ' · covered by ' + b.coveredBy : ''), 'success');
             });
             return;
           } else if (b.state === 'active') {
             b.state = 'done';
             b.doneAt = Date.now();
             saveData(); render();
-            showCelebration('check', 'Break Complete', (p.name || 'Officer') + ' is back on duty', 'green');
+            showToast('Break complete · ' + (p.name || 'Officer') + ' back on duty', 'success');
             return;
           } else if (b.state === 'done') {
             b.state = 'pending';
@@ -5387,7 +5487,9 @@ function render() {
         };
         breaksWrap.appendChild(chip);
       });
-      card.appendChild(breaksWrap);
+      actionRow.appendChild(breaksWrap);
+      actionRow.appendChild(quickRow);
+      card.appendChild(actionRow);
 
       body.appendChild(card);
     });
@@ -5412,10 +5514,15 @@ function addSection() {
 
 function resetAll() {
   if (!isAdmin()) { showToast('Only the admin can do that', 'error'); return; }
-  if (confirm('Reset to the original roster? This clears all your edits.')) {
-    data = JSON.parse(JSON.stringify(defaultData));
+  const msg = 'Clear the board?\n\n'
+    + 'Removes every officer from every checkpoint, on this device and all '
+    + 'others. The checkpoints themselves stay.\n\n'
+    + 'Your saved officer directory and day history are NOT affected.';
+  if (confirm(msg)) {
+    data = emptyBoard();
     saveData(); render();
-    logActivity('Reset the entire roster');
+    logActivity('Cleared the board');
+    showToast('Board cleared', 'success');
   }
 }
 
@@ -5509,6 +5616,95 @@ function saveToHistory() {
   renderDashboardIfVisible();
 }
 
+// ── automatic compliance capture ────────────────────────────────────────
+// Compliance used to exist only on days somebody remembered to press
+// "Save Day". It's now sampled on a timer while the app is open.
+//
+// Samples are keyed by a fixed time bucket rather than appended, so every
+// device writing the same ten-minute window lands on the same key with the
+// same value — idempotent, so no duplicates and nothing to merge. That also
+// keeps this well clear of the whole-board last-write-wins problem.
+const COMPLIANCE_KEY = 'shift_break_tracker_compliance_v1';
+const SAMPLE_MS = 10 * 60 * 1000;   // one sample per 10 minutes
+const SAMPLE_WINDOW_MS = 48 * 60 * 60 * 1000;
+let complianceRef = null;
+if (firebaseAvailable) complianceRef = firebase.database().ref('complianceSamples');
+
+function bucketId(ts) { return Math.floor(ts / SAMPLE_MS) * SAMPLE_MS; }
+
+function loadComplianceSamples() {
+  try {
+    const raw = localStorage.getItem(COMPLIANCE_KEY);
+    if (raw) { const v = JSON.parse(raw); if (Array.isArray(v)) return v; }
+  } catch (e) {}
+  return [];
+}
+
+function saveComplianceSamples(samples) {
+  try { localStorage.setItem(COMPLIANCE_KEY, JSON.stringify(samples)); } catch (e) {}
+}
+
+function pruneSamples(samples) {
+  const cutoff = Date.now() - SAMPLE_WINDOW_MS;
+  return samples.filter(x => x && x.ts >= cutoff).sort((a, b) => a.ts - b.ts);
+}
+
+// Merge one sample into the local store, replacing any sample already held
+// for the same bucket.
+function mergeSample(samples, sample) {
+  const id = bucketId(sample.ts);
+  const out = samples.filter(x => bucketId(x.ts) !== id);
+  out.push({ ts: id, pct: sample.pct, tracked: sample.tracked || 0 });
+  return pruneSamples(out);
+}
+
+function captureComplianceSample() {
+  // Nothing rostered means nothing to be compliant about — recording 100%
+  // for an empty board would draw a flat perfect line overnight.
+  const stats = computeOpsStats();
+  if (!stats.total) return;
+
+  const id = bucketId(Date.now());
+  const sample = { ts: id, pct: stats.compliancePct, tracked: stats.total };
+
+  const merged = mergeSample(loadComplianceSamples(), sample);
+  saveComplianceSamples(merged);
+
+  if (complianceRef && authReady) {
+    complianceRef.child(String(id)).set(sample)
+      .catch(err => console.error('Compliance sample sync failed', err));
+  }
+  renderDashboardIfVisible();
+}
+
+function startComplianceListener() {
+  if (!complianceRef) return;
+  complianceRef.on('value', snap => {
+    const remote = snap.val();
+    if (!remote) return;
+    const rows = Object.keys(remote)
+      .map(k => remote[k])
+      .filter(x => x && typeof x.ts === 'number' && typeof x.pct === 'number');
+    // union of what every device has seen
+    let merged = loadComplianceSamples();
+    rows.forEach(r => { merged = mergeSample(merged, r); });
+    saveComplianceSamples(merged);
+    renderDashboardIfVisible();
+
+    // drop buckets that have aged out so the node can't grow without bound
+    const cutoff = Date.now() - SAMPLE_WINDOW_MS;
+    Object.keys(remote).forEach(k => {
+      if (Number(k) < cutoff) complianceRef.child(k).remove().catch(() => {});
+    });
+  }, err => console.error('Compliance listener error', err));
+}
+
+captureComplianceSample();
+setInterval(captureComplianceSample, 60 * 1000);   // re-checks; the bucket key dedupes
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) captureComplianceSample();
+});
+
 let historyPanelOpen = false;
 function toggleHistoryPanel() {
   historyPanelOpen = !historyPanelOpen;
@@ -5547,7 +5743,7 @@ function renderOfficersPanelIfOpen() {
 
   const hint = document.createElement('div');
   hint.style.fontSize = '11px';
-  hint.style.color = 'var(--text-muted)';
+  hint.style.color = 'var(--ink-3)';
   hint.style.marginBottom = '10px';
   hint.textContent = 'Save an officer\'s name and default shift once — then pick them from a list instead of retyping.';
   panel.appendChild(hint);
@@ -5562,7 +5758,7 @@ function renderOfficersPanelIfOpen() {
     nameInput.type = 'text';
     nameInput.value = o.name;
     nameInput.placeholder = 'Name';
-    nameInput.style.cssText = 'flex:1 1 100px;min-width:90px;padding:7px 8px;border:1px solid var(--glass-border);border-radius:8px;background:transparent;color:var(--text);font-size:13px;';
+    nameInput.style.cssText = 'flex:1 1 100px;min-width:90px;padding:7px 8px;border:1px solid var(--rule-1);border-radius:8px;background:transparent;color:var(--ink-1);font-size:13px;';
     nameInput.oninput = e => { o.name = e.target.value; saveOfficers(officers); pushOfficerToFirebaseDebounced(o); };
     row.appendChild(nameInput);
 
@@ -5571,14 +5767,30 @@ function renderOfficersPanelIfOpen() {
     const startInput = document.createElement('input');
     startInput.type = 'time';
     startInput.value = o.startTime;
-    startInput.oninput = e => { o.startTime = e.target.value; saveOfficers(officers); pushOfficerToFirebaseDebounced(o); };
+    // onchange, not oninput: a half-typed time is briefly nonsense and would
+    // trip the limit check before the user has finished entering it.
+    startInput.onchange = e => {
+      if (!shiftLengthIsLegal(e.target.value, o.endTime)) {
+        rejectOverLongShift(e.target.value, o.endTime);
+        e.target.value = o.startTime;
+        return;
+      }
+      o.startTime = e.target.value; saveOfficers(officers); pushOfficerToFirebaseDebounced(o);
+    };
     const arrow = document.createElement('span');
     arrow.textContent = '→';
-    arrow.style.cssText = 'color:var(--text-muted);font-size:11px;';
+    arrow.style.cssText = 'color:var(--ink-3);font-size:11px;';
     const endInput = document.createElement('input');
     endInput.type = 'time';
     endInput.value = o.endTime;
-    endInput.oninput = e => { o.endTime = e.target.value; saveOfficers(officers); pushOfficerToFirebaseDebounced(o); };
+    endInput.onchange = e => {
+      if (!shiftLengthIsLegal(o.startTime, e.target.value)) {
+        rejectOverLongShift(o.startTime, e.target.value);
+        e.target.value = o.endTime;
+        return;
+      }
+      o.endTime = e.target.value; saveOfficers(officers); pushOfficerToFirebaseDebounced(o);
+    };
     timeGroup.appendChild(startInput);
     timeGroup.appendChild(arrow);
     timeGroup.appendChild(endInput);
@@ -5603,7 +5815,7 @@ function renderOfficersPanelIfOpen() {
 
   if (officers.length === 0) {
     const empty = document.createElement('div');
-    empty.style.cssText = 'font-size:12px;color:var(--text-muted);padding:8px 0;';
+    empty.style.cssText = 'font-size:12px;color:var(--ink-3);padding:8px 0;';
     empty.textContent = 'No saved officers yet. Add one below, or they\'ll be saved automatically the first time you add them to a section.';
     panel.appendChild(empty);
   }
@@ -5675,126 +5887,55 @@ function renderHistoryPanelIfOpen() {
   container.appendChild(panel);
 }
 
-const CELEB_THEMES = {
-  amber:  { color: '#f59e0b', glow: 'rgba(245,158,11,0.5)', confetti: ['#f59e0b', '#fbbf24', '#fde68a'] },
-  green:  { color: '#16a34a', glow: 'rgba(22,163,74,0.5)',  confetti: ['#16a34a', '#4ade80', '#bbf7d0'] },
-  blue:   { color: '#2563eb', glow: 'rgba(37,99,235,0.5)',  confetti: ['#2563eb', '#60a5fa', '#bfdbfe'] },
-  violet: { color: '#7c3aed', glow: 'rgba(124,58,237,0.5)', confetti: ['#7c3aed', '#a78bfa', '#ddd6fe'] },
-};
 
-function showCelebration(iconName, title, subtitle, theme) {
-  const container = document.getElementById('celebrationContainer');
-  if (!container) return;
-  const t = CELEB_THEMES[theme] || CELEB_THEMES.blue;
 
-  container.innerHTML = '';
-
-  const backdrop = document.createElement('div');
-  backdrop.className = 'celebration-backdrop';
-  container.appendChild(backdrop);
-
-  const card = document.createElement('div');
-  card.className = 'celebration-card';
-  card.style.setProperty('--celeb-color', t.color);
-  card.style.setProperty('--celeb-glow', t.glow);
-
-  const ring = document.createElement('div');
-  ring.className = 'celebration-icon-ring';
-  ring.innerHTML = icon(iconName);
-  card.appendChild(ring);
-
-  const titleEl = document.createElement('div');
-  titleEl.className = 'celebration-title';
-  titleEl.textContent = title;
-  card.appendChild(titleEl);
-
-  if (subtitle) {
-    const subEl = document.createElement('div');
-    subEl.className = 'celebration-subtitle';
-    subEl.textContent = subtitle;
-    card.appendChild(subEl);
-  }
-
-  // confetti burst around the icon ring
-  for (let i = 0; i < 14; i++) {
-    const piece = document.createElement('div');
-    piece.className = 'confetti-piece';
-    const angle = Math.random() * Math.PI * 2;
-    const dist = 60 + Math.random() * 50;
-    piece.style.setProperty('--tx', (Math.cos(angle) * dist) + 'px');
-    piece.style.setProperty('--ty', (Math.sin(angle) * dist) + 'px');
-    piece.style.setProperty('--rot', (Math.random() * 360) + 'deg');
-    piece.style.background = t.confetti[i % t.confetti.length];
-    piece.style.animationDelay = (Math.random() * 0.15) + 's';
-    piece.style.top = '110px';
-    card.appendChild(piece);
-  }
-
-  container.appendChild(card);
-
-  setTimeout(() => {
-    card.classList.add('leaving');
-    backdrop.classList.add('leaving');
-    setTimeout(() => { container.innerHTML = ''; }, 350);
-  }, 2200);
-}
-
+// The MJ mark is the app's identity — this is the one place it gets a full
+// moment. Dismissed by click, Escape, or the close button.
 function showMJSignature() {
-  const container = document.getElementById('celebrationContainer');
+  const container = document.getElementById('brandModalContainer');
   if (!container) return;
   container.innerHTML = '';
 
-  const backdrop = document.createElement('div');
-  backdrop.className = 'celebration-backdrop';
-  container.appendChild(backdrop);
+  const overlay = document.createElement('div');
+  overlay.className = 'brand-overlay';
 
   const card = document.createElement('div');
-  card.className = 'celebration-card mj-celebration';
+  card.className = 'brand-card';
+  card.setAttribute('role', 'dialog');
+  card.setAttribute('aria-label', 'About this app');
 
-  const badge = document.createElement('div');
-  badge.className = 'mj-badge mj-badge-lg flip-badge';
-  badge.innerHTML = '<div class="flip-badge-inner">' +
-    '<div class="flip-face flip-face-front"><span>MJ</span></div>' +
-    '<div class="flip-face flip-face-back"><svg viewBox="0 0 24 24" fill="white"><path d="M3 17l1.8-9.2L9 12.3l3-7.6 3 7.6 4.2-4.5L21 17H3z"/><rect x="3" y="18.2" width="18" height="2.2" rx="1"/></svg></div>' +
-    '</div>';
-  card.appendChild(badge);
+  card.innerHTML =
+    '<div class="mj-badge mj-badge-lg flip-badge">' +
+      '<div class="flip-badge-inner">' +
+        '<div class="flip-face flip-face-front"><span>MJ</span></div>' +
+        '<div class="flip-face flip-face-back"><svg viewBox="0 0 24 24" fill="white">' +
+          '<path d="M3 17l1.8-9.2L9 12.3l3-7.6 3 7.6 4.2-4.5L21 17H3z"/>' +
+          '<rect x="3" y="18.2" width="18" height="2.2" rx="1"/></svg></div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="brand-name">MJ</div>' +
+    '<div class="brand-studio">Jatt Mind</div>' +
+    '<div class="brand-motto">Digital Grind</div>' +
+    '<div class="brand-product">Shift &amp; Break Tracker</div>';
 
-  const titleEl = document.createElement('div');
-  titleEl.className = 'celebration-title brand-name';
-  titleEl.style.fontSize = '22px';
-  titleEl.textContent = 'MJ';
-  card.appendChild(titleEl);
+  const close = document.createElement('button');
+  close.className = 'secondary brand-close';
+  close.textContent = 'Close';
+  card.appendChild(close);
 
-  const subEl = document.createElement('div');
-  subEl.className = 'celebration-subtitle';
-  subEl.innerHTML = '<span class="studio-label">Jatt Mind</span><br><span class="studio-motto">Digital Grind</span><br><span style="opacity:.7;font-size:11px;">Shift &amp; Break Tracker</span>';
-  card.appendChild(subEl);
-
-  // richer, wider confetti burst in signature colors
-  const colors = ['#6366f1', '#8b5cf6', '#d946ef', '#d97706', '#fbbf24'];
-  for (let i = 0; i < 26; i++) {
-    const piece = document.createElement('div');
-    piece.className = 'confetti-piece';
-    const angle = Math.random() * Math.PI * 2;
-    const dist = 70 + Math.random() * 80;
-    piece.style.setProperty('--tx', (Math.cos(angle) * dist) + 'px');
-    piece.style.setProperty('--ty', (Math.sin(angle) * dist) + 'px');
-    piece.style.setProperty('--rot', (Math.random() * 540) + 'deg');
-    piece.style.background = colors[i % colors.length];
-    piece.style.animationDelay = (Math.random() * 0.25) + 's';
-    piece.style.animationDuration = (0.9 + Math.random() * 0.5) + 's';
-    piece.style.top = '116px';
-    if (i % 3 === 0) { piece.style.borderRadius = '50%'; piece.style.width = '6px'; piece.style.height = '6px'; }
-    card.appendChild(piece);
+  function dismiss() {
+    document.removeEventListener('keydown', onKey);
+    container.innerHTML = '';
   }
+  function onKey(e) { if (e.key === 'Escape') dismiss(); }
 
-  container.appendChild(card);
+  close.onclick = dismiss;
+  overlay.onclick = (e) => { if (e.target === overlay) dismiss(); };
+  document.addEventListener('keydown', onKey);
 
-  setTimeout(() => {
-    card.classList.add('leaving');
-    backdrop.classList.add('leaving');
-    setTimeout(() => { container.innerHTML = ''; }, 350);
-  }, 2900);
+  overlay.appendChild(card);
+  container.appendChild(overlay);
+  close.focus();
 }
 
 function showToast(message, type) {
@@ -5863,40 +6004,11 @@ function showLandingScreen() {
   document.getElementById('landingScroll').scrollTop = 0;
   renderLandingScreen();
   setupLandingScrollReveal();
-  setupLandingParallax();
-}
-
-let landingParallaxSetup = false;
-function setupLandingParallax() {
-  if (landingParallaxSetup) return;
-  landingParallaxSetup = true;
-  const screen = document.getElementById('landingScreen');
-  const decor = document.getElementById('landingBgDecor');
-  if (!screen || !decor) return;
-
-  function applyOffset(clientX, clientY) {
-    const w = window.innerWidth, h = window.innerHeight;
-    const offsetX = ((clientX / w) - 0.5) * 26;
-    const offsetY = ((clientY / h) - 0.5) * 26;
-    decor.style.transform = 'translate(' + offsetX + 'px, ' + offsetY + 'px)';
-  }
-
-  screen.addEventListener('mousemove', (e) => applyOffset(e.clientX, e.clientY));
-  screen.addEventListener('touchmove', (e) => {
-    if (e.touches[0]) applyOffset(e.touches[0].clientX, e.touches[0].clientY);
-  }, { passive: true });
 }
 
 function enterAppFrom(view) {
-  const shutter = document.getElementById('shutterTransition');
-  shutter.classList.add('closed');
-  setTimeout(() => {
-    document.getElementById('landingScreen').classList.add('hidden');
-    switchMainView(view === 'dashboard' ? 'dashboard' : 'roster');
-    requestAnimationFrame(() => {
-      shutter.classList.remove('closed');
-    });
-  }, 560);
+  document.getElementById('landingScreen').classList.add('hidden');
+  switchMainView(view === 'dashboard' ? 'dashboard' : 'roster');
 }
 
 function setupLandingScrollReveal() {
