@@ -3655,6 +3655,11 @@ try {
 
 let fbSyncTimeout = null;
 let applyingRemoteUpdate = false;
+// Nothing may write the board until this device has actually READ it once.
+// Without this, a device whose local storage is empty (a new browser, a
+// cleared cache) starts from a blank board and can push that blank over
+// everyone else's data before the first snapshot arrives.
+let remoteBoardSeen = false;
 const PENDING_SYNC_KEY = 'shift_break_tracker_pending_sync_v1';
 // Restored from localStorage, not just defaulted to false — if the app was
 // fully closed (not just backgrounded) before an edit finished saving, this
@@ -4006,7 +4011,10 @@ if (firebaseAvailable) {
       startFirebaseListener();
       startComplianceListener();
       startOfficersFirebaseListener();
-      pushToFirebaseDebounced(); // flush anything saved before auth completed
+      // Only flush an edit that genuinely predates auth. Pushing
+      // unconditionally here meant a device that had not yet read the board
+      // could overwrite it with whatever it happened to be holding.
+      if (hasPendingLocalChanges) retryPendingPush();
       loadOfficers().forEach(o => pushOfficerToFirebaseDebounced(o));
       updateAccountMenuLabel();
       startIdleWatcher();
@@ -4033,6 +4041,7 @@ if (firebaseAvailable) {
 
 function pushToFirebaseDebounced() {
   if (!firebaseAvailable || !authReady || applyingRemoteUpdate) return;
+  if (!remoteBoardSeen) return;   // never write before the first read
   setPendingLocalChanges(true); // there's now an edit Firebase hasn't confirmed yet
   clearTimeout(fbSyncTimeout);
   setSyncStatus('Syncing…');
@@ -4060,10 +4069,12 @@ function startFirebaseListener() {
   dataRef.on('value', (snapshot) => {
     const remote = snapshot.val();
     if (remote === null) {
-      // nothing on the server yet — push what we have locally
+      // genuinely nothing on the server yet — this device seeds it
+      remoteBoardSeen = true;
       pushToFirebaseDebounced();
       return;
     }
+    remoteBoardSeen = true;
 
     // Boards written before this version were stored as a bare array; ones
     // written since are { board, updatedAt, updatedBy }. Read both.
@@ -4261,7 +4272,15 @@ function startOfficersFirebaseListener() {
       // exactly how a directory disappears. Remote wins on conflict; records
       // only this device holds survive and get uploaded.
       const byId = new Map();
-      remoteList.forEach(o => { if (o && o.id) byId.set(o.id, o); });
+      const needUpload = [];
+      remoteList.forEach(o => {
+        if (!o || !o.name) return;
+        // Officers stored on the server by an older build have no id either —
+        // filtering those out is how a directory that IS on the server still
+        // shows up empty. Give them one and keep them.
+        if (!o.id) { o.id = newOfficerId(); needUpload.push(o); }
+        byId.set(o.id, o);
+      });
 
       const localOnly = [];
       loadOfficers().forEach(o => {
@@ -4273,9 +4292,11 @@ function startOfficersFirebaseListener() {
       localStorage.setItem(OFFICERS_KEY, JSON.stringify(officers));
       renderOfficersPanelIfOpen();
 
-      // push anything the server was missing, once the guard is released
-      if (localOnly.length) {
-        setTimeout(() => localOnly.forEach(o => pushOfficerToFirebaseDebounced(o)), 0);
+      // push anything the server was missing, plus any legacy remote record
+      // we just gave an id to, once the guard is released
+      const toPush = localOnly.concat(needUpload);
+      if (toPush.length) {
+        setTimeout(() => toPush.forEach(o => pushOfficerToFirebaseDebounced(o)), 0);
       }
     } catch (e) {
       console.error('Failed to apply synced officer directory', e);
