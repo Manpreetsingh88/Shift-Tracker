@@ -3372,6 +3372,190 @@
     border-color: rgba(255,255,255,0.10);
     box-shadow: 0 1px 2px rgba(0,0,0,0.35), 0 14px 38px rgba(0,0,0,0.42);
   }
+  /* ══ landing: the scope is the floor, the briefing is the job ══════════
+     The five sections are unchanged as sections — same scroll, same progress
+     dots. What changed is that each one now carries information you can act
+     on instead of a title and a graphic. */
+
+  /* the landing sits on the same airfield ground as the board, so scrolling
+     out of it into the app is one continuous surface */
+  #landingScreen {
+    background:
+      radial-gradient(56% 44% at 14% 4%,  rgba(14,116,144,0.22), transparent 60%),
+      radial-gradient(58% 48% at 90% 92%, rgba(99,102,241,0.20), transparent 62%),
+      radial-gradient(48% 40% at 76% 8%,  rgba(56,189,248,0.16), transparent 60%),
+      linear-gradient(170deg, #F5F8FC 0%, #EBF0F7 58%, #E2E9F2 100%);
+  }
+  body.dark #landingScreen {
+    background:
+      radial-gradient(55% 42% at 14% 4%,  rgba(79,70,229,0.38), transparent 62%),
+      radial-gradient(50% 40% at 90% 90%, rgba(14,116,144,0.40), transparent 60%),
+      linear-gradient(165deg, #0B1020 0%, #0A0E1A 58%, #070A14 100%);
+  }
+
+  /* ── hero: scope left, briefing right ── */
+  .lh-wrap {
+    display: flex; align-items: center; justify-content: center;
+    gap: calc(38px * var(--ui)); flex-wrap: wrap;
+    width: 100%; max-width: calc(900px * var(--ui));
+  }
+  .lh-scope {
+    position: relative; flex-shrink: 0;
+    width: calc(268px * var(--ui)); height: calc(268px * var(--ui));
+  }
+  /* the radar is no longer absolutely placed against the page — it fills
+     its scope box here */
+  .lh-scope .landing-radar {
+    position: absolute; inset: 0; top: 0; left: 0;
+    width: 100%; height: 100%; transform: none;
+  }
+  .lh-blips { position: absolute; inset: 0; }
+  .lh-blip {
+    position: absolute; width: calc(9px * var(--ui)); height: calc(9px * var(--ui));
+    border-radius: 50%; transform: translate(-50%, -50%);
+    background: var(--b, #0E7490); box-shadow: 0 0 0 4px var(--bs, rgba(14,116,144,0.18));
+  }
+  .lh-blip.crit { animation: lhPulse 1.9s ease-in-out infinite; }
+  @keyframes lhPulse {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(220,38,38,0.22); }
+    50%      { box-shadow: 0 0 0 11px rgba(220,38,38,0.05); }
+  }
+  .lh-centre {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; pointer-events: none;
+  }
+  .lh-centre .landing-hero-stat { font-size: calc(52px * var(--ui)); margin: 0; line-height: 1; }
+  .lh-centre-label {
+    font-size: calc(10px * var(--ui)); font-weight: 750; letter-spacing: 1.6px;
+    color: var(--ink-3); margin-top: 2px;
+  }
+
+  .lh-brief { flex: 1 1 calc(360px * var(--ui)); min-width: calc(300px * var(--ui)); text-align: left; }
+  /* The brand mark, not the generic layers glyph the hero used to show.
+     .landing-icon-badge paints its own pale wash over anything inside it, so
+     the mark uses .mj-badge directly rather than sitting in that box. */
+  .lh-mark {
+    margin: 0 0 var(--s3) 0;
+    width: calc(46px * var(--ui)); height: calc(46px * var(--ui));
+    border-radius: calc(14px * var(--ui));
+  }
+  .lh-mark span { font-size: calc(15px * var(--ui)); font-weight: 800; letter-spacing: 0.5px; }
+  .lh-brief .landing-greeting { text-align: left; margin-bottom: var(--s2); }
+  .lh-headline {
+    font-size: calc(26px * var(--ui)); font-weight: 760; letter-spacing: -0.7px;
+    line-height: 1.22; color: var(--ink-1); margin-bottom: var(--s3);
+  }
+  .lh-headline em {
+    font-style: normal;
+    background: var(--brand-grad);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .lh-brief .landing-quick-stats-row { justify-content: flex-start; }
+  .lh-brief .landing-scroll-hint { justify-content: flex-start; align-items: flex-start; }
+
+  /* ── the people who need you, on the hero and again on the health check ── */
+  .lh-attention { display: flex; flex-direction: column; gap: var(--s2); margin: var(--s3) 0; }
+  .lh-attention-wide { max-width: calc(520px * var(--ui)); margin-left: auto; margin-right: auto; }
+  .lh-att {
+    display: flex; align-items: center; gap: var(--s3);
+    padding: calc(10px * var(--ui)) calc(12px * var(--ui));
+    border-radius: var(--r-lg); text-align: left;
+    background: rgba(255,255,255,0.78);
+    border: 1px solid rgba(255,255,255,0.92);
+    -webkit-backdrop-filter: blur(18px) saturate(1.5); backdrop-filter: blur(18px) saturate(1.5);
+    box-shadow: 0 1px 2px rgba(10,14,26,0.09), 0 10px 28px rgba(10,14,26,0.12);
+  }
+  body.dark .lh-att {
+    background: rgba(22,27,41,0.66);
+    border-color: rgba(255,255,255,0.12);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.35), 0 12px 32px rgba(0,0,0,0.40);
+  }
+  .lh-att .av {
+    width: calc(30px * var(--ui)); height: calc(30px * var(--ui)); border-radius: 50%;
+    color: #fff; font-size: calc(10px * var(--ui)); font-weight: 750; flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.28);
+  }
+  .lh-att .who { flex: 1; min-width: 0; }
+  .lh-att .who b {
+    display: block; font-size: var(--t-sm); font-weight: 680; color: var(--ink-1);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .lh-att .who span { font-size: var(--t-xs); color: var(--ink-3); }
+  .lh-att .when {
+    font-size: var(--t-xs); font-weight: 750; padding: 3px 9px; border-radius: var(--r-pill);
+    background: var(--crit-soft); color: var(--crit); white-space: nowrap; flex-shrink: 0;
+  }
+  .lh-att.calm .when { background: var(--surface-2); color: var(--ink-2); }
+  .lh-att button {
+    border: none; border-radius: var(--r-sm); padding: 7px 12px;
+    font-size: var(--t-xs); font-weight: 700; background: var(--crit); color: #fff;
+    cursor: pointer; flex-shrink: 0;
+  }
+  .lh-att button:hover { filter: brightness(1.08); }
+
+  /* ── section 2: the departures table ── */
+  .lh-board {
+    border-radius: var(--r-lg); overflow: hidden; width: 100%;
+    max-width: calc(720px * var(--ui)); margin: 0 auto;
+    background: rgba(255,255,255,0.78);
+    border: 1px solid rgba(255,255,255,0.92);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5); backdrop-filter: blur(20px) saturate(1.5);
+    box-shadow: 0 1px 2px rgba(10,14,26,0.09), 0 12px 34px rgba(10,14,26,0.13);
+  }
+  body.dark .lh-board {
+    background: rgba(22,27,41,0.62); border-color: rgba(255,255,255,0.11);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.35), 0 14px 38px rgba(0,0,0,0.42);
+  }
+  .lh-row {
+    display: grid; grid-template-columns: 1.45fr 0.5fr 1.15fr 0.95fr;
+    gap: var(--s2); align-items: center; text-align: left;
+    padding: calc(11px * var(--ui)) calc(16px * var(--ui));
+    border-bottom: 1px solid var(--rule-2); font-size: var(--t-sm);
+  }
+  body.dark .lh-row { border-bottom-color: rgba(255,255,255,0.07); }
+  .lh-row:last-child { border-bottom: none; }
+  .lh-row.head {
+    font-size: calc(10px * var(--ui)); letter-spacing: 1.8px; font-weight: 750;
+    color: var(--ink-3); text-transform: uppercase;
+  }
+  .lh-row .cp { display: flex; align-items: center; gap: var(--s2); font-weight: 700;
+                letter-spacing: 0.7px; font-size: var(--t-xs); color: var(--ink-1); }
+  .lh-row .rail { width: 3px; height: calc(20px * var(--ui)); border-radius: 2px; flex-shrink: 0; }
+  .lh-row .n { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .lh-row .st { font-weight: 700; font-size: var(--t-xs); letter-spacing: 0.5px; }
+  .lh-row .st.bad  { color: var(--crit); }
+  .lh-row .st.warn { color: var(--warn); }
+  .lh-row .st.ok   { color: var(--ok); }
+  .lh-row .eta { text-align: right; color: var(--ink-3); font-variant-numeric: tabular-nums;
+                 white-space: nowrap; }
+  .lh-row.head .eta { letter-spacing: 1.2px; }
+
+  /* ── section 5: the studio signature under the buttons ── */
+  .lh-sign {
+    display: flex; align-items: center; justify-content: center; gap: var(--s2);
+    margin-top: var(--s6); opacity: 0.8;
+  }
+  .lh-sign-badge {
+    width: calc(30px * var(--ui)); height: calc(30px * var(--ui));
+    border-radius: calc(9px * var(--ui)); font-size: calc(11px * var(--ui));
+  }
+  .lh-sign-text { text-align: left; line-height: 1.35; }
+  .lh-sign-text b { display: block; font-size: calc(11px * var(--ui)); font-weight: 750;
+                    letter-spacing: 1.6px; color: var(--ink-2); }
+  .lh-sign-text span { font-size: calc(11px * var(--ui)); color: var(--ink-3); }
+
+  /* stack the hero on a phone: scope above, briefing below */
+  @media (max-width: 780px) {
+    .lh-wrap { flex-direction: column; gap: var(--s5); }
+    .lh-brief { text-align: center; min-width: 0; }
+    .lh-mark { margin-left: auto; margin-right: auto; }
+    .lh-brief .landing-greeting { text-align: center; }
+    .lh-headline { text-align: center; }
+    .lh-brief .landing-quick-stats-row { justify-content: center; }
+    .lh-brief .landing-scroll-hint { justify-content: center; align-items: center; }
+    .lh-scope { width: calc(216px * var(--ui)); height: calc(216px * var(--ui)); }
+  }
 </style>
 </head>
 <body>
@@ -3866,12 +4050,6 @@
 
 <div id="landingScreen" class="hidden">
   <div class="landing-bg-decor" id="landingBgDecor" aria-hidden="true">
-    <div class="landing-radar" id="landingRadar">
-      <div class="landing-radar-ring landing-radar-ring-1"></div>
-      <div class="landing-radar-ring landing-radar-ring-2"></div>
-      <div class="landing-radar-ring landing-radar-ring-3"></div>
-      <div class="landing-radar-sweep"></div>
-    </div>
     <div class="landing-orb landing-orb-1"></div>
     <div class="landing-orb landing-orb-2"></div>
     <div class="landing-orb landing-orb-3"></div>
@@ -3888,17 +4066,36 @@
   <div class="landing-scroll" id="landingScroll">
 
     <section class="landing-section landing-hero">
-      <div class="landing-reveal">
-        <div class="landing-icon-badge">
-          <svg viewBox="0 0 24 24" class="landing-badge-icon"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      <div class="landing-reveal lh-wrap">
+
+        <!-- The radar used to drift loose behind the page. It is the same
+             element, moved here and given a job: one blip per officer,
+             coloured by how long since their break. The red ones are the
+             people named on the right. -->
+        <div class="lh-scope">
+          <div class="landing-radar" id="landingRadar">
+            <div class="landing-radar-ring landing-radar-ring-1"></div>
+            <div class="landing-radar-ring landing-radar-ring-2"></div>
+            <div class="landing-radar-ring landing-radar-ring-3"></div>
+            <div class="landing-radar-sweep"></div>
+            <div class="lh-blips" id="landingBlips"></div>
+          </div>
+          <div class="lh-centre">
+            <div class="landing-hero-stat" id="landingHeroStat">0</div>
+            <div class="lh-centre-label">ON SHIFT</div>
+          </div>
         </div>
-        <div class="landing-greeting" id="landingGreeting">Good morning 👋</div>
-        <div class="landing-hero-stat" id="landingHeroStat">0</div>
-        <div class="landing-hero-label">Officers on shift right now</div>
-        <div class="landing-quick-stats-row" id="landingQuickStats"></div>
-        <div class="landing-scroll-hint">
-          <span>Scroll to see today's snapshot</span>
-          <svg viewBox="0 0 24 24" class="landing-scroll-arrow"><path d="M12 4v16m0 0l-6-6m6 6l6-6"/></svg>
+
+        <div class="lh-brief">
+          <div class="mj-badge lh-mark"><span>MJ</span></div>
+          <div class="landing-greeting" id="landingGreeting">Good morning 👋</div>
+          <div class="lh-headline" id="landingHeadline">Everyone is on track.</div>
+          <div class="landing-quick-stats-row" id="landingQuickStats"></div>
+          <div class="lh-attention" id="landingAttention"></div>
+          <div class="landing-scroll-hint">
+            <span>Scroll to see today's snapshot</span>
+            <svg viewBox="0 0 24 24" class="landing-scroll-arrow"><path d="M12 4v16m0 0l-6-6m6 6l6-6"/></svg>
+          </div>
         </div>
       </div>
     </section>
@@ -3906,9 +4103,9 @@
     <section class="landing-section">
       <div class="landing-reveal">
         <div class="landing-section-eyebrow">Live snapshot</div>
-        <div class="landing-section-title">Staffing by section</div>
+        <div class="landing-section-title">Every checkpoint, right now</div>
         <div class="landing-section-subtitle" id="landingStaffingSubtitle">Here's who's covering what right now.</div>
-        <div class="landing-card-grid" id="landingStaffingGrid"></div>
+        <div class="lh-board" id="landingStaffingGrid"></div>
       </div>
     </section>
 
@@ -3931,6 +4128,7 @@
         </div>
         <div class="landing-compliance-caption" id="landingComplianceCaption">Everyone's on track — nice work.</div>
         <div class="landing-compliance-chips" id="landingComplianceChips"></div>
+        <div class="lh-attention lh-attention-wide" id="landingComplianceList"></div>
       </div>
     </section>
 
@@ -3953,6 +4151,10 @@
           <button class="landing-cta-btn landing-cta-secondary" onclick="enterAppFrom('dashboard')">
             <span>View Dashboard</span>
           </button>
+        </div>
+        <div class="lh-sign">
+          <div class="mj-badge lh-sign-badge"><span>MJ</span></div>
+          <div class="lh-sign-text"><b>JATT MIND</b><span>Digital Grind</span></div>
         </div>
       </div>
     </section>
@@ -8458,27 +8660,148 @@ function renderLandingScreen() {
     { label: stats.overdueCount + ' shift overdue', color: '#ef4444' },
   ].map(s => '<span class="landing-quick-stat-chip"><span class="dot" style="background:' + s.color + '"></span>' + s.label + '</span>').join('');
 
+  // ── who needs a break, worst first — the hero, the scope and the health
+  // check all read from this one list so they can never disagree
+  const now = new Date();
+  const attention = [];
+  data.forEach(section => {
+    section.people.forEach(p => {
+      if (!p.name && !p.note) return;
+      const u = breakUrgency(p, now);
+      if (u.rank > 0) attention.push({ p, section, u });
+    });
+  });
+  attention.sort((a, b) => b.u.rank - a.u.rank || (b.u.mins || 0) - (a.u.mins || 0));
+
+  const headline = document.getElementById('landingHeadline');
+  if (headline) {
+    headline.innerHTML = attention.length === 0
+      ? 'Everyone is <em>on track</em>.'
+      : '<em>' + (attention.length === 1 ? 'One officer' : attention.length + ' officers') +
+        '</em> need a break<br>before you do anything else.';
+  }
+
+  function attentionRow(entry, withButton) {
+    const { p, section, u } = entry;
+    const row = document.createElement('div');
+    row.className = 'lh-att' + (u.level ? '' : ' calm');
+    const av = document.createElement('span');
+    av.className = 'av';
+    av.textContent = initialsOf(p.name) || '?';
+    av.style.background = avatarColor(p.name);
+    const who = document.createElement('div');
+    who.className = 'who';
+    who.innerHTML = '<b></b><span></span>';
+    who.querySelector('b').textContent = p.name || 'Unnamed officer';
+    who.querySelector('span').textContent = section.title +
+      (p.overdue ? ' · shift ended, breaks owed'
+                 : ' · ' + p.breaks.filter(b => b.state === 'done').length +
+                   ' of ' + p.breaks.length + ' taken');
+    const when = document.createElement('span');
+    when.className = 'when';
+    when.textContent = p.overdue ? 'Overdue' : u.text;
+    row.appendChild(av); row.appendChild(who); row.appendChild(when);
+    if (withButton) {
+      const btn = document.createElement('button');
+      btn.textContent = 'Push';
+      btn.title = 'Open the roster at ' + section.title;
+      btn.onclick = (e) => { e.stopPropagation(); enterAppFrom('roster'); };
+      row.appendChild(btn);
+    }
+    return row;
+  }
+
+  const attBox = document.getElementById('landingAttention');
+  if (attBox) {
+    attBox.innerHTML = '';
+    attention.slice(0, 2).forEach(entry => attBox.appendChild(attentionRow(entry, true)));
+  }
+
+  // ── the scope: one blip per officer, placed by checkpoint, coloured by
+  // how overdue they are. Angle comes from the checkpoint so people at the
+  // same post cluster together; radius comes from their position in it.
+  const blips = document.getElementById('landingBlips');
+  if (blips) {
+    blips.innerHTML = '';
+    const live = data.filter(sec => sec.title.trim().toUpperCase() !== 'ROSTER');
+    live.forEach((section, sIdx) => {
+      const people = section.people.filter(p => p.name || p.note);
+      people.forEach((p, pIdx) => {
+        const u = breakUrgency(p, now);
+        const angle = (sIdx / Math.max(1, live.length)) * Math.PI * 2 + (pIdx * 0.42) - Math.PI / 2;
+        const radius = 26 + ((pIdx * 13 + sIdx * 7) % 22);   // 26–48% out from the middle
+        const dot = document.createElement('span');
+        dot.className = 'lh-blip' + (u.rank >= 3 ? ' crit' : '');
+        dot.style.left = (50 + Math.cos(angle) * radius) + '%';
+        dot.style.top  = (50 + Math.sin(angle) * radius) + '%';
+        const col = u.rank >= 3 ? ['#DC2626','rgba(220,38,38,0.22)']
+                  : u.rank === 2 ? ['#B45309','rgba(180,83,9,0.20)']
+                  : u.rank === 1 ? ['#CA8A04','rgba(202,138,4,0.20)']
+                  : ['#15803D','rgba(21,128,61,0.18)'];
+        dot.style.setProperty('--b', col[0]);
+        dot.style.setProperty('--bs', col[1]);
+        dot.title = (p.name || 'Officer') + ' — ' + section.title +
+                    (u.mins !== null && u.mins !== undefined ? ' · ' + u.text + ' since a break' : '');
+        blips.appendChild(dot);
+      });
+    });
+  }
+
+  // ── section 2: every checkpoint as a departures row
   const grid = document.getElementById('landingStaffingGrid');
   grid.innerHTML = '';
-  const THEME_COLORS = ['#2563eb', '#7c3aed', '#0891b2', '#059669', '#d97706', '#db2777', '#4b5563'];
+  const THEME_COLORS = ['#4338CA', '#6D28D9', '#0E7490', '#047857', '#B45309', '#BE185D', '#475569'];
   let busiestTitle = '', busiestCount = -1;
+
+  const head = document.createElement('div');
+  head.className = 'lh-row head';
+  head.innerHTML = '<span>Checkpoint</span><span>Staff</span><span>Status</span><span class="eta">Next break</span>';
+  grid.appendChild(head);
+
   data.forEach((section, sIdx) => {
     if (section.title.trim().toUpperCase() === 'ROSTER') return;
     const count = section.people.filter(p => p.name || p.note).length;
     if (count > busiestCount) { busiestCount = count; busiestTitle = section.title; }
-    const themeColor = THEME_COLORS[sIdx % 7];
-    const card = document.createElement('div');
-    card.className = 'landing-mini-card';
-    card.style.setProperty('--card-accent', themeColor);
-    card.innerHTML =
-      '<div class="landing-mini-card-accent"></div>' +
-      '<div class="landing-mini-card-count">' + count + '</div>' +
-      '<div class="landing-mini-card-title">' + section.title + '</div>';
-    grid.appendChild(card);
+
+    const staffing = evaluateStaffing(section, now);
+    const closed = isSectionClosedNow(section.hours, now);
+    // the soonest anyone here is owed a break, and the worst state on the post
+    let worst = null, soonest = null;
+    section.people.forEach(p => {
+      if (!p.name && !p.note) return;
+      const u = breakUrgency(p, now);
+      if (!worst || u.rank > worst.rank) worst = u;
+      if (u.mins !== null && u.mins !== undefined) {
+        const due = Math.max(0, 120 - u.mins);   // yellow starts at 2h
+        if (soonest === null || due < soonest) soonest = due;
+      }
+    });
+
+    let stText = 'On time', stClass = 'ok';
+    if (closed) { stText = 'Closed'; stClass = ''; }
+    else if (worst && worst.rank >= 3) { stText = 'Break overdue'; stClass = 'bad'; }
+    else if (worst && worst.rank > 0)  { stText = 'Break due soon'; stClass = 'warn'; }
+    else if (staffing && !staffing.ok) { stText = 'Short staffed'; stClass = 'warn'; }
+
+    const row = document.createElement('div');
+    row.className = 'lh-row';
+    const rail = '<span class="rail" style="background:' + THEME_COLORS[sIdx % 7] + '"></span>';
+    row.innerHTML =
+      '<span class="cp">' + rail + '<span class="cp-name"></span></span>' +
+      '<span class="n">' + count + (staffing ? ' / ' + staffing.required : '') + '</span>' +
+      '<span class="st ' + stClass + '"></span>' +
+      '<span class="eta"></span>';
+    row.querySelector('.cp-name').textContent = section.title;
+    row.querySelector('.st').textContent = stText;
+    row.querySelector('.eta').textContent = !count ? '—'
+      : (worst && worst.rank >= 3) ? 'now'
+      : (soonest === null ? '—' : fmtDurShort(soonest));
+    grid.appendChild(row);
   });
-  document.getElementById('landingStaffingSubtitle').textContent = busiestCount > 0
-    ? busiestTitle + ' has the most coverage right now.'
-    : "Here's who's covering what right now.";
+  document.getElementById('landingStaffingSubtitle').textContent = attention.length
+    ? attention[0].section.title + ' is the one to deal with first.'
+    : (busiestCount > 0 ? busiestTitle + ' has the most coverage right now.'
+                        : "Here's who's covering what right now.");
 
   const pct = stats.compliancePct;
   const circumference = 326.7;
@@ -8491,9 +8814,15 @@ function renderLandingScreen() {
     : pct >= 70
       ? 'A few breaks need attention.'
       : 'Several officers need breaks soon.';
+  const compList = document.getElementById('landingComplianceList');
+  if (compList) {
+    compList.innerHTML = '';
+    attention.slice(0, 3).forEach(entry => compList.appendChild(attentionRow(entry, true)));
+  }
+
   document.getElementById('landingComplianceChips').innerHTML = [
     { label: stats.total + ' tracked', color: '#6366f1' },
-    { label: stats.redCount + ' need attention', color: '#ef4444' },
+    { label: attention.length + (attention.length === 1 ? ' needs a break' : ' need a break'), color: '#ef4444' },
   ].map(s => '<span class="landing-quick-stat-chip"><span class="dot" style="background:' + s.color + '"></span>' + s.label + '</span>').join('');
 
   const actionsGrid = document.getElementById('landingActionsGrid');
@@ -8511,7 +8840,10 @@ function renderLandingScreen() {
     actionsGrid.appendChild(tile);
   });
 
-  document.getElementById('landingCtaDate').textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+  const ctaDate = document.getElementById('landingCtaDate');
+  const nowStr = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  ctaDate.textContent = now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })
+    + ' · ' + nowStr;
 }
 
 
