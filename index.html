@@ -703,14 +703,6 @@
     padding: 20px;
     background: var(--paper);
   }
-  body.dark #loginScreen,
-  body.dark #lockScreen,
-  body.dark #nameCaptureScreen,
-  body.dark #changePasswordScreen,
-  body.dark #emailVerifyScreen,
-  body.dark #mfaSuggestScreen,
-  body.dark #mfaEnrollScreen,
-
   #loginScreen.hidden,
   #lockScreen.hidden,
   #nameCaptureScreen.hidden,
@@ -720,11 +712,143 @@
   #mfaEnrollScreen.hidden,
   #mfaChallengeScreen.hidden { display: none; }
 
-  /* Airport backdrop (planes, contrails, clouds, runway glow, nav lights)
-     removed — it animated in front of the sign-in card and carried its own
-     dark-mode overrides. Brand identity lives in the MJ badge instead. */
-
+  /* ── Pearson ops theme: planes taking off & landing behind the login card ── */
+  .airport-bg {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
   .login-card { position: relative; z-index: 1; }
+
+  .runway-glow {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 40%;
+    background: linear-gradient(180deg, transparent, rgba(99,102,241,0.06));
+  }
+  body.dark .runway-glow {
+    background: linear-gradient(180deg, transparent, rgba(99,102,241,0.10));
+  }
+
+  /* slow drifting clouds, far background, well below the planes */
+  .cloud {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(148,163,184,0.10);
+    filter: blur(18px);
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+  body.dark .cloud { background: rgba(148,163,184,0.06); }
+  .cloud-1 { width: 180px; height: 60px; top: 12%; left: -20%; animation-name: cloudDriftA; animation-duration: 70s; }
+  .cloud-2 { width: 240px; height: 70px; top: 55%; left: -25%; animation-name: cloudDriftB; animation-duration: 95s; animation-delay: 20s; }
+  .cloud-3 { width: 150px; height: 50px; top: 76%; left: -15%; animation-name: cloudDriftA; animation-duration: 80s; animation-delay: 40s; }
+  @keyframes cloudDriftA { from { transform: translateX(0); } to { transform: translateX(140vw); } }
+  @keyframes cloudDriftB { from { transform: translateX(0); } to { transform: translateX(150vw); } }
+
+  /* each plane is a unit: contrail + glyph + blinking wingtip nav lights,
+     all rotating and fading together as one rigid group */
+  .plane-unit {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    opacity: 0;
+    --max-op: 0.5;
+    will-change: transform, opacity;
+  }
+  .plane-unit .plane {
+    display: block;
+    font-size: 26px;
+    line-height: 1;
+    color: #64748b;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.08));
+  }
+  body.dark .plane-unit .plane { color: #94a3b8; }
+
+  .contrail {
+    display: inline-block;
+    width: 34px;
+    height: 2px;
+    margin-right: -6px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, transparent, rgba(100,116,139,0.35));
+  }
+  body.dark .contrail { background: linear-gradient(90deg, transparent, rgba(148,163,184,0.3)); }
+
+  .nav-light {
+    position: absolute;
+    top: 50%;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    transform: translateY(-50%);
+  }
+  .nav-red   { left: 26%; background: #ef4444; animation: navBlink 1.6s ease-in-out infinite; }
+  .nav-green { right: 26%; background: #22c55e; animation: navBlink 1.6s ease-in-out infinite 0.8s; }
+  @keyframes navBlink {
+    0%, 82%, 100% { opacity: 0; }
+    88%, 94% { opacity: 1; }
+  }
+
+  /* farther-back planes: smaller, slightly blurred, dimmer — reads as depth */
+  .plane-far .plane { font-size: 16px; filter: blur(0.4px) drop-shadow(0 1px 2px rgba(0,0,0,0.05)); }
+  .plane-far .contrail { width: 20px; height: 1.5px; }
+  .plane-far .nav-light { width: 3px; height: 3px; }
+  .plane-far { --max-op: 0.28; }
+
+  .plane-takeoff {
+    left: -8%;
+    animation-name: takeoffPath;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+  .plane-land {
+    right: -8%;
+    animation-name: landPath;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+  .plane-cruise {
+    left: -10%;
+    animation-name: cruisePath;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  .plane-t1 { bottom: 12%; transform: rotate(-28deg); animation-duration: 16s; animation-delay: 0s; }
+  .plane-t2 { bottom: -4%; transform: rotate(-28deg); animation-duration: 19s; animation-delay: 7s; }
+  .plane-l1 { top: 8%;     transform: rotate(152deg); animation-duration: 17s; animation-delay: 3s; }
+  .plane-l2 { top: -4%;    transform: rotate(152deg); animation-duration: 21s; animation-delay: 11s; }
+  .plane-c1 { top: 38%;    transform: rotate(-6deg);  animation-duration: 24s; animation-delay: 9s; }
+
+  @keyframes takeoffPath {
+    0%   { transform: translate(0, 0) rotate(-28deg); opacity: 0; }
+    8%   { opacity: var(--max-op); }
+    45%  { opacity: var(--max-op); }
+    60%  { transform: translate(70vw, -55vh) rotate(-28deg); opacity: 0; }
+    100% { transform: translate(70vw, -55vh) rotate(-28deg); opacity: 0; }
+  }
+  @keyframes landPath {
+    0%   { transform: translate(0, 0) rotate(152deg); opacity: 0; }
+    8%   { opacity: var(--max-op); }
+    45%  { opacity: var(--max-op); }
+    60%  { transform: translate(-70vw, 55vh) rotate(152deg); opacity: 0; }
+    100% { transform: translate(-70vw, 55vh) rotate(152deg); opacity: 0; }
+  }
+  @keyframes cruisePath {
+    0%   { transform: translate(0, 0) rotate(-6deg); opacity: 0; }
+    10%  { opacity: var(--max-op); }
+    90%  { opacity: var(--max-op); }
+    100% { transform: translate(115vw, -4vh) rotate(-6deg); opacity: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .plane-unit, .cloud { animation: none !important; }
+    .plane-unit { opacity: 0.2; }
+    .nav-light { animation: none !important; opacity: 0.6; }
+  }
 
   .login-card {
     position: relative;
@@ -1359,6 +1483,184 @@
   .signature-row:hover { background: rgba(124,58,237,0.07); transform: translateY(-1px); }
   .signature-row:active { transform: scale(0.96); }
 
+  #celebrationContainer {
+    position: fixed;
+    inset: 0;
+    z-index: 12000;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .celebration-backdrop {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 45%, rgba(0,0,0,0.16), transparent 65%);
+    opacity: 0;
+    animation: celebBackdropIn 0.3s var(--ease) forwards;
+  }
+  .celebration-backdrop.leaving { animation: celebBackdropOut 0.35s var(--ease) forwards; }
+  @keyframes celebBackdropIn { to { opacity: 1; } }
+  @keyframes celebBackdropOut { to { opacity: 0; } }
+
+  .celebration-card {
+    position: relative;
+    background: var(--glass-bg);
+    backdrop-filter: blur(28px) saturate(190%);
+    -webkit-backdrop-filter: blur(28px) saturate(190%);
+    border: 1px solid var(--glass-border);
+    border-radius: 22px;
+    padding: 30px 38px;
+    box-shadow: var(--elev-3);
+    text-align: center;
+    min-width: 220px;
+    max-width: 320px;
+    transform: scale(0.6) translateY(10px);
+    opacity: 0;
+    animation: celebPopIn 0.55s var(--ease) forwards;
+  }
+  .celebration-card.leaving { animation: celebPopOut 0.32s var(--ease) forwards; }
+  @keyframes celebPopIn {
+    0%   { transform: scale(0.55) translateY(14px); opacity: 0; }
+    55%  { transform: scale(1.06) translateY(-2px); opacity: 1; }
+    75%  { transform: scale(0.97) translateY(0); }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+  }
+  @keyframes celebPopOut {
+    to { transform: scale(0.85) translateY(-8px); opacity: 0; }
+  }
+
+  .celebration-icon-ring {
+    width: 74px;
+    height: 74px;
+    border-radius: 50%;
+    margin: 0 auto 14px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background: var(--celeb-color, #2563eb);
+    box-shadow: 0 0 0 0 var(--celeb-glow, rgba(37,99,235,0.5));
+    animation: celebRingPulse 1.6s var(--ease) infinite;
+  }
+  @keyframes celebRingPulse {
+    0%   { box-shadow: 0 0 0 0 var(--celeb-glow, rgba(37,99,235,0.45)); }
+    70%  { box-shadow: 0 0 0 18px rgba(37,99,235,0); }
+    100% { box-shadow: 0 0 0 0 rgba(37,99,235,0); }
+  }
+  .celebration-icon-ring .icon-svg {
+    width: 34px; height: 34px;
+    stroke: white;
+    margin-right: 0;
+  }
+  .celebration-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 3px;
+    letter-spacing: -0.2px;
+  }
+  .celebration-subtitle {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .confetti-piece {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 7px;
+    height: 7px;
+    border-radius: 2px;
+    opacity: 0;
+    animation: confettiBurst 0.9s var(--ease) forwards;
+  }
+  @keyframes confettiBurst {
+    0%   { transform: translate(-50%, -50%) rotate(0deg) scale(0.6); opacity: 1; }
+    100% {
+      transform:
+        translate(calc(-50% + var(--tx)), calc(-50% + var(--ty)))
+        rotate(var(--rot))
+        scale(0.4);
+      opacity: 0;
+    }
+  }
+
+  #toastContainer {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 11000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    pointer-events: none;
+    width: calc(100% - 40px);
+    max-width: 420px;
+  }
+  .toast {
+    background: rgba(15,23,42,0.92);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    color: #f8fafc;
+    padding: 13px 18px;
+    border-radius: 13px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: var(--elev-3);
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    animation: toastIn 0.3s var(--ease);
+    border: 1px solid rgba(255,255,255,0.12);
+    width: 100%;
+  }
+  .toast.leaving { animation: toastOut 0.25s var(--ease) forwards; }
+  .toast.success { border-left: 3px solid #22c55e; }
+  .toast.error { border-left: 3px solid #ef4444; }
+  .toast.info { border-left: 3px solid #3b82f6; }
+  @keyframes toastIn {
+    from { transform: translateY(24px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes toastOut {
+    from { transform: translateY(0); opacity: 1; }
+    to { transform: translateY(16px); opacity: 0; }
+  }
+
+  .add-person-btn { margin-top: 4px; }
+  .add-section-wrap { text-align: center; margin-top: 18px; }
+  .footer-note { font-size: 11px; color: var(--text-muted); margin-top: 28px; text-align: center; line-height: 1.6; }
+
+  /* ── MJ signature ───────────────────────────── */
+  .signature-block {
+    margin: 30px auto 10px auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 9px;
+  }
+  .signature-divider {
+    width: 46px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--text-muted), transparent);
+    opacity: 0.45;
+  }
+  .signature-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 5px 7px;
+    border-radius: 12px;
+    transition: transform 0.25s var(--ease), background 0.25s var(--ease);
+  }
+  .signature-row:hover { background: rgba(124,58,237,0.07); transform: translateY(-1px); }
+  .signature-row:active { transform: scale(0.96); }
+
   .mj-badge {
     position: relative;
     width: 34px;
@@ -1587,6 +1889,28 @@
   /* ══════════ Cinematic shutter transition ══════════ */
 
   /* ══════════ Landing screen ══════════ */
+  /* ══════════ Cinematic shutter transition ══════════ */
+  #shutterTransition {
+    position: fixed;
+    inset: 0;
+    z-index: 25000;
+    pointer-events: none;
+  }
+  .shutter-panel {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 52%;
+    background: linear-gradient(135deg, #1e1b3a 0%, #4c1d95 55%, #7c3aed 100%);
+    transition: transform 0.55s cubic-bezier(0.7,0,0.3,1);
+    box-shadow: 0 0 40px rgba(124,58,237,0.4);
+  }
+  .shutter-top { top: 0; transform: translateY(-100%); }
+  .shutter-bottom { bottom: 0; transform: translateY(100%); }
+  #shutterTransition.closed .shutter-top { transform: translateY(0); }
+  #shutterTransition.closed .shutter-bottom { transform: translateY(0); }
+
+  /* ══════════ Landing screen ══════════ */
   #landingScreen {
     position: fixed;
     inset: 0;
@@ -1599,6 +1923,27 @@
   }
   #landingScreen.hidden { display: none; }
 
+  @keyframes radarSpin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  @keyframes landingOrbDrift {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(20px, -30px) scale(1.1); }
+  }
+  @keyframes landingPlaneDrift {
+    from { transform: translateX(0) translateY(0) rotate(3deg); }
+    to   { transform: translateX(115vw) translateY(-40px) rotate(3deg); }
+  }
+
+  .landing-scroll {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
   .landing-bg-decor {
     position: absolute;
     inset: 0;
@@ -1606,6 +1951,15 @@
     overflow: hidden;
     pointer-events: none;
   }
+  .landing-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(50px);
+    animation: landingOrbDrift 16s ease-in-out infinite;
+  }
+  .landing-orb-1 { width: 340px; height: 340px; top: -80px; left: -80px; background: rgba(99,102,241,0.26); animation-delay: 0s; }
+  .landing-orb-2 { width: 300px; height: 300px; top: 38%; right: -110px; background: rgba(236,72,153,0.20); animation-delay: -5s; }
+  .landing-orb-3 { width: 380px; height: 380px; bottom: -140px; left: 5%; background: rgba(59,130,246,0.19); animation-delay: -10s; }
   .landing-bg-decor::before {
     content: '';
     position: absolute;
@@ -1615,6 +1969,32 @@
     mask-image: radial-gradient(ellipse 80% 80% at 50% 40%, black 40%, transparent 90%);
   }
   .landing-bg-decor { transition: transform 0.4s ease-out; }
+  .landing-radar {
+    position: absolute;
+    top: 6%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 360px;
+    height: 360px;
+    pointer-events: none;
+  }
+  .landing-radar-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(99,102,241,0.13);
+  }
+  .landing-radar-ring-2 { inset: 16%; border-color: rgba(139,92,246,0.11); }
+  .landing-radar-ring-3 { inset: 32%; border-color: rgba(217,70,239,0.10); }
+  .landing-radar-sweep {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, rgba(99,102,241,0.24), transparent 30%);
+    animation: radarSpin 4.5s linear infinite;
+    -webkit-mask-image: radial-gradient(circle, black 62%, transparent 100%);
+    mask-image: radial-gradient(circle, black 62%, transparent 100%);
+  }
   @keyframes radarSpin {
     from { transform: rotate(0deg); }
     to   { transform: rotate(360deg); }
@@ -1623,6 +2003,15 @@
     0%, 100% { transform: translate(0, 0) scale(1); }
     50% { transform: translate(20px, -30px) scale(1.1); }
   }
+  .landing-float-plane {
+    position: absolute;
+    font-size: 22px;
+    opacity: 0.12;
+    color: #6366f1;
+    animation: landingPlaneDrift 22s linear infinite;
+  }
+  .landing-float-plane-1 { top: 12%; left: -10%; animation-duration: 26s; }
+  .landing-float-plane-2 { top: 55%; left: -10%; animation-duration: 32s; animation-delay: -12s; font-size: 16px; }
   @keyframes landingPlaneDrift {
     from { transform: translateX(0) translateY(0) rotate(3deg); }
     to   { transform: translateX(115vw) translateY(-40px) rotate(3deg); }
@@ -2240,12 +2629,50 @@
 
 <div id="coverageModalContainer"></div>
 
+<div id="celebrationContainer"></div>
+
 <div id="brandModalContainer"></div>
 
 <div id="toastContainer"></div>
 
 
 <div id="authCheckSplash">
+  <div class="airport-bg" aria-hidden="true">
+    <div class="runway-glow"></div>
+    <div class="cloud cloud-1"></div>
+    <div class="cloud cloud-2"></div>
+    <div class="cloud cloud-3"></div>
+    <div class="plane-unit plane-takeoff plane-t1">
+      <span class="contrail"></span>
+      <span class="plane">✈</span>
+      <span class="nav-light nav-red"></span>
+      <span class="nav-light nav-green"></span>
+    </div>
+    <div class="plane-unit plane-takeoff plane-t2 plane-far">
+      <span class="contrail"></span>
+      <span class="plane">✈</span>
+      <span class="nav-light nav-red"></span>
+      <span class="nav-light nav-green"></span>
+    </div>
+    <div class="plane-unit plane-land plane-l1">
+      <span class="contrail"></span>
+      <span class="plane">✈</span>
+      <span class="nav-light nav-red"></span>
+      <span class="nav-light nav-green"></span>
+    </div>
+    <div class="plane-unit plane-land plane-l2 plane-far">
+      <span class="contrail"></span>
+      <span class="plane">✈</span>
+      <span class="nav-light nav-red"></span>
+      <span class="nav-light nav-green"></span>
+    </div>
+    <div class="plane-unit plane-cruise plane-c1 plane-far">
+      <span class="contrail"></span>
+      <span class="plane">✈</span>
+      <span class="nav-light nav-red"></span>
+      <span class="nav-light nav-green"></span>
+    </div>
+  </div>
 
   <div class="splash-content">
     <div class="mj-badge login-flip flip-badge" style="width:56px;height:56px;">
@@ -2261,6 +2688,42 @@
 </div>
 
 <div id="loginScreen" class="hidden">
+  <div class="airport-bg" aria-hidden="true">
+    <div class="runway-glow"></div>
+    <div class="cloud cloud-1"></div>
+    <div class="cloud cloud-2"></div>
+    <div class="cloud cloud-3"></div>
+    <div class="plane-unit plane-takeoff plane-t1">
+      <span class="contrail"></span>
+      <span class="plane">✈</span>
+      <span class="nav-light nav-red"></span>
+      <span class="nav-light nav-green"></span>
+    </div>
+    <div class="plane-unit plane-takeoff plane-t2 plane-far">
+      <span class="contrail"></span>
+      <span class="plane">✈</span>
+      <span class="nav-light nav-red"></span>
+      <span class="nav-light nav-green"></span>
+    </div>
+    <div class="plane-unit plane-land plane-l1">
+      <span class="contrail"></span>
+      <span class="plane">✈</span>
+      <span class="nav-light nav-red"></span>
+      <span class="nav-light nav-green"></span>
+    </div>
+    <div class="plane-unit plane-land plane-l2 plane-far">
+      <span class="contrail"></span>
+      <span class="plane">✈</span>
+      <span class="nav-light nav-red"></span>
+      <span class="nav-light nav-green"></span>
+    </div>
+    <div class="plane-unit plane-cruise plane-c1 plane-far">
+      <span class="contrail"></span>
+      <span class="plane">✈</span>
+      <span class="nav-light nav-red"></span>
+      <span class="nav-light nav-green"></span>
+    </div>
+  </div>
   <div class="login-card">
     <div class="login-brand">
       <div class="login-icon-wrap">
@@ -2527,6 +2990,13 @@
 
 
 <div id="landingScreen" class="hidden">
+  <div class="landing-bg-decor" id="landingBgDecor" aria-hidden="true">
+    <div class="landing-radar" id="landingRadar">
+      <div class="landing-radar-ring landing-radar-ring-1"></div>
+      <div class="landing-radar-ring landing-radar-ring-2"></div>
+      <div class="landing-radar-ring landing-radar-ring-3"></div>
+      <div class="landing-radar-sweep"></div>
+    </div>
     <div class="landing-orb landing-orb-1"></div>
     <div class="landing-orb landing-orb-2"></div>
     <div class="landing-orb landing-orb-3"></div>
@@ -2613,6 +3083,11 @@
     </section>
 
   </div>
+</div>
+
+<div id="shutterTransition">
+  <div class="shutter-panel shutter-top"></div>
+  <div class="shutter-panel shutter-bottom"></div>
 </div>
 
 <div class="footer-note">Autosaves to this file's browser storage. Keep reopening it from the Files app (not the Claude preview) to keep your progress.</div>
@@ -5393,7 +5868,7 @@ function render() {
           p.quickBreak.startedAtMs = null;
           p.quickBreak.coveredBy = '';
           saveData(); render();
-          showToast((p.name || 'Officer') + ' back on post', 'success');
+          showCelebration('check', 'Back from Break', (p.name || 'Officer') + ' is back on post', 'blue');
         };
         activeWrap.appendChild(backBtn);
         quickRow.appendChild(activeWrap);
@@ -5409,8 +5884,9 @@ function render() {
             p.quickBreak.startedAtMs = Date.now();
             p.quickBreak.coveredBy = coveredBy.trim();
             saveData(); render();
-            showToast('Quick break started · ' + (p.name || 'Officer')
-              + (p.quickBreak.coveredBy ? ' · covered by ' + p.quickBreak.coveredBy : ''), 'success');
+            showCelebration('drop', 'Quick Break Started',
+              (p.name || 'Officer') + (p.quickBreak.coveredBy ? ' · covered by ' + p.quickBreak.coveredBy : ''),
+              'blue');
           });
         };
         quickRow.appendChild(startBtn);
@@ -5466,15 +5942,16 @@ function render() {
               b.startedAtMs = Date.now();
               b.coveredBy = coveredBy.trim();
               saveData(); render();
-              showToast('Break started · ' + (p.name || 'Officer') + ' · ' + b.len + 'm'
-                + (b.coveredBy ? ' · covered by ' + b.coveredBy : ''), 'success');
+              showCelebration('coffee', 'Break Started',
+                (p.name || 'Officer') + ' · ' + b.len + 'm' + (b.coveredBy ? ' · covered by ' + b.coveredBy : ''),
+                'amber');
             });
             return;
           } else if (b.state === 'active') {
             b.state = 'done';
             b.doneAt = Date.now();
             saveData(); render();
-            showToast('Break complete · ' + (p.name || 'Officer') + ' back on duty', 'success');
+            showCelebration('check', 'Break Complete', (p.name || 'Officer') + ' is back on duty', 'green');
             return;
           } else if (b.state === 'done') {
             b.state = 'pending';
@@ -5889,6 +6366,70 @@ function renderHistoryPanelIfOpen() {
 
 
 
+const CELEB_THEMES = {
+  amber:  { color: '#f59e0b', glow: 'rgba(245,158,11,0.5)', confetti: ['#f59e0b', '#fbbf24', '#fde68a'] },
+  green:  { color: '#16a34a', glow: 'rgba(22,163,74,0.5)',  confetti: ['#16a34a', '#4ade80', '#bbf7d0'] },
+  blue:   { color: '#2563eb', glow: 'rgba(37,99,235,0.5)',  confetti: ['#2563eb', '#60a5fa', '#bfdbfe'] },
+  violet: { color: '#7c3aed', glow: 'rgba(124,58,237,0.5)', confetti: ['#7c3aed', '#a78bfa', '#ddd6fe'] },
+};
+
+function showCelebration(iconName, title, subtitle, theme) {
+  const container = document.getElementById('celebrationContainer');
+  if (!container) return;
+  const t = CELEB_THEMES[theme] || CELEB_THEMES.blue;
+
+  container.innerHTML = '';
+
+  const backdrop = document.createElement('div');
+  backdrop.className = 'celebration-backdrop';
+  container.appendChild(backdrop);
+
+  const card = document.createElement('div');
+  card.className = 'celebration-card';
+  card.style.setProperty('--celeb-color', t.color);
+  card.style.setProperty('--celeb-glow', t.glow);
+
+  const ring = document.createElement('div');
+  ring.className = 'celebration-icon-ring';
+  ring.innerHTML = icon(iconName);
+  card.appendChild(ring);
+
+  const titleEl = document.createElement('div');
+  titleEl.className = 'celebration-title';
+  titleEl.textContent = title;
+  card.appendChild(titleEl);
+
+  if (subtitle) {
+    const subEl = document.createElement('div');
+    subEl.className = 'celebration-subtitle';
+    subEl.textContent = subtitle;
+    card.appendChild(subEl);
+  }
+
+  // confetti burst around the icon ring
+  for (let i = 0; i < 14; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 60 + Math.random() * 50;
+    piece.style.setProperty('--tx', (Math.cos(angle) * dist) + 'px');
+    piece.style.setProperty('--ty', (Math.sin(angle) * dist) + 'px');
+    piece.style.setProperty('--rot', (Math.random() * 360) + 'deg');
+    piece.style.background = t.confetti[i % t.confetti.length];
+    piece.style.animationDelay = (Math.random() * 0.15) + 's';
+    piece.style.top = '110px';
+    card.appendChild(piece);
+  }
+
+  container.appendChild(card);
+
+  setTimeout(() => {
+    card.classList.add('leaving');
+    backdrop.classList.add('leaving');
+    setTimeout(() => { container.innerHTML = ''; }, 350);
+  }, 2200);
+}
+
 // The MJ mark is the app's identity — this is the one place it gets a full
 // moment. Dismissed by click, Escape, or the close button.
 function showMJSignature() {
@@ -6004,11 +6545,40 @@ function showLandingScreen() {
   document.getElementById('landingScroll').scrollTop = 0;
   renderLandingScreen();
   setupLandingScrollReveal();
+  setupLandingParallax();
+}
+
+let landingParallaxSetup = false;
+function setupLandingParallax() {
+  if (landingParallaxSetup) return;
+  landingParallaxSetup = true;
+  const screen = document.getElementById('landingScreen');
+  const decor = document.getElementById('landingBgDecor');
+  if (!screen || !decor) return;
+
+  function applyOffset(clientX, clientY) {
+    const w = window.innerWidth, h = window.innerHeight;
+    const offsetX = ((clientX / w) - 0.5) * 26;
+    const offsetY = ((clientY / h) - 0.5) * 26;
+    decor.style.transform = 'translate(' + offsetX + 'px, ' + offsetY + 'px)';
+  }
+
+  screen.addEventListener('mousemove', (e) => applyOffset(e.clientX, e.clientY));
+  screen.addEventListener('touchmove', (e) => {
+    if (e.touches[0]) applyOffset(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: true });
 }
 
 function enterAppFrom(view) {
-  document.getElementById('landingScreen').classList.add('hidden');
-  switchMainView(view === 'dashboard' ? 'dashboard' : 'roster');
+  const shutter = document.getElementById('shutterTransition');
+  shutter.classList.add('closed');
+  setTimeout(() => {
+    document.getElementById('landingScreen').classList.add('hidden');
+    switchMainView(view === 'dashboard' ? 'dashboard' : 'roster');
+    requestAnimationFrame(() => {
+      shutter.classList.remove('closed');
+    });
+  }, 560);
 }
 
 function setupLandingScrollReveal() {
