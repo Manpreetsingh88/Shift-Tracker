@@ -1221,13 +1221,40 @@
     max-width: 1400px;
     margin: 0 auto;
   }
+  /* 340px columns were narrower than a phone, so every officer row wrapped and
+     grew tall — which is what made the board look oversized on a laptop. A row
+     needs about 420px to keep identity, state and controls on one line. */
   body.view-desktop #board {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    gap: var(--s3);
     align-items: start;
   }
   body.view-desktop .section { margin-bottom: 0; }
+
+  /* No touch targets to protect on a pointer device, so the row can be tighter
+     — about a third shorter without anything getting harder to hit. */
+  body.view-desktop .card { padding: var(--s2) 0 var(--s2) var(--s3); }
+  body.view-desktop .top-row { margin-bottom: 2px; }
+  body.view-desktop .timing-row { margin-bottom: 2px; }
+  body.view-desktop .timeline { margin-bottom: 5px; }
+  body.view-desktop .row-actions { margin-top: 5px; }
+  body.view-desktop .note-input { font-size: var(--t-xs); padding: 2px 5px; margin-bottom: 2px; }
+  body.view-desktop .section-header { padding: var(--s2) var(--s3); }
+  body.view-desktop .section-body { padding: 0 var(--s3); }
+  body.view-desktop .name-input { font-size: var(--t-sm); width: auto; flex: 1 1 110px; max-width: 190px; }
+  body.view-desktop .break-chip { padding: 3px 8px 3px 4px; }
+  body.view-desktop .quick-break-btn { padding: 3px 9px; }
+  /* Keep the header on one line — the add button was wrapping beneath the
+     title once the staffing badge joined the row. */
+  body.view-desktop .section-header { flex-wrap: nowrap; }
+  body.view-desktop .section-header input { min-width: 72px; flex: 1 1 72px; }
+  body.view-desktop .staff-badge { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  body.view-desktop .staff-badge,
+  body.view-desktop .hours-badge { flex-shrink: 0; }
+  /* The reminders list should never own more of the screen than the board it
+     is warning you about. */
+  body.view-desktop .alerts-body { max-height: 210px; overflow-y: auto; }
   body.view-desktop .top-ticker,
   body.view-desktop .summary-strip,
   body.view-desktop .settings-row,
@@ -4598,7 +4625,10 @@ function upsertOfficer(name, startTime, endTime) {
 }
 
 function loadSettings() {
-  const defaults = { dark: false, compact: false, alertsEnabled: false, view: 'mobile', overview: false };
+  // `view` is deliberately absent: leaving it unset is what lets the first run
+  // choose by screen size. Anyone who has already picked keeps their choice,
+  // because their saved settings carry it.
+  const defaults = { dark: false, compact: false, alertsEnabled: false, overview: false };
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
     if (raw) return Object.assign({}, defaults, JSON.parse(raw));
@@ -4611,7 +4641,13 @@ function saveSettings() {
 let settings = loadSettings();
 
 function applySettingsToBody() {
-  if (!settings.view) settings.view = 'mobile';
+  // First run picks by screen size rather than defaulting to a phone layout.
+  // A laptop opening a single narrow column is not a sensible starting point,
+  // and most people never find the toggle.
+  if (!settings.view) {
+    settings.view = (window.innerWidth >= 1100 && !('ontouchstart' in window)) ? 'desktop' : 'mobile';
+    saveSettings();
+  }
   document.body.classList.toggle('dark', settings.dark);
   document.body.classList.toggle('view-desktop', settings.view === 'desktop');
   document.body.classList.toggle('view-mobile', settings.view !== 'desktop');
@@ -6211,8 +6247,9 @@ function render() {
     if (staffing) {
       const sb = document.createElement('span');
       sb.className = 'staff-badge ' + (staffing.ok ? 'ok' : (staffing.actual < staffing.required ? 'short' : 'mix'));
+      const notInCount = staffing.problems.filter(x => !x.startsWith('short'));
       sb.textContent = staffing.actual + '/' + staffing.required
-        + (staffing.problems.length ? ' · ' + staffing.problems.join(' · ') : '');
+        + (notInCount.length ? ' · ' + notInCount.join(' · ') : '');
       sb.title = staffing.ok
         ? 'Meets the staffing requirement'
         : 'Needs ' + staffing.required + ': ' + staffing.problems.join(', ')
