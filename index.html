@@ -218,17 +218,45 @@
   /* The header is a quiet label bar, not a colored banner. Identity comes from
      the accent rail on the left, so seven checkpoints no longer read as seven
      unrelated brands. */
+  /* The header carries the checkpoint's identity. Colour earns its place here
+     because it is what you scan for; the rows below stay quiet so the people
+     are the thing you read. */
   .section-header {
+    position: relative;
     padding: var(--s3) var(--s4);
     display: flex;
     align-items: center;
     gap: var(--s2);
-    color: var(--ink-1);
-    background: var(--surface-2);
-    border-bottom: 1px solid var(--rule-1);
-    border-left: 3px solid var(--section-hue, var(--accent));
+    color: #fff;
+    background:
+      linear-gradient(135deg,
+        color-mix(in srgb, var(--section-hue, var(--accent)) 100%, transparent),
+        color-mix(in srgb, var(--section-hue, var(--accent)) 78%, #000));
+    border-bottom: none;
     flex-wrap: wrap;
+    overflow: hidden;
   }
+  /* the checkpoint's headcount trend, sunk into its own header */
+  .section-spark {
+    position: absolute; right: 0; bottom: 0;
+    width: 46%; height: 60%;
+    opacity: 0.32; pointer-events: none;
+    mask-image: linear-gradient(90deg, transparent, #000 55%);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 55%);
+  }
+  /* :not() excludes the spark — a bare `> *` here has the same specificity as
+     .section-spark and, coming later, would override its absolute positioning
+     and drag it back into the flex flow. */
+  .section-header > *:not(.section-spark) { position: relative; z-index: 1; }
+  .section-header .dot { background: rgba(255,255,255,0.9); }
+  .section-header input { color: #fff; }
+  .section-header input::placeholder { color: rgba(255,255,255,0.65); }
+  .section-header input:focus { outline: 2px solid rgba(255,255,255,0.75); }
+  .section-header .icon-btn { color: rgba(255,255,255,0.85); }
+  .section-header .icon-btn:hover { color: #fff; background: rgba(255,255,255,0.16); }
+  .headcount-badge { background: rgba(255,255,255,0.2); color: #fff; }
+  .hours-badge.open { background: rgba(255,255,255,0.22); color: #fff; }
+  .hours-badge.closed { background: rgba(0,0,0,0.32); color: #fff; }
   .section-header .dot {
     width: 7px; height: 7px; border-radius: 50%;
     background: var(--section-hue, var(--accent));
@@ -285,6 +313,12 @@
     transition: background 0.2s var(--ease);
   }
   .card:hover { background: var(--surface-2); }
+  .card::before { width: 3px; }
+  .card.on-break { background: color-mix(in srgb, var(--warn-soft) 55%, transparent); }
+  .card.finished { background: color-mix(in srgb, var(--ok-soft) 40%, transparent); }
+  .name-input { color: var(--ink-1); }
+  .status-badge.on-break::before,
+  .status-badge.finished::before { content: '● '; letter-spacing: -1px; }
   .card.on-break::before { background: var(--warn); }
   .card.finished::before { background: var(--ok); }
   .card.finished { opacity: 0.72; }
@@ -1209,11 +1243,18 @@
     row-gap: var(--s1);
   }
   body.view-mobile .name-input {
-    flex: 1 1 90px;
+    /* Capped: left to grow, the name eats the whole line and pushes the
+       controls onto a second row — which is what happened once the M/F chip
+       joined them. */
+    flex: 1 1 80px;
+    max-width: 132px;
     min-width: 0;
     font-size: var(--t-md);   /* 16px stops iOS zooming the page on focus */
     margin-bottom: 0;
   }
+  body.view-mobile .move-to-select { max-width: 62px; font-size: var(--t-xs); padding: 2px 4px; }
+  body.view-mobile .row-controls { gap: 2px; }
+  body.view-mobile .row-controls .icon-btn { width: 24px; height: 24px; }
   body.view-mobile .status-badge,
   body.view-mobile .break-left {
     flex: 0 0 auto;
@@ -1316,12 +1357,20 @@
     overflow: hidden;
     margin-bottom: var(--s2);
   }
+  .timeline { height: 7px; background: var(--surface-2); }
   .timeline-progress {
     position: absolute;
     left: 0; top: 0; bottom: 0;
-    background: var(--rule-1);
+    background: linear-gradient(90deg,
+      color-mix(in srgb, var(--section-hue, var(--accent)) 45%, transparent),
+      var(--section-hue, var(--accent)));
     border-radius: var(--r-pill);
     transition: width 0.6s var(--ease);
+  }
+  .timeline-break { box-shadow: 0 0 0 1px var(--surface-1); }
+  .timeline-break.active { animation: quickPulse 1.6s ease-in-out infinite; }
+  .timeline-now {
+    box-shadow: 0 0 0 2px var(--surface-1), 0 0 6px color-mix(in srgb, var(--ink-1) 40%, transparent);
   }
   .timeline-break {
     position: absolute;
@@ -2603,7 +2652,7 @@
   }
   .off-row {
     display: grid;
-    grid-template-columns: minmax(0,1fr) auto auto auto;
+    grid-template-columns: minmax(0,1fr) auto auto auto auto;
     align-items: center; gap: var(--s3);
     padding: var(--s3) var(--s4);
     border-bottom: 1px solid var(--rule-2);
@@ -2663,6 +2712,73 @@
   @media (prefers-reduced-motion: reduce) {
     .spark { transition: none; }
   }
+
+  /* ── directory backups ─────────────────────────────────────────── */
+  .off-backups {
+    margin-top: var(--s5); padding-top: var(--s4);
+    border-top: 1px solid var(--rule-1);
+  }
+  .off-backups-head {
+    display: flex; align-items: center; gap: var(--s2);
+    font-size: var(--t-sm); font-weight: 700; color: var(--ink-1);
+  }
+  .off-backups-head .icon-svg { width: 15px; height: 15px; margin: 0; stroke: var(--ink-3); }
+  .off-backups-hint {
+    font-size: var(--t-xs); color: var(--ink-3); line-height: 1.5;
+    margin: var(--s2) 0 var(--s3); max-width: 52ch;
+  }
+  .off-backups-list { display: flex; flex-wrap: wrap; gap: var(--s2); }
+  .off-backup-chip {
+    display: inline-flex; align-items: baseline; gap: 6px;
+    background: var(--surface-1); border: 1px solid var(--rule-1);
+    border-radius: var(--r-pill); padding: 5px 12px;
+    font-size: var(--t-xs); color: var(--ink-2); cursor: pointer;
+    font-variant-numeric: tabular-nums;
+  }
+  .off-backup-chip:hover { border-color: var(--accent); color: var(--ink-1); background: var(--surface-2); }
+  .off-backup-chip b { font-weight: 650; color: var(--ink-1); }
+  .off-backup-chip span { color: var(--ink-3); }
+  .off-backups-empty { font-size: var(--t-xs); color: var(--ink-3); }
+
+  /* ── gender chip ───────────────────────────────────────────────── */
+  .gender-chip {
+    flex-shrink: 0;
+    width: 22px; height: 22px; padding: 0;
+    border-radius: var(--r-sm);
+    font-size: var(--t-xs); font-weight: 700; line-height: 1;
+    background: var(--surface-2); color: var(--ink-3);
+    border: 1px solid var(--rule-1); cursor: pointer;
+  }
+  .gender-chip.g-M { background: #DBEAFE; color: #1D4ED8; border-color: #93C5FD; }
+  .gender-chip.g-F { background: #FCE7F3; color: #BE185D; border-color: #F9A8D4; }
+  body.dark .gender-chip.g-M { background: #17294D; color: #93C5FD; border-color: #1E3A8A; }
+  body.dark .gender-chip.g-F { background: #3D1730; color: #F9A8D4; border-color: #83184F; }
+  .gender-chip.g-none { border-style: dashed; }
+  .gender-chip:hover { border-color: var(--accent); }
+
+  /* ── staffing badge ────────────────────────────────────────────── */
+  .staff-badge {
+    font-size: var(--t-xs); font-weight: 650; letter-spacing: 0.3px;
+    padding: 2px 8px; border-radius: var(--r-pill);
+    white-space: nowrap; flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .staff-badge.ok    { background: rgba(255,255,255,0.22); color: #fff; }
+  .staff-badge.short { background: #B91C1C; color: #fff; }
+  .staff-badge.mix   { background: #B45309; color: #fff; }
+  .staff-badge.xray  { background: #7F1D1D; color: #fff; letter-spacing: 0.6px; }
+  .xray-toggle.on { color: #FCA5A5 !important; background: rgba(0,0,0,0.28); }
+
+  /* ── staffing gaps card ────────────────────────────────────────── */
+  .gap-row {
+    display: flex; align-items: baseline; gap: var(--s2);
+    padding: var(--s2) 0; border-bottom: 1px solid var(--rule-2);
+    font-size: var(--t-sm);
+  }
+  .gap-row:last-child { border-bottom: none; }
+  .gap-name { font-weight: 650; color: var(--ink-1); flex: 1; }
+  .gap-need { font-family: var(--mono); font-size: var(--t-xs); color: var(--crit); white-space: nowrap; }
+  .gap-ok   { color: var(--ok); }
 </style>
 </head>
 <body>
@@ -4032,6 +4148,10 @@ if (firebaseAvailable) {
       startFirebaseListener();
       startComplianceListener();
       startOfficersFirebaseListener();
+      // The officers listener can fire before auth resolves, in which case its
+      // own snapshot attempt bails out and never retries. Try again once the
+      // directory has had a moment to arrive.
+      setTimeout(maybeSnapshotOfficers, 3000);
       // Only flush an edit that genuinely predates auth. Pushing
       // unconditionally here meant a device that had not yet read the board
       // could overwrite it with whatever it happened to be holding.
@@ -4291,6 +4411,100 @@ function deleteOfficerFromFirebase(id) {
   officersRef.child(id).remove().catch(err => console.error('Officer delete-sync failed', err));
 }
 
+// ── automatic directory snapshots ───────────────────────────────────────
+// One dated copy of the officer list per day, kept for 30 days. Roughly 5 KB
+// a day for 50 officers, so the whole history is a rounding error against the
+// free tier. Exists so the directory is never one bad sync away from gone.
+const OFFICER_BACKUP_DAYS = 30;
+let officerBackupsRef = null;
+if (firebaseAvailable) officerBackupsRef = firebase.database().ref('officerBackups');
+
+function todayKey() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+// Compare on the fields that matter, so an unchanged day doesn't rewrite.
+function directoryFingerprint(list) {
+  return list.slice()
+    .sort((a, b) => (a.id || '').localeCompare(b.id || ''))
+    .map(o => [o.id, o.name, o.startTime, o.endTime].join('|'))
+    .join('~');
+}
+
+let snapshotCheckedThisSession = false;
+function maybeSnapshotOfficers() {
+  if (!officerBackupsRef || !authReady || snapshotCheckedThisSession) return;
+  const officers = loadOfficers();
+  // Never snapshot an empty directory. A blank copy is worthless, and writing
+  // one would push a good snapshot out of the 30-day window.
+  if (!officers.length) return;
+  snapshotCheckedThisSession = true;
+
+  officerBackupsRef.once('value').then(snap => {
+    const all = snap.val() || {};
+    const keys = Object.keys(all).sort();
+    const newest = keys.length ? all[keys[keys.length - 1]] : null;
+    const fp = directoryFingerprint(officers);
+
+    // nothing has changed since the last copy — don't write a duplicate
+    if (newest && newest.fingerprint === fp) { pruneOfficerBackups(keys); return; }
+
+    officerBackupsRef.child(todayKey()).set({
+      savedAt: firebase.database.ServerValue.TIMESTAMP,
+      count: officers.length,
+      fingerprint: fp,
+      officers: officers,
+    }).then(() => pruneOfficerBackups(keys.concat(todayKey())))
+      .catch(err => console.error('Directory snapshot failed', err));
+  }).catch(err => console.error('Directory snapshot check failed', err));
+}
+
+function pruneOfficerBackups(keys) {
+  if (!officerBackupsRef) return;
+  const sorted = [...new Set(keys)].sort();
+  sorted.slice(0, Math.max(0, sorted.length - OFFICER_BACKUP_DAYS))
+        .forEach(k => officerBackupsRef.child(k).remove().catch(() => {}));
+}
+
+// Non-destructive by design: restoring puts back anyone from that day who is
+// missing now, and leaves everyone added since alone. A restore that could
+// delete people would just be a second way to lose the directory.
+function restoreOfficerBackup(dayKey, done) {
+  if (!officerBackupsRef) return;
+  officerBackupsRef.child(dayKey).once('value').then(snap => {
+    const backup = snap.val();
+    const saved = backup && ensureArray(backup.officers);
+    if (!saved || !saved.length) { showToast('That backup is empty', 'error'); return; }
+
+    const current = loadOfficers();
+    const haveId = new Set(current.map(o => o.id));
+    const haveName = new Set(current.map(o => (o.name || '').trim().toLowerCase()));
+
+    let added = 0;
+    saved.forEach(o => {
+      if (!o || !o.name) return;
+      if (haveId.has(o.id) || haveName.has((o.name || '').trim().toLowerCase())) return;
+      const rec = { id: o.id || newOfficerId(), name: o.name, startTime: o.startTime, endTime: o.endTime };
+      current.push(rec);
+      haveId.add(rec.id); haveName.add(rec.name.trim().toLowerCase());
+      pushOfficerToFirebaseDebounced(rec);
+      added++;
+    });
+    saveOfficers(current);
+    showToast(added ? 'Restored ' + added + ' officer' + (added === 1 ? '' : 's') : 'Nothing missing — all already here', 'success');
+    if (done) done();
+  }).catch(err => { console.error('Restore failed', err); showToast('Couldn\'t read that backup', 'error'); });
+}
+
+function listOfficerBackups(cb) {
+  if (!officerBackupsRef) { cb([]); return; }
+  officerBackupsRef.once('value').then(snap => {
+    const all = snap.val() || {};
+    cb(Object.keys(all).sort().reverse().map(k => ({ key: k, count: all[k].count || 0 })));
+  }).catch(() => cb([]));
+}
+
 function startOfficersFirebaseListener() {
   if (!firebaseAvailable || !officersRef) return;
   officersRef.on('value', (snapshot) => {
@@ -4338,6 +4552,7 @@ function startOfficersFirebaseListener() {
       // everything now on the server, plus what we are about to upload
       saveSeenOfficerIds(new Set(officers.map(o => o.id)));
       renderOfficersPanelIfOpen();
+      maybeSnapshotOfficers();   // only ever after a successful read
 
       // push anything the server was missing, plus any legacy remote record
       // we just gave an id to, once the guard is released
@@ -4355,6 +4570,17 @@ function startOfficersFirebaseListener() {
   });
 }
 
+// Setting someone's M/F on the board should stick in the directory too, so
+// it only ever has to be entered once.
+function upsertOfficerGender(name, gender) {
+  const officers = loadOfficers();
+  const o = officers.find(x => (x.name || '').trim().toLowerCase() === name.trim().toLowerCase());
+  if (!o) return;
+  o.gender = gender;
+  saveOfficers(officers);
+  pushOfficerToFirebaseDebounced(o);
+}
+
 function upsertOfficer(name, startTime, endTime) {
   const officers = loadOfficers();
   const existing = officers.find(o => o.name.trim().toLowerCase() === name.trim().toLowerCase());
@@ -4364,7 +4590,7 @@ function upsertOfficer(name, startTime, endTime) {
     existing.endTime = endTime;
     officer = existing;
   } else {
-    officer = { id: 'o_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), name: name.trim(), startTime, endTime };
+    officer = { id: newOfficerId(), name: name.trim(), startTime, endTime, gender: '' };
     officers.push(officer);
   }
   saveOfficers(officers);
@@ -4491,6 +4717,7 @@ function showAddOfficerModal(section) {
         const p = newPerson(o.name, '');
         p.startTime = o.startTime;
         p.endTime = o.endTime;
+        p.gender = o.gender || '';
         updateBreaksFromTimes(p);
         section.people.push(p);
         saveData(); render();
@@ -4677,6 +4904,7 @@ function newPerson(name, note) {
   const p = {
     name: name || '',
     note: note || '',
+    gender: '',            // 'M' | 'F' | '' — needed for the 1M+1F rule
     shiftHours: 10,
     computedHours: 10,
     startTime: '09:00',
@@ -4776,6 +5004,7 @@ function runMigrations(d) {
       if (p.computedHours === undefined) {
         updateBreaksFromTimes(p);
       }
+      if (p.gender === undefined) p.gender = '';
       if (!p.quickBreak) p.quickBreak = { active: false, startedAtMs: null, coveredBy: '', log: [] };
       p.quickBreak.log = ensureArray(p.quickBreak.log);
       p.breaks.forEach(b => {
@@ -5334,6 +5563,7 @@ function renderDashboard() {
 
   el.appendChild(buildGreetingCard());
   el.appendChild(buildOpsOverview());
+  el.appendChild(buildStaffingGaps());
   el.appendChild(buildStaffingBySection());
   el.appendChild(buildQuickActions());
   el.appendChild(buildTodayTimeline());
@@ -5399,6 +5629,46 @@ function buildOpsOverview() {
     }
   });
   wrap.appendChild(grid);
+  return wrap;
+}
+
+function buildStaffingGaps() {
+  const wrap = document.createElement('div');
+  wrap.className = 'dash-card';
+  wrap.innerHTML = '<div class="dash-card-title">' + icon('alertTriangle') + 'Staffing Requirements</div>';
+
+  const now = new Date();
+  const rows = data.map(sec => ({ sec, st: evaluateStaffing(sec, now) })).filter(r => r.st);
+
+  if (!rows.length) {
+    const e = document.createElement('div');
+    e.className = 'dash-empty';
+    e.textContent = 'No checkpoints open right now.';
+    wrap.appendChild(e);
+    return wrap;
+  }
+
+  const gaps = rows.filter(r => !r.st.ok);
+  const head = document.createElement('div');
+  head.className = 'dash-empty';
+  head.style.marginBottom = '6px';
+  head.textContent = gaps.length
+    ? gaps.length + (gaps.length === 1 ? ' checkpoint is' : ' checkpoints are') + ' below requirement'
+    : 'Every open checkpoint meets its requirement.';
+  wrap.appendChild(head);
+
+  rows.forEach(({ sec, st }) => {
+    const row = document.createElement('div');
+    row.className = 'gap-row';
+    row.innerHTML =
+      '<span class="gap-name">' + sec.title + '</span>' +
+      '<span class="gap-need ' + (st.ok ? 'gap-ok' : '') + '">' +
+        st.actual + '/' + st.required +
+        (st.ok ? ' ✓' : ' · ' + st.problems.join(' · ')) +
+      '</span>';
+    row.title = (st.relaxed ? 'Overnight minimum in effect. ' : '') + (st.xray ? 'X-ray down here. ' : '');
+    wrap.appendChild(row);
+  });
   return wrap;
 }
 
@@ -5863,6 +6133,16 @@ function render() {
     header.className = 'section-header theme-' + (sIdx % 7);
     header.onclick = () => toggleSectionCollapse(sIdx);
 
+    // this checkpoint's own headcount trend, sunk into the header behind the
+    // title — the same series the dashboard draws, just quieter
+    const secTrend = headcountSeries(12).map(x => (x.sections && x.sections[section.title]) || 0);
+    if (secTrend.length > 1 && Math.max(...secTrend) !== Math.min(...secTrend)) {
+      const sp = document.createElement('div');
+      sp.className = 'section-spark';
+      sp.innerHTML = sparkline(secTrend, { w: 160, h: 34, color: '#fff', fill: true, dot: false });
+      header.appendChild(sp);
+    }
+
     const collapseArrow = document.createElement('span');
     collapseArrow.className = 'collapse-toggle';
     collapseArrow.textContent = section.collapsed ? '▸' : '▾';
@@ -5926,6 +6206,27 @@ function render() {
       header.appendChild(badge);
     }
 
+    // staffing status: what this checkpoint needs right now vs what it has
+    const staffing = evaluateStaffing(section, now);
+    if (staffing) {
+      const sb = document.createElement('span');
+      sb.className = 'staff-badge ' + (staffing.ok ? 'ok' : (staffing.actual < staffing.required ? 'short' : 'mix'));
+      sb.textContent = staffing.actual + '/' + staffing.required
+        + (staffing.problems.length ? ' · ' + staffing.problems.join(' · ') : '');
+      sb.title = staffing.ok
+        ? 'Meets the staffing requirement'
+        : 'Needs ' + staffing.required + ': ' + staffing.problems.join(', ')
+          + (staffing.relaxed ? ' (overnight minimum)' : '');
+      header.appendChild(sb);
+
+      if (staffing.xray) {
+        const xb = document.createElement('span');
+        xb.className = 'staff-badge xray';
+        xb.textContent = 'X-RAY DOWN';
+        header.appendChild(xb);
+      }
+    }
+
     const addPersonHeaderBtn = document.createElement('button');
     addPersonHeaderBtn.className = 'icon-btn';
     addPersonHeaderBtn.innerHTML = icon('plus');
@@ -5934,6 +6235,27 @@ function render() {
     header.appendChild(addPersonHeaderBtn);
 
     if (isAdmin()) {
+      // X-ray down: rare, so it is a quiet toggle rather than a prominent
+      // control — but it changes the requirement while it is on.
+      if (staffingRuleFor(section.title)) {
+        const xrayBtn = document.createElement('button');
+        xrayBtn.className = 'icon-btn xray-toggle' + (section.xrayDown ? ' on' : '');
+        xrayBtn.innerHTML = icon('alertTriangle');
+        xrayBtn.title = section.xrayDown
+          ? 'X-ray is down here — one extra officer required. Click to clear.'
+          : 'Mark X-ray as down (adds one to the requirement)';
+        xrayBtn.onclick = (e) => {
+          e.stopPropagation();
+          section.xrayDown = !section.xrayDown;
+          saveData(); render();
+          showToast(section.title + (section.xrayDown
+            ? ' — X-ray down, now needs one more officer'
+            : ' — X-ray back up'), section.xrayDown ? 'error' : 'success');
+          logActivity((section.xrayDown ? 'Marked X-ray down at ' : 'Cleared X-ray down at ') + section.title);
+        };
+        header.appendChild(xrayBtn);
+      }
+
       const delSecBtn = document.createElement('button');
       delSecBtn.className = 'icon-btn';
       delSecBtn.innerHTML = icon('x');
@@ -5980,6 +6302,20 @@ function render() {
       nameInput.oninput = e => { p.name = e.target.value; saveData(); };
       nameInput.onblur = () => { if (p.name && p.name.trim()) upsertOfficer(p.name, p.startTime, p.endTime); };
       topRow.appendChild(nameInput);
+
+      // M/F chip: click cycles — → M → F → —. The staffing rules need it, so
+      // it sits next to the name rather than buried in a menu.
+      const gBtn = document.createElement('button');
+      gBtn.className = 'gender-chip g-' + (p.gender || 'none');
+      gBtn.textContent = p.gender || '–';
+      gBtn.title = 'Male / female (needed for staffing rules)';
+      gBtn.onclick = (e) => {
+        e.stopPropagation();
+        p.gender = p.gender === 'M' ? 'F' : p.gender === 'F' ? '' : 'M';
+        if (p.name && p.name.trim()) upsertOfficerGender(p.name, p.gender);
+        saveData(); render();
+      };
+      topRow.appendChild(gBtn);
 
       const badge = document.createElement('span');
       badge.className = 'status-badge' + (status === 'on-break' ? ' on-break' : '') + (status === 'finished' ? ' finished' : '') + (p.overdue ? ' overdue' : '');
@@ -6158,7 +6494,8 @@ function render() {
         startBtn.onclick = () => {
           showCoverageModal(p.name || 'this person', (coveredBy) => {
             if (coveredBy === null) return;
-            if (!p.quickBreak) p.quickBreak = { active: false, startedAtMs: null, coveredBy: '', log: [] };
+            if (p.gender === undefined) p.gender = '';
+      if (!p.quickBreak) p.quickBreak = { active: false, startedAtMs: null, coveredBy: '', log: [] };
             p.quickBreak.active = true;
             p.quickBreak.startedAtMs = Date.now();
             p.quickBreak.coveredBy = coveredBy.trim();
@@ -6372,6 +6709,60 @@ function saveToHistory() {
   renderDashboardIfVisible();
 }
 
+
+// ── staffing requirements ───────────────────────────────────────────────
+// Holding areas, not checkpoints — nobody is posted there, so no requirement.
+const STAFFING_EXEMPT = ['ROSTER', 'SENT TO CHECKPOINT'];
+// These three run three officers, and may fall back to two overnight.
+const THREE_OFFICER_CHECKPOINTS = ['PRIMARY', 'CENTRAL', 'DOM BAG'];
+const NIGHT_RELAX_FROM = 22;   // 22:00
+const NIGHT_RELAX_TO   = 3;    // 03:00
+
+function isNightRelaxWindow(now) {
+  const h = (now || new Date()).getHours();
+  return h >= NIGHT_RELAX_FROM || h < NIGHT_RELAX_TO;
+}
+
+function staffingRuleFor(title) {
+  const t = (title || '').trim().toUpperCase();
+  if (STAFFING_EXEMPT.includes(t)) return null;
+  if (THREE_OFFICER_CHECKPOINTS.some(k => t.includes(k))) return { min: 3, nightMin: 2 };
+  return { min: 2, nightMin: 2 };   // everywhere else runs a pair
+}
+
+// Returns null when the checkpoint has no requirement right now (exempt, or
+// closed). Otherwise the gap between what is posted and what is needed.
+function evaluateStaffing(section, now) {
+  const rule = staffingRuleFor(section.title);
+  if (!rule) return null;
+  now = now || new Date();
+  if (isSectionClosedNow(section.hours, now)) return null;
+
+  let required = isNightRelaxWindow(now) ? rule.nightMin : rule.min;
+  if (section.xrayDown) required += 1;      // x-ray down needs an extra body
+
+  const staff = section.people.filter(p => p.name && p.name.trim());
+  const males   = staff.filter(p => p.gender === 'M').length;
+  const females = staff.filter(p => p.gender === 'F').length;
+  const unset   = staff.filter(p => !p.gender).length;
+
+  const problems = [];
+  if (staff.length < required) problems.push('short ' + (required - staff.length));
+  // Only call out a missing gender once it is actually knowable. Flagging
+  // "no female" at a checkpoint where nobody's gender is recorded yet is
+  // noise, not information — say what to do instead.
+  if (unset && (males === 0 || females === 0)) {
+    problems.push(unset + ' without M/F');
+  } else {
+    if (!males)   problems.push('no male');
+    if (!females) problems.push('no female');
+  }
+  return { required, actual: staff.length, males, females, unset,
+           problems, ok: problems.length === 0,
+           relaxed: isNightRelaxWindow(now) && rule.nightMin < rule.min,
+           xray: !!section.xrayDown };
+}
+
 // ── automatic compliance capture ────────────────────────────────────────
 // Compliance used to exist only on days somebody remembered to press
 // "Save Day". It's now sampled on a timer while the app is open.
@@ -6571,6 +6962,41 @@ function renderOfficersView() {
   list.className = 'off-list';
   container.appendChild(list);
   renderOfficerRows(list, officers);
+
+  // ── backups ─────────────────────────────────────────────────────────
+  const backups = document.createElement('div');
+  backups.className = 'off-backups';
+  backups.innerHTML = '<div class="off-backups-head">' + icon('history') +
+    '<span>Automatic backups</span></div>' +
+    '<p class="off-backups-hint">A dated copy of this list is saved every day it changes, ' +
+    'and the last ' + OFFICER_BACKUP_DAYS + ' days are kept. Nothing to press. Restoring adds back ' +
+    'anyone missing — it never removes anyone.</p>' +
+    '<div class="off-backups-list">Loading…</div>';
+  container.appendChild(backups);
+
+  listOfficerBackups(rows => {
+    const box = backups.querySelector('.off-backups-list');
+    box.innerHTML = '';
+    if (!rows.length) {
+      box.innerHTML = '<span class="off-backups-empty">No backups yet — the first one saves shortly after you sign in.</span>';
+      return;
+    }
+    rows.forEach(r => {
+      const chip = document.createElement('button');
+      chip.className = 'off-backup-chip';
+      const d = new Date(r.key + 'T12:00:00');
+      chip.innerHTML = '<b>' + d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + '</b>' +
+                       '<span>' + r.count + '</span>';
+      chip.title = 'Restore the list as it was on ' + r.key;
+      chip.onclick = () => {
+        if (!confirm('Restore the directory as it was on ' + r.key + '?\n\n' +
+                     'Anyone from that day who is missing now will be added back. ' +
+                     'Nobody will be removed.')) return;
+        restoreOfficerBackup(r.key, () => renderOfficersView());
+      };
+      box.appendChild(chip);
+    });
+  });
 }
 
 function renderOfficerRows(list, officers) {
@@ -6601,6 +7027,18 @@ function renderOfficerRows(list, officers) {
     name.placeholder = 'Officer name';
     name.oninput = e => { o.name = e.target.value; saveOfficers(officers); pushOfficerToFirebaseDebounced(o); };
     row.appendChild(name);
+
+    const g = document.createElement('button');
+    g.className = 'gender-chip g-' + (o.gender || 'none');
+    g.textContent = o.gender || '–';
+    g.title = 'Male / female (needed for staffing rules)';
+    g.onclick = () => {
+      o.gender = o.gender === 'M' ? 'F' : o.gender === 'F' ? '' : 'M';
+      saveOfficers(officers);
+      pushOfficerToFirebaseDebounced(o);
+      renderOfficerRows(list, officers);
+    };
+    row.appendChild(g);
 
     const times = document.createElement('div');
     times.className = 'off-times';
