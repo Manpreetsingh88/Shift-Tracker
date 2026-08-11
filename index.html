@@ -4191,10 +4191,24 @@ if (firebaseAvailable) {
   officersRef = firebase.database().ref('officers');
 }
 
+function newOfficerId() {
+  return 'o_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+}
+
 function loadOfficers() {
   try {
     const raw = localStorage.getItem(OFFICERS_KEY);
-    if (raw) return ensureArray(JSON.parse(raw));
+    if (raw) {
+      const list = ensureArray(JSON.parse(raw));
+      // Records written by older builds have no id. Anything without one can
+      // never be uploaded (the sync writes to officersRef/{id}), so it used to
+      // sit local-only until a remote update replaced the whole list and threw
+      // it away. Backfill on read so every record is syncable.
+      let patched = false;
+      list.forEach(o => { if (o && !o.id) { o.id = newOfficerId(); patched = true; } });
+      if (patched) { try { localStorage.setItem(OFFICERS_KEY, JSON.stringify(list)); } catch (e) {} }
+      return list;
+    }
   } catch (e) {}
   return [];
 }
@@ -4211,6 +4225,7 @@ function saveOfficers(officers) {
 // time two saves landed close together.
 let officerPushTimeouts = {};
 function pushOfficerToFirebaseDebounced(officer) {
+  if (!officer || !officer.id) return;   // child(undefined) throws and aborts the caller's loop
   if (!firebaseAvailable || !authReady || applyingRemoteOfficersUpdate || !officersRef) return;
   clearTimeout(officerPushTimeouts[officer.id]);
   officerPushTimeouts[officer.id] = setTimeout(() => {
@@ -4239,9 +4254,29 @@ function startOfficersFirebaseListener() {
       applyingRemoteOfficersUpdate = true;
       // remote is an object keyed by officer id (or, for older data saved
       // before this fix, a plain array) — Object.values() handles both
-      const officers = ensureArray(Object.values(remote));
+      const remoteList = ensureArray(Object.values(remote));
+
+      // MERGE, never replace. A straight overwrite silently deleted any
+      // officer this device had that the server hadn't seen yet — which is
+      // exactly how a directory disappears. Remote wins on conflict; records
+      // only this device holds survive and get uploaded.
+      const byId = new Map();
+      remoteList.forEach(o => { if (o && o.id) byId.set(o.id, o); });
+
+      const localOnly = [];
+      loadOfficers().forEach(o => {
+        if (!o || !o.id) return;
+        if (!byId.has(o.id)) { byId.set(o.id, o); localOnly.push(o); }
+      });
+
+      const officers = [...byId.values()];
       localStorage.setItem(OFFICERS_KEY, JSON.stringify(officers));
       renderOfficersPanelIfOpen();
+
+      // push anything the server was missing, once the guard is released
+      if (localOnly.length) {
+        setTimeout(() => localOnly.forEach(o => pushOfficerToFirebaseDebounced(o)), 0);
+      }
     } catch (e) {
       console.error('Failed to apply synced officer directory', e);
     } finally {
@@ -6334,6 +6369,35 @@ function renderOfficersView() {
     if (last) { last.focus(); last.scrollIntoView({ block: 'center' }); }
   };
   bar.appendChild(addBtn);
+
+  // Recovery: every named person on the board already carries a name and a
+  // shift, so the directory can be rebuilt from it without retyping anything.
+  const namesOnBoard = new Set();
+  data.forEach(sec => sec.people.forEach(pp => { if (pp.name && pp.name.trim()) namesOnBoard.add(pp.name.trim()); }));
+  const missing = [...namesOnBoard].filter(n =>
+    !officers.some(o => (o.name || '').trim().toLowerCase() === n.toLowerCase()));
+
+  if (missing.length) {
+    const rebuild = document.createElement('button');
+    rebuild.className = 'secondary';
+    rebuild.innerHTML = icon('users') + 'Add ' + missing.length + ' from board';
+    rebuild.title = 'Save everyone currently on a checkpoint into the directory';
+    rebuild.onclick = () => {
+      let added = 0;
+      data.forEach(sec => sec.people.forEach(pp => {
+        const nm = (pp.name || '').trim();
+        if (!nm) return;
+        const dup = loadOfficers().some(o => (o.name || '').trim().toLowerCase() === nm.toLowerCase());
+        if (dup) return;
+        upsertOfficer(nm, pp.startTime, pp.endTime);
+        added++;
+      }));
+      renderOfficersView();
+      showToast(added ? 'Added ' + added + ' from the board' : 'Everyone on the board is already saved', 'success');
+    };
+    bar.appendChild(rebuild);
+  }
+
   container.appendChild(bar);
 
   const list = document.createElement('div');
