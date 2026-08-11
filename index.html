@@ -2565,6 +2565,83 @@
     margin-top: 2px;
   }
   .comp-target-key { letter-spacing: 0.3px; }
+
+  /* ── Officers directory page ───────────────────────────────────── */
+  #officersView.hidden { display: none; }
+  .off-head { margin-bottom: var(--s4); }
+  .off-title {
+    display: flex; align-items: center; gap: var(--s2);
+    font-size: var(--t-lg); font-weight: 750; letter-spacing: -0.02em; color: var(--ink-1);
+  }
+  .off-title .icon-svg { width: 18px; height: 18px; margin: 0; stroke: var(--accent); }
+  .off-count {
+    font-size: var(--t-xs); color: var(--ink-3); font-variant-numeric: tabular-nums;
+    letter-spacing: 0.3px; margin-top: 2px;
+  }
+  .off-hint { font-size: var(--t-xs); color: var(--ink-3); margin: var(--s2) 0 0; line-height: 1.5; max-width: 46ch; }
+
+  .off-bar { display: flex; gap: var(--s2); align-items: center; margin-bottom: var(--s3); }
+  .off-search { position: relative; flex: 1 1 auto; display: flex; align-items: center; }
+  .off-search .icon-svg {
+    position: absolute; left: 11px; width: 15px; height: 15px; margin: 0;
+    stroke: var(--ink-3); pointer-events: none;
+  }
+  .off-search input {
+    width: 100%; padding: 9px 12px 9px 34px;
+    font-size: var(--t-sm); color: var(--ink-1);
+    background: var(--surface-1); border: 1px solid var(--rule-1); border-radius: var(--r-md);
+  }
+  .off-search input:focus { outline: none; border-color: var(--accent); }
+  .off-bar button { flex-shrink: 0; white-space: nowrap; }
+
+  .off-list {
+    background: var(--surface-1); border: 1px solid var(--rule-1);
+    border-radius: var(--r-lg); overflow: hidden;
+  }
+  .off-row {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) auto auto auto;
+    align-items: center; gap: var(--s3);
+    padding: var(--s3) var(--s4);
+    border-bottom: 1px solid var(--rule-2);
+  }
+  .off-row:last-child { border-bottom: none; }
+  .off-row:hover { background: var(--surface-2); }
+  .off-name {
+    font-size: var(--t-md); font-weight: 600; color: var(--ink-1);
+    background: transparent; border: 1px solid transparent;
+    border-radius: var(--r-sm); padding: 5px 7px; min-width: 0;
+  }
+  .off-name:hover { background: var(--surface-2); }
+  .off-name:focus { outline: none; border-color: var(--accent); background: var(--surface-1); }
+  .off-times { display: flex; align-items: center; gap: var(--s1); }
+  .off-times input[type=time] {
+    border-color: transparent; background: transparent; color: var(--ink-2);
+    font-weight: 600; font-size: var(--t-xs); padding: 4px 5px;
+  }
+  .off-times input[type=time]:hover { background: var(--surface-2); }
+  .off-times input[type=time]:focus { background: var(--surface-1); border-color: var(--accent); }
+  .off-times input[type=time]::-webkit-calendar-picker-indicator { display: none; }
+  .off-arrow { color: var(--ink-3); font-size: var(--t-xs); }
+  .off-meta {
+    display: flex; align-items: center; gap: var(--s2);
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .off-hours {
+    font-size: var(--t-xs); font-weight: 650; color: var(--ink-2);
+    background: var(--surface-2); padding: 2px 8px; border-radius: var(--r-pill);
+  }
+  .off-plan { font-size: var(--t-xs); color: var(--ink-3); }
+  .off-del { color: var(--ink-3); }
+  .off-del:hover { color: var(--crit); }
+  .off-empty { padding: var(--s6) var(--s4); font-size: var(--t-sm); color: var(--ink-3); line-height: 1.55; }
+
+  @media (max-width: 560px) {
+    .off-row { grid-template-columns: minmax(0,1fr) auto; row-gap: var(--s2); }
+    .off-times { grid-column: 1; }
+    .off-meta  { grid-column: 2; justify-content: flex-end; }
+    .off-del   { grid-column: 2; grid-row: 1; justify-self: end; }
+  }
 </style>
 </head>
 <body>
@@ -2585,6 +2662,7 @@
   <div class="view-tabs">
     <button class="view-tab active" id="tabRosterBtn" onclick="switchMainView('roster')">Roster</button>
     <button class="view-tab" id="tabDashboardBtn" onclick="switchMainView('dashboard')">Dashboard</button>
+    <button class="view-tab" id="tabOfficersBtn" onclick="switchMainView('officers')">Officers</button>
   </div>
   <div class="subtitle" id="lastSaved" style="margin-bottom:6px;"></div>
 </div>
@@ -2988,6 +3066,8 @@
 
 <div id="dashboardView" class="hidden"></div>
 
+<div id="officersView" class="hidden"></div>
+
 
 <div id="landingScreen" class="hidden">
   <div class="landing-bg-decor" id="landingBgDecor" aria-hidden="true">
@@ -3090,7 +3170,7 @@
   <div class="shutter-panel shutter-bottom"></div>
 </div>
 
-<div class="footer-note">Autosaves to this file's browser storage. Keep reopening it from the Files app (not the Claude preview) to keep your progress.</div>
+<div class="footer-note">Saves automatically and syncs across every signed-in device.</div>
 
 <div class="signature-block">
   <div class="signature-divider"></div>
@@ -4161,7 +4241,7 @@ function startOfficersFirebaseListener() {
       // before this fix, a plain array) — Object.values() handles both
       const officers = ensureArray(Object.values(remote));
       localStorage.setItem(OFFICERS_KEY, JSON.stringify(officers));
-      if (officersPanelOpen) renderOfficersPanelIfOpen();
+      renderOfficersPanelIfOpen();
     } catch (e) {
       console.error('Failed to apply synced officer directory', e);
     } finally {
@@ -5124,10 +5204,13 @@ function switchMainView(view) {
   currentMainView = view;
   document.getElementById('tabRosterBtn').classList.toggle('active', view === 'roster');
   document.getElementById('tabDashboardBtn').classList.toggle('active', view === 'dashboard');
+  document.getElementById('tabOfficersBtn').classList.toggle('active', view === 'officers');
   document.getElementById('rosterView').classList.toggle('hidden', view !== 'roster');
   document.getElementById('dashboardView').classList.toggle('hidden', view !== 'dashboard');
+  document.getElementById('officersView').classList.toggle('hidden', view !== 'officers');
   document.getElementById('rosterHeaderExtras').classList.toggle('hidden', view !== 'roster');
   if (view === 'dashboard') renderDashboard();
+  if (view === 'officers') renderOfficersView();
 }
 
 function renderDashboardIfVisible() {
@@ -6189,129 +6272,164 @@ function toggleHistoryPanel() {
 }
 
 let officersPanelOpen = false;
+// Kept as the settings-menu entry point, but it now navigates to the
+// Officers page rather than sliding a panel over the roster.
 function toggleOfficersPanel() {
-  officersPanelOpen = !officersPanelOpen;
-  toggleSettingsMenu(); // close the settings drawer so the panel is visible
-  renderOfficersPanelIfOpen();
+  toggleSettingsMenu();          // close the settings drawer
+  switchMainView('officers');
 }
 
-function renderOfficersPanelIfOpen() {
-  const container = document.getElementById('officersPanel');
-  if (!officersPanelOpen) { container.innerHTML = ''; return; }
+let officerSearch = '';
 
+// The directory is a page now, not a drawer. It is the one place officers are
+// created and edited, so it gets room: search, a live count, and each row
+// showing the break plan that shift length actually earns.
+function renderOfficersView() {
+  const container = document.getElementById('officersView');
+  if (!container) return;
   const officers = loadOfficers();
-  const panel = document.createElement('div');
-  panel.className = 'history-panel';
+  container.innerHTML = '';
 
-  const title = document.createElement('div');
-  title.style.fontWeight = '700';
-  title.style.fontSize = '13px';
-  title.style.marginBottom = '10px';
-  title.style.display = 'flex';
-  title.style.justifyContent = 'space-between';
-  title.style.alignItems = 'center';
-  title.innerHTML = '<span>' + icon('users') + 'Officer Directory</span>';
-  const closeBtn = document.createElement('button');
-  closeBtn.className = 'icon-btn';
-  closeBtn.innerHTML = icon('x');
-  closeBtn.onclick = () => { officersPanelOpen = false; renderOfficersPanelIfOpen(); };
-  title.appendChild(closeBtn);
-  panel.appendChild(title);
+  // ── header ──────────────────────────────────────────────────────────
+  const head = document.createElement('div');
+  head.className = 'off-head';
+  head.innerHTML =
+    '<div class="off-title">' + icon('users') + '<span>Officer Directory</span></div>' +
+    '<div class="off-count">' + officers.length + (officers.length === 1 ? ' officer' : ' officers') + ' saved</div>' +
+    '<p class="off-hint">Save a name and default shift once, then pick them from a list instead of ' +
+    'retyping. Anyone you add to a checkpoint is saved here automatically.</p>';
+  container.appendChild(head);
 
-  const hint = document.createElement('div');
-  hint.style.fontSize = '11px';
-  hint.style.color = 'var(--ink-3)';
-  hint.style.marginBottom = '10px';
-  hint.textContent = 'Save an officer\'s name and default shift once — then pick them from a list instead of retyping.';
-  panel.appendChild(hint);
+  // ── toolbar ─────────────────────────────────────────────────────────
+  const bar = document.createElement('div');
+  bar.className = 'off-bar';
 
-  officers.forEach((o, idx) => {
+  const searchWrap = document.createElement('div');
+  searchWrap.className = 'off-search';
+  searchWrap.innerHTML = icon('search');
+  const search = document.createElement('input');
+  search.type = 'text';
+  search.placeholder = 'Search officers…';
+  search.value = officerSearch;
+  search.oninput = e => {
+    officerSearch = e.target.value;
+    renderOfficerRows(list, officers);
+  };
+  searchWrap.appendChild(search);
+  bar.appendChild(searchWrap);
+
+  const addBtn = document.createElement('button');
+  addBtn.innerHTML = icon('plus') + 'Add officer';
+  addBtn.onclick = () => {
+    const o = { id: 'o_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+                name: '', startTime: '09:00', endTime: '19:00' };
+    officers.push(o);
+    saveOfficers(officers);
+    pushOfficerToFirebaseDebounced(o);
+    officerSearch = '';
+    renderOfficersView();
+    // drop the cursor straight into the new name field
+    const inputs = document.querySelectorAll('#officersView .off-name');
+    const last = inputs[inputs.length - 1];
+    if (last) { last.focus(); last.scrollIntoView({ block: 'center' }); }
+  };
+  bar.appendChild(addBtn);
+  container.appendChild(bar);
+
+  const list = document.createElement('div');
+  list.className = 'off-list';
+  container.appendChild(list);
+  renderOfficerRows(list, officers);
+}
+
+function renderOfficerRows(list, officers) {
+  list.innerHTML = '';
+  const q = officerSearch.trim().toLowerCase();
+  const shown = officers
+    .map((o, idx) => ({ o, idx }))
+    .filter(({ o }) => !q || (o.name || '').toLowerCase().includes(q));
+
+  if (!officers.length) {
+    list.innerHTML = '<div class="off-empty">No saved officers yet. Add one above, or they\'ll be ' +
+      'saved here automatically the first time you put someone on a checkpoint.</div>';
+    return;
+  }
+  if (!shown.length) {
+    list.innerHTML = '<div class="off-empty">No officer matches “' + officerSearch + '”.</div>';
+    return;
+  }
+
+  shown.forEach(({ o, idx }) => {
     const row = document.createElement('div');
-    row.className = 'history-entry';
-    row.style.gap = '6px';
-    row.style.flexWrap = 'wrap';
+    row.className = 'off-row';
 
-    const nameInput = document.createElement('input');
-    nameInput.type = 'text';
-    nameInput.value = o.name;
-    nameInput.placeholder = 'Name';
-    nameInput.style.cssText = 'flex:1 1 100px;min-width:90px;padding:7px 8px;border:1px solid var(--rule-1);border-radius:8px;background:transparent;color:var(--ink-1);font-size:13px;';
-    nameInput.oninput = e => { o.name = e.target.value; saveOfficers(officers); pushOfficerToFirebaseDebounced(o); };
-    row.appendChild(nameInput);
+    const name = document.createElement('input');
+    name.type = 'text';
+    name.className = 'off-name';
+    name.value = o.name;
+    name.placeholder = 'Officer name';
+    name.oninput = e => { o.name = e.target.value; saveOfficers(officers); pushOfficerToFirebaseDebounced(o); };
+    row.appendChild(name);
 
-    const timeGroup = document.createElement('div');
-    timeGroup.style.cssText = 'display:flex;align-items:center;gap:3px;';
-    const startInput = document.createElement('input');
-    startInput.type = 'time';
-    startInput.value = o.startTime;
-    // onchange, not oninput: a half-typed time is briefly nonsense and would
-    // trip the limit check before the user has finished entering it.
-    startInput.onchange = e => {
-      if (!shiftLengthIsLegal(e.target.value, o.endTime)) {
-        rejectOverLongShift(e.target.value, o.endTime);
-        e.target.value = o.startTime;
-        return;
-      }
-      o.startTime = e.target.value; saveOfficers(officers); pushOfficerToFirebaseDebounced(o);
+    const times = document.createElement('div');
+    times.className = 'off-times';
+    const mkTime = (field, other, order) => {
+      const el = document.createElement('input');
+      el.type = 'time';
+      el.value = o[field];
+      // onchange, not oninput: a half-typed time is briefly nonsense and would
+      // trip the 16h check before the user has finished entering it.
+      el.onchange = e => {
+        const a = order === 'start' ? e.target.value : o.startTime;
+        const b = order === 'start' ? o.endTime : e.target.value;
+        if (!shiftLengthIsLegal(a, b)) { rejectOverLongShift(a, b); e.target.value = o[field]; return; }
+        o[field] = e.target.value;
+        saveOfficers(officers);
+        pushOfficerToFirebaseDebounced(o);
+        renderOfficerRows(list, officers);   // refresh the earned break plan
+      };
+      return el;
     };
+    times.appendChild(mkTime('startTime', 'endTime', 'start'));
     const arrow = document.createElement('span');
+    arrow.className = 'off-arrow';
     arrow.textContent = '→';
-    arrow.style.cssText = 'color:var(--ink-3);font-size:11px;';
-    const endInput = document.createElement('input');
-    endInput.type = 'time';
-    endInput.value = o.endTime;
-    endInput.onchange = e => {
-      if (!shiftLengthIsLegal(o.startTime, e.target.value)) {
-        rejectOverLongShift(o.startTime, e.target.value);
-        e.target.value = o.endTime;
-        return;
-      }
-      o.endTime = e.target.value; saveOfficers(officers); pushOfficerToFirebaseDebounced(o);
-    };
-    timeGroup.appendChild(startInput);
-    timeGroup.appendChild(arrow);
-    timeGroup.appendChild(endInput);
-    row.appendChild(timeGroup);
+    times.appendChild(arrow);
+    times.appendChild(mkTime('endTime', 'startTime', 'end'));
+    row.appendChild(times);
+
+    // what that shift actually earns, so the directory agrees with the board
+    const hours = computeShiftHours(o.startTime, o.endTime);
+    const plan = BREAK_PLANS[planHoursFor(hours)];
+    const meta = document.createElement('div');
+    meta.className = 'off-meta';
+    meta.innerHTML = '<span class="off-hours">' + (hours % 1 === 0 ? hours : hours.toFixed(1)) + 'h</span>' +
+      '<span class="off-plan">' + plan.join(' + ') + '</span>';
+    row.appendChild(meta);
 
     if (isAdmin()) {
-      const delBtn = document.createElement('button');
-      delBtn.className = 'icon-btn';
-      delBtn.innerHTML = icon('trash');
-      delBtn.onclick = () => {
+      const del = document.createElement('button');
+      del.className = 'icon-btn off-del';
+      del.innerHTML = icon('trash');
+      del.title = 'Remove from directory';
+      del.onclick = () => {
+        if (!confirm('Remove ' + (o.name || 'this officer') + ' from the directory?\n\nThis does not affect anyone already on a checkpoint.')) return;
         const removedId = officers[idx].id;
         officers.splice(idx, 1);
         saveOfficers(officers);
         deleteOfficerFromFirebase(removedId);
-        renderOfficersPanelIfOpen();
+        renderOfficersView();
+        showToast('Removed from directory', 'success');
       };
-      row.appendChild(delBtn);
+      row.appendChild(del);
     }
-
-    panel.appendChild(row);
+    list.appendChild(row);
   });
+}
 
-  if (officers.length === 0) {
-    const empty = document.createElement('div');
-    empty.style.cssText = 'font-size:12px;color:var(--ink-3);padding:8px 0;';
-    empty.textContent = 'No saved officers yet. Add one below, or they\'ll be saved automatically the first time you add them to a section.';
-    panel.appendChild(empty);
-  }
-
-  const addBtn = document.createElement('button');
-  addBtn.className = 'secondary';
-  addBtn.style.marginTop = '8px';
-  addBtn.innerHTML = icon('plus') + 'Add Officer';
-  addBtn.onclick = () => {
-    const newOfficer = { id: 'o_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), name: '', startTime: '09:00', endTime: '19:00' };
-    officers.push(newOfficer);
-    saveOfficers(officers);
-    pushOfficerToFirebaseDebounced(newOfficer);
-    renderOfficersPanelIfOpen();
-  };
-  panel.appendChild(addBtn);
-
-  container.innerHTML = '';
-  container.appendChild(panel);
+// The Firebase listener still calls this when the directory changes remotely.
+function renderOfficersPanelIfOpen() {
+  if (currentMainView === 'officers') renderOfficersView();
 }
 
 function renderHistoryPanelIfOpen() {
