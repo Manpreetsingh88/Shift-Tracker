@@ -81,7 +81,7 @@
      ══════════════════════════════════════════════════════════════════ */
   :root {
     /* ── ground & ink ─────────────────────────────────────────────── */
-    --paper:      #F3F4F8;   /* page background                        */
+    --paper:      #F1F5FB;   /* header/overlay fill — matched to #appGround's top */
     --surface-1:  #FFFFFF;   /* cards, rows                            */
     --surface-2:  #EDEEF3;   /* inset wells, tracks, disabled          */
     --surface-3:  #E2E4EC;   /* hover on inset                         */
@@ -144,7 +144,7 @@
   }
 
   body.dark {
-    --paper:      #0E1014;
+    --paper:      #0A0E19;
     --surface-1:  #191C23;
     --surface-2:  #22262F;
     --surface-3:  #2C313C;
@@ -3133,9 +3133,306 @@
   .section-header .hours-badge.open   { background: rgba(4,8,20,0.30); color: #fff; }
   .section-header .hours-badge.closed { background: rgba(2,4,12,0.58); color: #fff; }
   .section-header .staff-badge.ok     { background: rgba(4,8,20,0.34); color: #fff; }
+  /* ══ roster card: the break-due state is the loudest thing on it ══════
+     These sit at the end of the sheet on purpose. The card's colour states
+     (.on-break / .finished) are defined much earlier, and an urgency rail has
+     to be able to win over them — someone four hours without a break matters
+     more than the fact that they are nominally "working". */
+
+  /* initial disc */
+  .avatar {
+    flex-shrink: 0;
+    width: calc(26px * var(--ui)); height: calc(26px * var(--ui));
+    border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: calc(10px * var(--ui)); font-weight: 750; letter-spacing: 0.3px;
+    color: #fff;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), 0 1px 2px rgba(0,0,0,0.14);
+    user-select: none;
+  }
+  .avatar.empty {
+    background: var(--surface-3);
+    box-shadow: inset 0 0 0 1px var(--rule-1);
+  }
+
+  /* the name is the thing you scan; give it the weight the times used to have */
+  .card .name-input { font-weight: 680; }
+  .card .timing-row input[type=time] { color: var(--ink-2); font-weight: 550; }
+  .card .timing-row { color: var(--ink-3); }
+
+  /* status badge as a pill, and the break-due colour ramp */
+  .card .status-badge {
+    padding: 2px 8px; border-radius: var(--r-pill);
+    background: var(--surface-2);
+    font-variant-numeric: tabular-nums;
+  }
+  .card .status-badge.due            { background: var(--surface-2); color: var(--ink-2); }
+  .card .status-badge.due.due-yellow { background: var(--warn-soft); color: var(--warn); }
+  .card .status-badge.due.due-orange { background: var(--warn-soft); color: var(--warn); font-weight: 700; }
+  .card .status-badge.due.due-red    { background: var(--crit-soft); color: var(--crit); font-weight: 750; }
+  .card .status-badge.on-break { background: var(--warn-soft); }
+  .card .status-badge.finished { background: var(--ok-soft); }
+  .card .status-badge.overdue  { background: var(--crit-soft); }
+
+  /* the rail: how a checkpoint reads at a glance from across the room */
+  .card.due-yellow::before { background: var(--warn); opacity: 0.55; }
+  .card.due-orange::before { background: var(--warn); }
+  .card.due-red::before    { background: var(--crit); }
+  .card.due-orange { background: color-mix(in srgb, var(--warn-soft) 30%, transparent); }
+  .card.due-red    { background: color-mix(in srgb, var(--crit-soft) 34%, transparent); }
+  /* an officer already out on a break is not "due" — that state wins */
+  .card.on-break.due-yellow::before,
+  .card.on-break.due-orange::before,
+  .card.on-break.due-red::before { background: var(--warn); }
+
+  /* ── the shift timeline, made readable ──────────────────────────────
+     It was a 7px sliver. It now has room to show where breaks were taken,
+     where the remaining ones still have to fit, and where "now" is. */
+  .card .timeline {
+    height: calc(11px * var(--ui));
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--rule-2);
+    overflow: visible;
+  }
+  .card .timeline-progress { opacity: 0.9; border-radius: var(--r-pill) 0 0 var(--r-pill); }
+  .card .timeline-break {
+    top: 2px; bottom: 2px;
+    border-radius: 3px;
+    box-shadow: 0 0 0 1.5px var(--surface-1);
+  }
+  /* dashed outline = owed, not taken */
+  .card .timeline-slot {
+    position: absolute; top: 2px; bottom: 2px;
+    border-radius: 3px;
+    border: 1.5px dashed color-mix(in srgb, var(--ink-3) 70%, transparent);
+    background: color-mix(in srgb, var(--surface-1) 55%, transparent);
+  }
+  .card.due-red .timeline-slot { border-color: color-mix(in srgb, var(--crit) 70%, transparent); }
+  .card .timeline-now {
+    top: -3px; bottom: -3px; width: 2px;
+    background: var(--ink-1);
+    box-shadow: 0 0 0 2px var(--surface-1), 0 0 6px color-mix(in srgb, var(--ink-1) 45%, transparent);
+  }
+  /* ── giving the name back its room ─────────────────────────────────
+     The top row is nowrap and the name input was the only flexible item in
+     it, so every pixel the controls wanted came straight out of the name —
+     "Nina Patel" was rendering as "Ni". The name now has a floor, and the
+     pieces around it are trimmed to pay for it. */
+  .card .avatar { width: calc(22px * var(--ui)); height: calc(22px * var(--ui)); font-size: calc(9px * var(--ui)); }
+  .card .drag-handle { padding: 2px 2px; font-size: var(--t-sm); }
+  .card .move-to-select { max-width: calc(58px * var(--ui)); padding: 6px 2px; }
+  body.view-desktop .card .name-input {
+    flex: 1 1 calc(120px * var(--ui));
+    min-width: calc(104px * var(--ui));
+    max-width: calc(210px * var(--ui));
+    text-overflow: ellipsis;
+  }
+  /* Mobile was capped at 132px back when the name was the only thing that
+     could grow and it shoved the controls onto a second line. The badge is
+     the flexible one now, so the name can have a floor here too. */
+  body.view-mobile .card .name-input {
+    /* basis, not just min-width: the badge only yields on overflow, so a
+       small basis left the name short even when the row had room to spare */
+    flex: 1 1 calc(124px * var(--ui));
+    min-width: calc(110px * var(--ui));
+    max-width: calc(160px * var(--ui));
+    text-overflow: ellipsis;
+  }
+  /* Mobile pinned the badge to flex:0 0 auto, so on a narrow phone the name
+     was still the only thing that could give. The mobile top row wraps, so
+     letting the badge shrink (or drop to the next line) costs nothing. */
+  body.view-mobile .card .status-badge { flex: 0 1 auto; min-width: 0; }
+  .card .top-row { gap: calc(5px * var(--ui)); }
+
+  /* the elapsed-since-break figure is a measurement, not a shout */
+  .card .status-badge.due { text-transform: none; letter-spacing: 0.2px; }
+  /* The badge is the one thing on the row allowed to give way. Without this
+     the row overflowed and took its own buttons off the edge of the card:
+     name-input has a floor and .row-controls does not shrink, so a long
+     status string had nowhere to go. */
+  .card .status-badge {
+    min-width: 0;
+    flex-shrink: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .card .row-controls { flex-shrink: 0; }
+  /* The card's own tint and rail already say "on break" / "done" louder than
+     a bullet glyph can, and the glyph was the last ~12px that pushed
+     "ON BREAK" into an ellipsis in a three-column layout. */
+  .card .status-badge.on-break::before,
+  .card .status-badge.finished::before { content: none; }
+  /* Sized to fit the tightest real row (three columns, 480px phone): the
+     badge shares a nowrap line with the name, the M/F chip and three
+     controls, and at the inherited 12px/0.4px it needed ~83px where ~74 was
+     available. Measured, not guessed. */
+  .card .status-badge {
+    font-size: calc(11px * var(--ui));
+    letter-spacing: 0.2px;
+  }
+  /* ══ ground & glass ══════════════════════════════════════════════════
+     The page used to be one flat fill with opaque white cards on it, which
+     is why it read as empty. Frosted glass only looks like glass when there
+     is something behind it to blur, so the ground comes first and the
+     surfaces are made translucent on top of it. */
+
+  #appGround {
+    position: fixed; inset: 0; z-index: -1;
+    pointer-events: none; overflow: hidden;
+    background:
+      radial-gradient(56% 44% at 14% 4%,  rgba(14,116,144,0.24), transparent 60%),
+      radial-gradient(58% 48% at 90% 92%, rgba(99,102,241,0.20), transparent 62%),
+      radial-gradient(48% 40% at 76% 8%,  rgba(56,189,248,0.18), transparent 60%),
+      linear-gradient(170deg, #F5F8FC 0%, #EBF0F7 58%, #E2E9F2 100%);
+  }
+  .g-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(30,58,110,0.085) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(30,58,110,0.085) 1px, transparent 1px);
+    background-size: 46px 46px;
+    mask-image: radial-gradient(96% 82% at 50% 46%, #000 26%, transparent 86%);
+    -webkit-mask-image: radial-gradient(96% 82% at 50% 46%, #000 26%, transparent 86%);
+  }
+  .g-plan {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    width: 100%; height: min(58vh, 620px);
+  }
+  .gp-line     { stroke: rgba(30,58,110,0.30); }
+  .gp-label    { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+                 font-size: 13px; letter-spacing: 2.4px; fill: rgba(30,58,110,0.40); }
+  .gp-strip    { fill: rgba(30,58,110,0.09); }
+  .gp-edge     { stroke: rgba(30,58,110,0.26); stroke-width: 2.2; }
+  .gp-centre   { stroke: rgba(255,255,255,0.92); stroke-width: 5; stroke-dasharray: 46 40; }
+  .gp-thresh   { stroke: rgba(255,255,255,0.88); stroke-width: 4; }
+  .gp-desig    { font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+                 font-size: 38px; font-weight: 700; letter-spacing: 4px;
+                 fill: rgba(255,255,255,0.85); }
+  .gp-approach { fill: rgba(56,189,248,0.62); }
+  .gp-track    { fill: none; stroke: rgba(30,58,110,0.24);
+                 stroke-width: 1.6; stroke-dasharray: 7 10; }
+  .gp-plane    { fill: rgba(30,58,110,0.34); }
+  .g-grain {
+    position: absolute; inset: 0; opacity: 0.038; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  }
+
+  /* On a phone the plan would scale down to an unreadable smudge, so it is
+     given a fixed drawing width and allowed to crop instead. */
+  @media (max-width: 700px) {
+    .g-plan { width: 980px; left: 50%; transform: translateX(-50%); height: min(42vh, 380px); }
+    .g-grid { background-size: 38px 38px; }
+  }
+
+  /* ── the glass itself ──────────────────────────────────────────────
+     Checkpoint shells only. Officer rows stay cheap opaque surfaces —
+     backdrop-filter is GPU work, and a busy roster is dozens of rows. One
+     blurred shell per checkpoint buys the whole look for a fraction of it. */
+  .section {
+    /* 0.74, not 0.60. Measured: at 0.60 the indigo bloom came through the
+       glass strongly enough to drop --ink-3 to 4.23:1 against it, under the
+       4.5 floor. This is still visibly translucent — the ground still tints
+       each checkpoint — it just keeps the weakest ink legible. */
+    background: rgba(255,255,255,0.74);
+    border-color: rgba(255,255,255,0.85);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5);
+    backdrop-filter: blur(20px) saturate(1.5);
+    box-shadow:
+      0 1px 2px rgba(10,14,26,0.09),
+      0 12px 34px rgba(10,14,26,0.14);
+  }
+  .section-body { background: transparent; }
+
+  /* Dark mode: the same airfield, lit from underneath instead of above. */
+  body.dark #appGround {
+    background:
+      radial-gradient(55% 42% at 14% 4%,  rgba(79,70,229,0.40), transparent 62%),
+      radial-gradient(50% 40% at 90% 90%, rgba(14,116,144,0.42), transparent 60%),
+      radial-gradient(48% 40% at 74% 10%, rgba(109,40,217,0.30), transparent 60%),
+      linear-gradient(165deg, #0B1020 0%, #0A0E1A 58%, #070A14 100%);
+  }
+  body.dark .g-grid {
+    background-image:
+      linear-gradient(rgba(120,160,255,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(120,160,255,0.06) 1px, transparent 1px);
+  }
+  body.dark .gp-line     { stroke: rgba(150,185,245,0.24); }
+  body.dark .gp-label    { fill: rgba(150,185,245,0.34); }
+  body.dark .gp-strip    { fill: rgba(150,185,245,0.06); }
+  body.dark .gp-edge     { stroke: rgba(150,185,245,0.22); }
+  body.dark .gp-centre   { stroke: rgba(226,236,255,0.42); }
+  body.dark .gp-thresh   { stroke: rgba(226,236,255,0.38); }
+  body.dark .gp-desig    { fill: rgba(226,236,255,0.34); }
+  body.dark .gp-approach { fill: rgba(56,189,248,0.55); }
+  body.dark .gp-track    { stroke: rgba(150,185,245,0.22); }
+  body.dark .gp-plane    { fill: rgba(150,185,245,0.30); }
+  body.dark .g-grain     { opacity: 0.05; }
+  body.dark .section {
+    background: rgba(22,27,41,0.60);
+    border-color: rgba(255,255,255,0.10);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.35), 0 14px 38px rgba(0,0,0,0.42);
+  }
 </style>
 </head>
 <body>
+
+<!-- ══ the ground the app sits on ═══════════════════════════════════════
+     One airfield drawn at a single line weight: the pier with its gate
+     stands, a taxiway running down to 07L, and a departure lifting away.
+     It is fixed, so it stays put while the board scrolls, and it is pure
+     CSS + inline SVG — nothing to download.
+
+     z-index:-1 puts it behind everything in normal flow. The auth and
+     landing screens are fixed overlays with their own opaque --paper
+     background at z-index 15000+, so this never leaks into them. -->
+<div id="appGround" aria-hidden="true">
+  <div class="g-grid"></div>
+  <svg class="g-plan" viewBox="0 0 1440 620" preserveAspectRatio="xMidYMax slice" focusable="false">
+    <g class="gp-line" fill="none" stroke-width="1.6">
+      <!-- pier / concourse -->
+      <path d="M110 300 H700 a26 26 0 0 1 26 26 V386 a26 26 0 0 1 -26 26 H110"/>
+      <path d="M110 336 H694"/>
+      <!-- jet bridges -->
+      <g stroke-width="1.3">
+        <path d="M180 300 v-40 h46 v40"/><path d="M330 300 v-40 h46 v40"/>
+        <path d="M480 300 v-40 h46 v40"/><path d="M630 300 v-40 h46 v40"/>
+        <path d="M203 260 v-26"/><path d="M353 260 v-26"/>
+        <path d="M503 260 v-26"/><path d="M653 260 v-26"/>
+      </g>
+      <!-- stands -->
+      <circle cx="203" cy="218" r="18"/><circle cx="353" cy="218" r="18"/>
+      <circle cx="503" cy="218" r="18"/><circle cx="653" cy="218" r="18"/>
+      <!-- taxiways down to the runway -->
+      <path d="M726 386 C 800 404, 852 430, 884 472" stroke-dasharray="9 8"/>
+      <path d="M400 412 V472" stroke-dasharray="9 8"/>
+    </g>
+    <text class="gp-label" x="118" y="328">CONCOURSE A</text>
+
+    <!-- 07L: shallow, cropped to the bottom, so the centreline reads as
+         ground rather than dragging the eye across the board -->
+    <g transform="rotate(-4 720 528)">
+      <rect class="gp-strip" x="-80" y="476" width="1600" height="104"/>
+      <line class="gp-edge" x1="-80" y1="476" x2="1520" y2="476"/>
+      <line class="gp-centre" x1="-80" y1="528" x2="1520" y2="528"/>
+      <g class="gp-thresh">
+        <line x1="64" y1="486" x2="64" y2="518"/><line x1="86" y1="486" x2="86" y2="518"/>
+        <line x1="108" y1="486" x2="108" y2="518"/>
+        <line x1="64" y1="540" x2="64" y2="572"/><line x1="86" y1="540" x2="86" y2="572"/>
+        <line x1="108" y1="540" x2="108" y2="572"/>
+      </g>
+      <text class="gp-desig" x="156" y="546">07L</text>
+      <g class="gp-approach">
+        <circle cx="6" cy="528" r="5"/><circle cx="-32" cy="528" r="5"/><circle cx="-70" cy="528" r="5"/>
+      </g>
+    </g>
+
+    <!-- one departure, tying the pier and the runway together -->
+    <path class="gp-track" d="M900 468 C 1012 416, 1124 366, 1306 292"/>
+    <path class="gp-plane" transform="translate(1318,298) rotate(-30) scale(2.1)"
+      d="M0 8 L2.2 1.6 L11 1.6 L11 -0.4 L2.2 -0.4 L0 -6.8 L-1.6 -6.8 L-0.6 -0.4 L-6.4 -0.4 L-7.8 -3 L-9.2 -3 L-8.4 0.6 L-9.2 4.2 L-7.8 4.2 L-6.4 1.6 L-0.6 1.6 L-1.6 8 Z"/>
+  </svg>
+  <div class="g-grain"></div>
+</div>
 
 <div id="stickyHeader">
   <div class="header-top">
@@ -5768,6 +6065,62 @@ function breakAlertLevel(hours) {
   return null;
 }
 
+// ── who needs a break next ──────────────────────────────────────────────
+// The app already knew this — elapsedHoursSinceBreak and breakAlertLevel have
+// been here all along, driving nothing but the dot in the section header. It
+// is the question a supervisor actually opens the roster to answer, so it now
+// drives the card: its rail, its tint, the badge, and where it sorts.
+const URGENCY_RANK = { yellow: 1, orange: 2, red: 3, over: 4 };
+
+function fmtDurShort(mins) {
+  const m = Math.max(0, Math.round(mins));
+  if (m < 60) return m + 'm';
+  const h = Math.floor(m / 60), rem = m % 60;
+  return h + 'h' + (rem ? ' ' + rem + 'm' : '');
+}
+
+function breakUrgency(p, now) {
+  const none = { level: null, rank: 0, mins: null };
+  if (!p.name && !p.note) return none;                  // blank placeholder row
+  if (p.overdue) {
+    return { level: 'over', rank: URGENCY_RANK.over, mins: null,
+             text: 'SHIFT OVER — TAKE BREAKS',
+             title: 'Shift has ended with break time still owed' };
+  }
+  const hrs = elapsedHoursSinceBreak(p, now);
+  if (hrs === null) return none;                        // on break, done, snoozed
+  const mins = hrs * 60;
+  const level = breakAlertLevel(hrs);
+  const sinceWhat = lastBreakEndMs(p) ? 'since last break' : 'since shift start';
+  return {
+    level, rank: level ? URGENCY_RANK[level] : 0, mins,
+    text: fmtDurShort(mins),
+    title: fmtDurShort(mins) + ' ' + sinceWhat +
+           (level ? ' — due a break' : '') + '.'
+  };
+}
+
+// Initial discs. A column of similar-length names is slow to scan; two bold
+// letters in a fixed colour is not. Colours come from the checkpoint palette
+// (all measured at 4.5:1+ against white) rather than a free hue, so the board
+// never turns into confetti.
+const AVATAR_COLORS = ['#4338CA','#6D28D9','#0E7490','#047857','#B45309','#BE185D','#475569','#9A3412'];
+
+function initialsOf(name) {
+  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return '';
+  const first = parts[0][0];
+  const last = parts.length > 1 ? parts[parts.length - 1][0] : '';
+  return (first + last).toUpperCase();
+}
+
+function avatarColor(name) {
+  let h = 0;
+  const s = String(name || '');
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return AVATAR_COLORS[h % AVATAR_COLORS.length];
+}
+
 function autoMoveClosedSections() {
   const now = new Date();
   let changed = false;
@@ -6574,6 +6927,24 @@ function buildTimelineBar(p) {
     wrap.appendChild(marker);
   });
 
+  // Ghost slots: where the breaks still owed would have to fit if you spread
+  // them evenly across what is left of the shift. This is the "can I send him
+  // now, or does it not fit later?" question, answered without arithmetic.
+  const pending = p.breaks.filter(b => b.state === 'pending');
+  if (pending.length && elapsed !== null && elapsed < durationMin) {
+    const from = Math.max(0, elapsed);
+    const remaining = durationMin - from;
+    pending.forEach((b, i) => {
+      const at = from + remaining * ((i + 1) / (pending.length + 1));
+      const slot = document.createElement('div');
+      slot.className = 'timeline-slot';
+      slot.style.left = Math.min(99, (at / durationMin) * 100) + '%';
+      slot.style.width = Math.max(1.5, (b.len / durationMin) * 100) + '%';
+      slot.title = b.len + 'm break still to take';
+      wrap.appendChild(slot);
+    });
+  }
+
   // "now" marker
   if (elapsed !== null && elapsed >= 0 && elapsed <= durationMin) {
     const marker = document.createElement('div');
@@ -6775,11 +7146,19 @@ function render() {
     body.className = 'section-body';
     body.dataset.sectionIndex = sIdx;
 
-    section.people.forEach((p, pIdx) => {
+    // Whoever needs a break soonest goes to the top. Officers with no break
+    // due keep the order they were added in — Array#sort is stable, and drag
+    // only ever moves people BETWEEN checkpoints, so there is no hand-set
+    // order within a section for this to fight with. pIdx stays the real
+    // index into section.people so drag and drop still address the right row.
+    const rows = section.people.map((p, pIdx) => ({ p, pIdx, u: breakUrgency(p, now) }));
+    rows.sort((a, b) => b.u.rank - a.u.rank);
+
+    rows.forEach(({ p, pIdx, u }) => {
       const status = personStatus(p);
       const card = document.createElement('div');
       const matchesSearch = !searchQuery || (p.name && p.name.toLowerCase().includes(searchQuery));
-      card.className = 'card' + (status === 'on-break' ? ' on-break' : '') + (status === 'finished' ? ' finished' : '') + (p.overdue ? ' overdue' : '') + (!matchesSearch ? ' search-hidden' : '');
+      card.className = 'card' + (status === 'on-break' ? ' on-break' : '') + (status === 'finished' ? ' finished' : '') + (p.overdue ? ' overdue' : '') + (u.level ? ' due-' + u.level : '') + (!matchesSearch ? ' search-hidden' : '');
       card.dataset.sectionIndex = sIdx;
       card.dataset.personIndex = pIdx;
 
@@ -6792,6 +7171,15 @@ function render() {
       dragHandle.title = 'Drag to move';
       attachDragHandlers(dragHandle, card);
       topRow.appendChild(dragHandle);
+
+      const avatar = document.createElement('span');
+      avatar.className = 'avatar';
+      const inits = initialsOf(p.name);
+      avatar.textContent = inits;
+      if (inits) avatar.style.background = avatarColor(p.name);
+      else avatar.classList.add('empty');
+      avatar.setAttribute('aria-hidden', 'true');
+      topRow.appendChild(avatar);
 
       const nameInput = document.createElement('input');
       nameInput.className = 'name-input';
@@ -6815,9 +7203,35 @@ function render() {
       };
       topRow.appendChild(gBtn);
 
+      // "WORKING" says nothing you could not already see. While someone is
+      // working the badge shows how long since their last break instead, and
+      // takes the alert colour once it crosses 2h / 3h / 4h.
       const badge = document.createElement('span');
-      badge.className = 'status-badge' + (status === 'on-break' ? ' on-break' : '') + (status === 'finished' ? ' finished' : '') + (p.overdue ? ' overdue' : '');
-      badge.textContent = p.overdue ? 'SHIFT OVER — TAKE BREAKS' : statusLabel(p);
+      badge.className = 'status-badge'
+        + (status === 'on-break' ? ' on-break' : '')
+        + (status === 'finished' ? ' finished' : '')
+        + (p.overdue ? ' overdue' : '')
+        + (status === 'working' && u.mins !== null
+             ? ' due' + (u.level && u.level !== 'over' ? ' due-' + u.level : '')
+             : '');
+      // Kept short on purpose: this row is nowrap, and the old
+      // "SHIFT OVER — TAKE BREAKS" was long enough to push the row's own
+      // buttons out past the edge of the card. Full wording is in the tooltip.
+      if (p.overdue) {
+        badge.textContent = 'OVERDUE';
+        badge.title = 'Shift has ended with break time still owed';
+      } else if (status === 'working' && u.mins !== null) {
+        badge.textContent = u.text;
+        badge.title = u.title;
+      } else if (status === 'on-break') {
+        badge.textContent = 'ON BREAK';
+        badge.title = statusLabel(p);
+      } else if (status === 'finished') {
+        badge.textContent = 'DONE';
+        badge.title = 'All breaks taken';
+      } else {
+        badge.textContent = statusLabel(p);
+      }
       topRow.appendChild(badge);
 
 
@@ -6829,7 +7243,7 @@ function render() {
       moveSelect.className = 'move-to-select';
       moveSelect.title = 'Move to another section';
       const defaultOpt = document.createElement('option');
-      defaultOpt.textContent = 'Move to…';
+      defaultOpt.textContent = 'Move';
       defaultOpt.value = '';
       moveSelect.appendChild(defaultOpt);
       data.forEach((otherSection, otherIdx) => {
