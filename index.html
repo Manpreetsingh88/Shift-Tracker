@@ -462,9 +462,12 @@
     font-weight: 600;
   }
   .timing-row input[type=time]:hover { background: var(--surface-2); }
-  /* The native picker glyph repeats what the field already says and costs
-     ~20px each — the field is still clickable without it. */
-  .timing-row input[type=time]::-webkit-calendar-picker-indicator { display: none; }
+  /* The native picker button opens the scroll wheel — keep it. It sits inside
+     the field and tints to the accent so it reads as tappable. */
+  .timing-row input[type=time]::-webkit-calendar-picker-indicator {
+    opacity: 0.5; cursor: pointer; padding: 0; margin-left: 2px;
+  }
+  .timing-row input[type=time]:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   .timing-row { flex-wrap: nowrap; }
   .timing-row .taken { white-space: nowrap; }
   .timing-row input[type=time]:focus { background: var(--surface-1); border-color: var(--accent); }
@@ -2621,7 +2624,10 @@
   }
   .off-times input[type=time]:hover { background: var(--surface-2); }
   .off-times input[type=time]:focus { background: var(--surface-1); border-color: var(--accent); }
-  .off-times input[type=time]::-webkit-calendar-picker-indicator { display: none; }
+  .off-times input[type=time]::-webkit-calendar-picker-indicator {
+    opacity: 0.5; cursor: pointer; padding: 0; margin-left: 2px;
+  }
+  .off-times input[type=time]:hover::-webkit-calendar-picker-indicator { opacity: 1; }
   .off-arrow { color: var(--ink-3); font-size: var(--t-xs); }
   .off-meta {
     display: flex; align-items: center; gap: var(--s2);
@@ -2641,6 +2647,21 @@
     .off-times { grid-column: 1; }
     .off-meta  { grid-column: 2; justify-content: flex-end; }
     .off-del   { grid-column: 2; grid-row: 1; justify-self: end; }
+  }
+
+  /* ── sparklines: the compliance chart's language, everywhere ────── */
+  .spark { display: block; width: 100%; height: 100%; overflow: visible; }
+  .dash-stat-tile { position: relative; overflow: hidden; }
+  .dash-stat-spark {
+    height: 26px; margin: 6px -4px -6px;
+    opacity: 0.9; pointer-events: none;
+  }
+  .dash-stat-value { font-variant-numeric: tabular-nums; }
+  .dash-staffing-spark { flex: 1; height: 26px; min-width: 60px; }
+  .dash-staffing-row { align-items: center; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .spark { transition: none; }
   }
 </style>
 </head>
@@ -4202,6 +4223,19 @@ if (firebaseAvailable) {
   officersRef = firebase.database().ref('officers');
 }
 
+// Ids this device has previously seen on the server. It is what separates
+// "never uploaded, keep it" from "deleted by someone else, let it go" — without
+// it, every device that still holds a deleted officer resurrects them.
+const OFFICER_SEEN_KEY = 'shift_break_tracker_officer_seen_v1';
+function loadSeenOfficerIds() {
+  try { const r = localStorage.getItem(OFFICER_SEEN_KEY); if (r) return new Set(ensureArray(JSON.parse(r))); }
+  catch (e) {}
+  return new Set();
+}
+function saveSeenOfficerIds(set) {
+  try { localStorage.setItem(OFFICER_SEEN_KEY, JSON.stringify([...set])); } catch (e) {}
+}
+
 function newOfficerId() {
   return 'o_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
 }
@@ -4244,7 +4278,14 @@ function pushOfficerToFirebaseDebounced(officer) {
   }, 400);
 }
 
+function forgetOfficerId(id) {
+  const seen = loadSeenOfficerIds();
+  seen.delete(id);
+  saveSeenOfficerIds(seen);
+}
+
 function deleteOfficerFromFirebase(id) {
+  forgetOfficerId(id);   // drop the bookkeeping too, or a re-add reads as a deletion
   if (!firebaseAvailable || !authReady || !officersRef) return;
   clearTimeout(officerPushTimeouts[id]);
   officersRef.child(id).remove().catch(err => console.error('Officer delete-sync failed', err));
@@ -4282,14 +4323,20 @@ function startOfficersFirebaseListener() {
         byId.set(o.id, o);
       });
 
+      const seen = loadSeenOfficerIds();
       const localOnly = [];
       loadOfficers().forEach(o => {
         if (!o || !o.id) return;
-        if (!byId.has(o.id)) { byId.set(o.id, o); localOnly.push(o); }
+        if (byId.has(o.id)) return;               // server has it; server's copy wins
+        if (seen.has(o.id)) return;               // server HAD it and no longer does -> deleted elsewhere
+        byId.set(o.id, o);                        // server never saw it -> genuinely ours, keep it
+        localOnly.push(o);
       });
 
       const officers = [...byId.values()];
       localStorage.setItem(OFFICERS_KEY, JSON.stringify(officers));
+      // everything now on the server, plus what we are about to upload
+      saveSeenOfficerIds(new Set(officers.map(o => o.id)));
       renderOfficersPanelIfOpen();
 
       // push anything the server was missing, plus any legacy remote record
@@ -4784,6 +4831,14 @@ function updateBreaksFromTimes(p) {
   p.shiftHours = planHours;
   p.computedHours = hours;
   p.breaks = BREAK_PLANS[planHours].map(len => ({ len, state: 'pending', startedAt: null, startedAtMs: null, doneAt: null, coveredBy: '' }));
+}
+
+// Tapping the field itself should open the scroll picker, not just the little
+// clock glyph. showPicker() is a no-op on browsers that don't support it, and
+// throws if the click wasn't user-initiated — hence the guard.
+function openTimePicker(el) {
+  if (!el || typeof el.showPicker !== 'function') return;
+  try { el.showPicker(); } catch (e) { /* not user-activated; the glyph still works */ }
 }
 
 // True when the window is legal to roster. Callers that build a person from
@@ -5305,17 +5360,43 @@ function buildOpsOverview() {
   const grid = document.createElement('div');
   grid.className = 'dash-stat-grid';
   const tiles = [
-    { label: 'On Shift', value: stats.total, tone: '' },
+    { label: 'On Shift', value: stats.total, tone: '', spark: x => x.tracked || 0 },
     { label: 'On Break', value: stats.onBreak, tone: 'amber' },
     { label: 'Break Overdue', value: stats.redCount, tone: 'red' },
     { label: 'Shift Overdue', value: stats.overdueCount, tone: 'red' },
-    { label: 'Compliance', value: stats.compliancePct + '%', tone: stats.compliancePct >= 90 ? 'green' : stats.compliancePct >= 70 ? 'amber' : 'red' },
+    { label: 'Compliance', value: stats.compliancePct + '%', tone: stats.compliancePct >= 90 ? 'green' : stats.compliancePct >= 70 ? 'amber' : 'red', spark: x => x.pct },
   ];
+  const series = headcountSeries(12);
+  const toneColor = { amber: 'var(--warn)', red: 'var(--crit)', green: 'var(--ok)' };
+
   tiles.forEach(t => {
     const tile = document.createElement('div');
     tile.className = 'dash-stat-tile' + (t.tone ? ' tone-' + t.tone : '');
-    tile.innerHTML = '<div class="dash-stat-value">' + t.value + '</div><div class="dash-stat-label">' + t.label + '</div>';
+    const val = document.createElement('div');
+    val.className = 'dash-stat-value';
+    tile.appendChild(val);
+    const lbl = document.createElement('div');
+    lbl.className = 'dash-stat-label';
+    lbl.textContent = t.label;
+    tile.appendChild(lbl);
+
+    // the two tiles with real history get a trend line under the number
+    if (t.spark && series.length > 1) {
+      const spark = document.createElement('div');
+      spark.className = 'dash-stat-spark';
+      spark.innerHTML = sparkline(series.map(t.spark), { w: 110, h: 26, color: toneColor[t.tone] || 'var(--accent)' });
+      tile.appendChild(spark);
+    }
+
     grid.appendChild(tile);
+    if (typeof t.value === 'number') countUp(val, t.value);
+    else { // "92%" — count the number, keep the suffix
+      const n = parseFloat(t.value);
+      if (!isNaN(n)) { const suffix = String(t.value).replace(/^[\d.]+/, '');
+        const tmp = document.createElement('span'); tile.insertBefore(tmp, lbl);
+        countUp({ set textContent(v) { val.textContent = v + suffix; } }, n); tmp.remove(); }
+      else val.textContent = t.value;
+    }
   });
   wrap.appendChild(grid);
   return wrap;
@@ -5330,15 +5411,21 @@ function buildStaffingBySection() {
     count: s.people.filter(p => p.name || p.note).length
   })).filter(s => s.title.trim().toUpperCase() !== 'ROSTER');
   const max = Math.max(1, ...counts.map(c => c.count));
+  const series = headcountSeries(12);
   const list = document.createElement('div');
   list.className = 'dash-staffing-list';
   counts.forEach(c => {
     const row = document.createElement('div');
     row.className = 'dash-staffing-row';
     const pct = Math.round((c.count / max) * 100);
+    // that checkpoint's own headcount history, from the same samples
+    const trend = series.map(x => (x.sections && x.sections[c.title]) || 0);
+    const moved = trend.length > 1 && Math.max(...trend) !== Math.min(...trend);
     row.innerHTML =
       '<div class="dash-staffing-label">' + c.title + '</div>' +
-      '<div class="dash-staffing-bar-track"><div class="dash-staffing-bar-fill" style="width:' + pct + '%"></div></div>' +
+      (moved
+        ? '<div class="dash-staffing-spark">' + sparkline(trend, { w: 130, h: 26 }) + '</div>'
+        : '<div class="dash-staffing-bar-track"><div class="dash-staffing-bar-fill" style="width:' + pct + '%"></div></div>') +
       '<div class="dash-staffing-count">' + c.count + '</div>';
     list.appendChild(row);
   });
@@ -5440,6 +5527,57 @@ function monotonePath(pts) {
          ' ' + pts[i + 1].x + ',' + pts[i + 1].y;
   }
   return d;
+}
+
+
+// A small area chart in the compliance chart's language: monotone curve, soft
+// gradient fill, emphasised endpoint. Used wherever a number has a history.
+function sparkline(values, opts) {
+  const o = Object.assign({ w: 120, h: 30, color: 'var(--accent)', fill: true, dot: true }, opts || {});
+  if (!values || values.length < 2) return '';
+  const lo = Math.min(...values), hi = Math.max(...values);
+  const span = (hi - lo) || 1;
+  const pad = 3;
+  const pts = values.map((v, i) => ({
+    x: +((i / (values.length - 1)) * (o.w - pad * 2) + pad).toFixed(2),
+    y: +((1 - (v - lo) / span) * (o.h - pad * 2) + pad).toFixed(2),
+  }));
+  const line = monotonePath(pts);
+  const id = 'sp' + Math.random().toString(36).slice(2, 8);
+  const last = pts[pts.length - 1];
+  return '<svg class="spark" viewBox="0 0 ' + o.w + ' ' + o.h + '" preserveAspectRatio="none" aria-hidden="true">' +
+    (o.fill
+      ? '<defs><linearGradient id="' + id + '" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0%" stop-color="' + o.color + '" stop-opacity="0.30"/>' +
+        '<stop offset="100%" stop-color="' + o.color + '" stop-opacity="0"/></linearGradient></defs>' +
+        '<path d="' + line + 'L' + last.x + ',' + o.h + 'L' + pts[0].x + ',' + o.h + 'Z" fill="url(#' + id + ')"/>'
+      : '') +
+    '<path d="' + line + '" fill="none" stroke="' + o.color + '" stroke-width="1.8" ' +
+      'stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>' +
+    (o.dot ? '<circle cx="' + last.x + '" cy="' + last.y + '" r="2.4" fill="' + o.color + '"/>' : '') +
+    '</svg>';
+}
+
+// Headcount series over the window, from the samples already being captured.
+function headcountSeries(hours) {
+  const cutoff = Date.now() - (hours || 12) * 3600000;
+  return loadComplianceSamples().filter(x => x && x.ts >= cutoff).sort((a, b) => a.ts - b.ts);
+}
+
+// Count a number up when a tile first appears. Cheap, and it makes the
+// dashboard feel alive instead of static.
+function countUp(el, to, ms) {
+  if (typeof to !== 'number' || to <= 0) { el.textContent = String(to); return; }
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    el.textContent = String(to); return;
+  }
+  const dur = ms || 650, t0 = performance.now();
+  (function tick(now) {
+    const k = Math.min(1, (now - t0) / dur);
+    const eased = 1 - Math.pow(1 - k, 3);
+    el.textContent = String(Math.round(to * eased));
+    if (k < 1) requestAnimationFrame(tick);
+  })(t0);
 }
 
 const COMPLIANCE_TARGET = 90;
@@ -5917,6 +6055,7 @@ function render() {
 
       const startInput = document.createElement('input');
       startInput.type = 'time';
+      startInput.onclick = () => openTimePicker(startInput);
       startInput.value = p.startTime;
       startInput.title = 'Start time';
       startInput.style.border = 'none';
@@ -5932,6 +6071,7 @@ function render() {
 
       const endInput = document.createElement('input');
       endInput.type = 'time';
+      endInput.onclick = () => openTimePicker(endInput);
       endInput.value = p.endTime;
       endInput.title = 'End time';
       endInput.style.border = 'none';
@@ -6270,7 +6410,7 @@ function pruneSamples(samples) {
 function mergeSample(samples, sample) {
   const id = bucketId(sample.ts);
   const out = samples.filter(x => bucketId(x.ts) !== id);
-  out.push({ ts: id, pct: sample.pct, tracked: sample.tracked || 0 });
+  out.push({ ts: id, pct: sample.pct, tracked: sample.tracked || 0, sections: sample.sections || {} });
   return pruneSamples(out);
 }
 
@@ -6281,7 +6421,13 @@ function captureComplianceSample() {
   if (!stats.total) return;
 
   const id = bucketId(Date.now());
-  const sample = { ts: id, pct: stats.compliancePct, tracked: stats.total };
+  // per-checkpoint headcount too, so every section can carry its own trend
+  const sections = {};
+  data.forEach(sec => {
+    const n = sec.people.filter(pp => pp.name && pp.name.trim()).length;
+    if (n) sections[sec.title] = n;
+  });
+  const sample = { ts: id, pct: stats.compliancePct, tracked: stats.total, sections };
 
   const merged = mergeSample(loadComplianceSamples(), sample);
   saveComplianceSamples(merged);
@@ -6461,6 +6607,7 @@ function renderOfficerRows(list, officers) {
     const mkTime = (field, other, order) => {
       const el = document.createElement('input');
       el.type = 'time';
+      el.onclick = () => openTimePicker(el);
       el.value = o[field];
       // onchange, not oninput: a half-typed time is briefly nonsense and would
       // trip the 16h check before the user has finished entering it.
