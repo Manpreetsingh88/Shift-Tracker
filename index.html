@@ -5651,18 +5651,41 @@ function startOfficersFirebaseListener() {
 
       const seen = loadSeenOfficerIds();
       const localOnly = [];
-      loadOfficers().forEach(o => {
-        if (!o || !o.id) return;
+      const localList = loadOfficers().filter(o => o && o.id);
+
+      // Officers we hold that the server no longer lists. Normally that means
+      // someone deleted them elsewhere and we should let them go — otherwise
+      // every device resurrects them. But an incomplete or truncated read looks
+      // EXACTLY the same as a mass delete, and this prune is one-way: the
+      // survivors overwrite localStorage and `seen` is rewritten to match, so a
+      // single bad read permanently shrinks the directory with no way back.
+      // Nobody deletes half a directory by hand in one go, so treat that shape
+      // as a bad read and keep everyone until a clean read says otherwise.
+      const vanished = localList.filter(o => !byId.has(o.id) && seen.has(o.id));
+      const massDisappearance = vanished.length > 5 &&
+                                vanished.length >= localList.length * 0.25;
+      if (massDisappearance) {
+        console.warn('Officer directory: ignoring apparent mass deletion of ' +
+          vanished.length + ' of ' + localList.length +
+          ' — treating this as an incomplete read, not a delete.');
+        showToast(vanished.length + ' officers missing from that sync — keeping them for now.', 'error');
+      }
+
+      localList.forEach(o => {
         if (byId.has(o.id)) return;               // server has it; server's copy wins
-        if (seen.has(o.id)) return;               // server HAD it and no longer does -> deleted elsewhere
+        if (seen.has(o.id) && !massDisappearance) return;  // genuinely deleted elsewhere
         byId.set(o.id, o);                        // server never saw it -> genuinely ours, keep it
-        localOnly.push(o);
+        // Only offer up records the server has genuinely never had. Re-pushing
+        // the ones we are merely holding through a bad read would resurrect
+        // them for everyone if it turns out they really were deleted.
+        if (!seen.has(o.id)) localOnly.push(o);
       });
 
       const officers = [...byId.values()];
       localStorage.setItem(OFFICERS_KEY, JSON.stringify(officers));
-      // everything now on the server, plus what we are about to upload
-      saveSeenOfficerIds(new Set(officers.map(o => o.id)));
+      // Don't ratchet `seen` on a read we don't trust — leaving it alone is what
+      // lets the next clean read still honour a real deletion.
+      if (!massDisappearance) saveSeenOfficerIds(new Set(officers.map(o => o.id)));
       renderOfficersPanelIfOpen();
       maybeSnapshotOfficers();   // only ever after a successful read
 
