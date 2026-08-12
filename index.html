@@ -27,6 +27,27 @@
     background: var(--paper);
   }
   #authCheckSplash.hidden { display: none; }
+
+  /* Deliberately persistent, unlike a toast. "Your changes are not syncing" is
+     a data-safety message: if it disappears after three seconds, someone ends
+     up trusting a board that is only saved on one device. It stays until the
+     connection comes back or the page is reloaded. */
+  #offlineBar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 29000;
+    display: flex; align-items: center; justify-content: center;
+    gap: calc(10px * var(--ui)); flex-wrap: wrap; text-align: center;
+    padding: calc(9px * var(--ui)) 14px calc(9px * var(--ui) + env(safe-area-inset-bottom));
+    background: #7C2D12; color: #FFEDD5;
+    font-size: calc(12px * var(--ui)); font-weight: 650;
+    box-shadow: 0 -6px 20px rgba(0,0,0,0.25);
+  }
+  #offlineBar.hidden { display: none; }
+  #offlineBar button {
+    background: rgba(255,255,255,0.18); color: #fff; border: none;
+    border-radius: 999px; padding: 4px 13px; cursor: pointer;
+    font-size: calc(11px * var(--ui)); font-weight: 750;
+  }
+  #offlineBar button:hover { background: rgba(255,255,255,0.28); }
   #authCheckSplash .splash-content {
     position: relative;
     z-index: 1;
@@ -4834,6 +4855,8 @@ const firebaseConfig = {
 let dataRef = null;
 let firebaseAvailable = false;
 let authReady = false;
+let authSettled = false;      // has onAuthStateChanged ever fired?
+let authFallbackTimer = null; // cancelled the moment it does
 let justCompletedInteractiveAuth = false;
 let currentUserEmail = '';
 const ADMIN_EMAIL = 'manpreetsingh88.msk@gmail.com';
@@ -5182,9 +5205,22 @@ document.addEventListener('visibilitychange', () => {
 });
 
 if (firebaseAvailable) {
-  setTimeout(() => {
+  // Behind a locked-down network (an airport office, say) the SDK still loads
+  // from the CDN, so firebaseAvailable is true and the local-only branch at the
+  // bottom is skipped — but the auth backend is unreachable and
+  // onAuthStateChanged never fires. The old safety net hid the splash and
+  // stopped there, which left a BLANK PAGE: #loginScreen starts hidden and only
+  // showLoginScreen() reveals it, so there was nothing underneath to see.
+  // Hiding the splash is not enough; we have to land somewhere usable.
+  authFallbackTimer = setTimeout(() => {
+    if (authSettled) return;              // auth answered in time — nothing to do
     document.getElementById('authCheckSplash').classList.add('hidden'); stopSplashMessages();
-  }, 8000); // safety net — never leave the splash stuck if auth check hangs
+    // Same call, and the same reasoning, as the no-Firebase branch below:
+    // don't lock someone out of their own board because the server is
+    // unreachable. Local data still works; it just will not sync.
+    hideLoginScreen();
+    showOfflineBar();
+  }, 8000);
 
   const pwField = document.getElementById('loginPassword');
   pwField.addEventListener('keydown', (e) => {
@@ -5198,6 +5234,11 @@ if (firebaseAvailable) {
   });
 
   firebase.auth().onAuthStateChanged((user) => {
+    // auth answered: cancel the fallback so a slow-but-alive network doesn't
+    // get told it is offline a moment after it has already signed in
+    authSettled = true;
+    clearTimeout(authFallbackTimer);
+    hideOfflineBar();   // connection came back after we had already given up
     document.getElementById('authCheckSplash').classList.add('hidden'); stopSplashMessages();
     if (user) {
       authReady = true;
@@ -8724,6 +8765,27 @@ function showToast(message, type) {
   }, 2600);
 }
 
+// Shown when we give up waiting for auth. Built here rather than in the markup
+// so the normal, connected case never carries it.
+function showOfflineBar() {
+  let bar = document.getElementById('offlineBar');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'offlineBar';
+    bar.setAttribute('role', 'status');
+    bar.innerHTML = '<span>Offline — can\'t reach the server. Changes are saved on this device only.</span>'
+      + '<button type="button" id="offlineRetryBtn">Retry</button>';
+    document.body.appendChild(bar);
+    bar.querySelector('#offlineRetryBtn').addEventListener('click', () => location.reload());
+  }
+  bar.classList.remove('hidden');
+}
+
+function hideOfflineBar() {
+  const bar = document.getElementById('offlineBar');
+  if (bar) bar.classList.add('hidden');
+}
+
 function initStaticIcons() {
   document.getElementById('pwToggleBtn').innerHTML = icon('eye');
   document.getElementById('lockPwToggleBtn').innerHTML = icon('eye');
@@ -8872,12 +8934,27 @@ function startLandingSweep() {
 }
 
 function showLandingScreen() {
-  document.getElementById('landingScreen').classList.remove('hidden');
-  startLandingSweep();
-  document.getElementById('landingScroll').scrollTop = 0;
-  renderLandingScreen();
-  setupLandingScrollReveal();
-  setupLandingParallax();
+  const screen = document.getElementById('landingScreen');
+  // The screen has to be un-hidden first: renderLandingScreen() measures the
+  // radar to place its blips, and a display:none element measures as zero.
+  // But that ordering is exactly what made a render failure so ugly — the
+  // landing was already on screen, the sky class had not been applied yet, and
+  // setupLandingScrollReveal() (which lifts every section off opacity: 0) was
+  // never reached. The result was a blank page showing nothing but the default
+  // background. If the landing cannot render, skip it: the roster is the actual
+  // app, and stranding someone on an empty screen is the worst possible outcome.
+  screen.classList.remove('hidden');
+  try {
+    startLandingSweep();
+    document.getElementById('landingScroll').scrollTop = 0;
+    renderLandingScreen();
+    setupLandingScrollReveal();
+    setupLandingParallax();
+  } catch (e) {
+    console.error('Landing failed to render — going straight to the roster', e);
+    screen.classList.add('hidden');
+    showToast('Couldn\'t load the welcome screen — went straight to your roster.', 'error');
+  }
 }
 
 let landingParallaxSetup = false;
