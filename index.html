@@ -2278,7 +2278,7 @@
     font-weight: 750;
     letter-spacing: 1.2px;
     text-transform: uppercase;
-    color: #a855f7;
+    color: var(--eyebrow, #6D28D9);
     margin-bottom: 6px;
   }
   .landing-section-subtitle {
@@ -2296,8 +2296,13 @@
   }
   .landing-actions-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    /* four tiles, so auto-fit can leave a 3+1 orphan at in-between widths.
+       Pin it: 2x2 on a phone, one row once there is room for four. */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
+  }
+  @media (min-width: 620px) {
+    .landing-actions-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   }
   .landing-action-tile {
     display: flex;
@@ -3460,15 +3465,12 @@
     display: flex; align-items: center; gap: var(--s3);
     padding: calc(10px * var(--ui)) calc(12px * var(--ui));
     border-radius: var(--r-lg); text-align: left;
-    background: rgba(255,255,255,0.78);
-    border: 1px solid rgba(255,255,255,0.92);
+    /* tokens, not literals — the sky owns these now, so the card can never
+       end up dark under a noon sky or white under a night one */
+    background: var(--surface-1);
+    border: 1px solid var(--rule-1);
     -webkit-backdrop-filter: blur(18px) saturate(1.5); backdrop-filter: blur(18px) saturate(1.5);
-    box-shadow: 0 1px 2px rgba(10,14,26,0.09), 0 10px 28px rgba(10,14,26,0.12);
-  }
-  body.dark .lh-att {
-    background: rgba(22,27,41,0.66);
-    border-color: rgba(255,255,255,0.12);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.35), 0 12px 32px rgba(0,0,0,0.40);
+    box-shadow: var(--elev-2);
   }
   .lh-att .av {
     width: calc(30px * var(--ui)); height: calc(30px * var(--ui)); border-radius: 50%;
@@ -3498,14 +3500,10 @@
   .lh-board {
     border-radius: var(--r-lg); overflow: hidden; width: 100%;
     max-width: calc(720px * var(--ui)); margin: 0 auto;
-    background: rgba(255,255,255,0.78);
-    border: 1px solid rgba(255,255,255,0.92);
+    background: var(--surface-1);
+    border: 1px solid var(--rule-1);
     -webkit-backdrop-filter: blur(20px) saturate(1.5); backdrop-filter: blur(20px) saturate(1.5);
-    box-shadow: 0 1px 2px rgba(10,14,26,0.09), 0 12px 34px rgba(10,14,26,0.13);
-  }
-  body.dark .lh-board {
-    background: rgba(22,27,41,0.62); border-color: rgba(255,255,255,0.11);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.35), 0 14px 38px rgba(0,0,0,0.42);
+    box-shadow: var(--elev-2);
   }
   .lh-row {
     display: grid; grid-template-columns: 1.45fr 0.5fr 1.15fr 0.95fr;
@@ -3581,23 +3579,52 @@
       radial-gradient(50% 40% at 90% 90%, rgba(14,116,144,0.40), transparent 60%),
       linear-gradient(165deg, #0B1020 0%, #0A0E1A 58%, #070A14 100%);
   }
-  /* night flips the ink so the briefing stays readable on the dark ground */
+  /* ── the landing carries its own ink ──────────────────────────────
+     The sky here comes from the hour, not from the app's light/dark
+     setting, so the two can disagree — and a half-flip is worse than no
+     flip. Flipping the ink alone left white cards holding pale text at
+     night; leaving it alone put dark-mode's pale ink on a noon sky. So
+     the landing declares a COMPLETE set per sky: surface, ink, rule and
+     accent move together, and anything that reads a token stays legible
+     whichever way the app itself is set. */
+  #landingScreen,
+  #landingScreen.sky-dawn,
+  #landingScreen.sky-day,
+  #landingScreen.sky-dusk {
+    --surface-1: rgba(255,255,255,0.80); --surface-2: rgba(15,20,35,0.06);
+    --surface-3: rgba(15,20,35,0.11);
+    --ink-1: #14161C; --ink-2: #454A57; --ink-3: #5A6070;
+    --rule-1: rgba(255,255,255,0.92); --rule-2: rgba(15,20,35,0.10);
+    --accent: #4F46E5; --eyebrow: #6D28D9;
+    --elev-1: 0 1px 2px rgba(10,14,26,0.09);
+    --elev-2: 0 1px 2px rgba(10,14,26,0.09), 0 12px 32px rgba(10,14,26,0.13);
+  }
   #landingScreen.sky-night {
-    --ink-1: #E9EAF0; --ink-2: #A9AEBE; --ink-3: #848A9C; --rule-2: #23272F;
+    --surface-1: rgba(22,27,41,0.72); --surface-2: rgba(255,255,255,0.08);
+    --surface-3: rgba(255,255,255,0.13);
+    --ink-1: #E9EAF0; --ink-2: #B4BAC9; --ink-3: #99A0B4;
+    --rule-1: rgba(255,255,255,0.14); --rule-2: rgba(255,255,255,0.10);
+    --accent: #A5B4FC; --eyebrow: #C4B5FD;
+    --elev-1: 0 1px 2px rgba(0,0,0,0.35);
+    --elev-2: 0 1px 2px rgba(0,0,0,0.35), 0 12px 32px rgba(0,0,0,0.40);
   }
-  #landingScreen.sky-night .lh-att,
-  #landingScreen.sky-night .lh-board {
-    background: rgba(22,27,41,0.66); border-color: rgba(255,255,255,0.12);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.35), 0 12px 32px rgba(0,0,0,0.40);
-  }
-  #landingScreen.sky-night .landing-quick-stat-chip {
-    background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.14); color: #D6DCEC;
-  }
+  /* Text that sets no colour of its own inherits it from <body>, and body
+     resolved --ink-1 against the BODY's token — the app theme — not the
+     sky's. Re-anchor the whole subtree here so inherited text follows the
+     sky like everything else. var() resolves against this element, which
+     is the one carrying the sky class, so this picks up the right value. */
+  #landingScreen { color: var(--ink-1); }
+  /* .lh-att, .lh-board and .landing-quick-stat-chip need no night variant:
+     they read --surface-1/--rule-1/--ink-1, which the sky already set. */
 
   /* ── gate ticker ───────────────────────────────────────────────── */
+  /* #landingScreen is fixed/inset:0, so it escapes the body's safe-area
+     padding — without this the strip runs under the notch and the phone
+     draws its clock and battery straight through the departures board. */
   .landing-ticker {
     position: absolute; top: 0; left: 0; right: 0; z-index: 3;
-    overflow: hidden; background: #0A0D14; padding: calc(7px * var(--ui)) 0;
+    overflow: hidden; background: #0A0D14;
+    padding: calc(7px * var(--ui) + env(safe-area-inset-top)) 0 calc(7px * var(--ui));
     border-bottom: 1px solid rgba(251,191,36,0.20);
   }
   .landing-ticker::after {
@@ -3615,8 +3642,8 @@
   @keyframes ledRun { from { transform: translateX(0); } to { transform: translateX(-50%); } }
   .landing-ticker-run .bad { color: #F87171; }
   .landing-ticker-run .ok  { color: #4ADE80; }
-  /* the hero has to clear the strip */
-  .landing-hero { padding-top: calc(46px * var(--ui)); }
+  /* the hero has to clear the strip, notch included */
+  .landing-hero { padding-top: calc(46px * var(--ui) + env(safe-area-inset-top)); }
 
   /* ── split-flap countdown ──────────────────────────────────────────
      Only the digit that actually changed turns. Six tiles flapping every
