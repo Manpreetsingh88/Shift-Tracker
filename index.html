@@ -3556,6 +3556,162 @@
     .lh-brief .landing-scroll-hint { justify-content: center; align-items: center; }
     .lh-scope { width: calc(216px * var(--ui)); height: calc(216px * var(--ui)); }
   }
+  /* ══ landing motion ══════════════════════════════════════════════════
+     Everything here is decorative and everything here has an off switch:
+     the whole block is disabled under prefers-reduced-motion at the end. */
+
+  /* ── the ground follows the clock ──────────────────────────────────
+     The team works round the clock, so the 04:00 crew and the 13:00 crew
+     do not open the same-looking app. Set from the hour in JS. */
+  #landingScreen.sky-dawn {
+    background:
+      radial-gradient(60% 46% at 16% 4%,  rgba(251,191,36,0.30), transparent 62%),
+      radial-gradient(58% 48% at 88% 90%, rgba(236,72,153,0.24), transparent 62%),
+      linear-gradient(172deg, #FDECC8 0%, #F7D9E4 46%, #DCD9F2 100%);
+  }
+  #landingScreen.sky-dusk {
+    background:
+      radial-gradient(58% 46% at 18% 6%,  rgba(124,58,237,0.30), transparent 62%),
+      radial-gradient(60% 48% at 86% 88%, rgba(249,115,22,0.26), transparent 62%),
+      linear-gradient(172deg, #E6DDF7 0%, #F6DCC8 52%, #EFE3F0 100%);
+  }
+  #landingScreen.sky-night {
+    background:
+      radial-gradient(55% 42% at 14% 4%,  rgba(79,70,229,0.40), transparent 62%),
+      radial-gradient(50% 40% at 90% 90%, rgba(14,116,144,0.40), transparent 60%),
+      linear-gradient(165deg, #0B1020 0%, #0A0E1A 58%, #070A14 100%);
+  }
+  /* night flips the ink so the briefing stays readable on the dark ground */
+  #landingScreen.sky-night {
+    --ink-1: #E9EAF0; --ink-2: #A9AEBE; --ink-3: #848A9C; --rule-2: #23272F;
+  }
+  #landingScreen.sky-night .lh-att,
+  #landingScreen.sky-night .lh-board {
+    background: rgba(22,27,41,0.66); border-color: rgba(255,255,255,0.12);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.35), 0 12px 32px rgba(0,0,0,0.40);
+  }
+  #landingScreen.sky-night .landing-quick-stat-chip {
+    background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.14); color: #D6DCEC;
+  }
+
+  /* ── gate ticker ───────────────────────────────────────────────── */
+  .landing-ticker {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 3;
+    overflow: hidden; background: #0A0D14; padding: calc(7px * var(--ui)) 0;
+    border-bottom: 1px solid rgba(251,191,36,0.20);
+  }
+  .landing-ticker::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background-image: radial-gradient(rgba(0,0,0,0.55) 1px, transparent 1px);
+    background-size: 3px 3px;
+  }
+  .landing-ticker-run {
+    display: inline-block; white-space: nowrap;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: calc(12px * var(--ui)); letter-spacing: 2.2px;
+    color: #FBBF24; text-shadow: 0 0 9px rgba(251,191,36,0.45);
+    animation: ledRun 26s linear infinite;
+  }
+  @keyframes ledRun { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .landing-ticker-run .bad { color: #F87171; }
+  .landing-ticker-run .ok  { color: #4ADE80; }
+  /* the hero has to clear the strip */
+  .landing-hero { padding-top: calc(46px * var(--ui)); }
+
+  /* ── split-flap countdown ──────────────────────────────────────────
+     Only the digit that actually changed turns. Six tiles flapping every
+     second is unbearable; one is a departures hall. */
+  .lh-cd { display: flex; align-items: center; gap: var(--s3); margin-top: var(--s3); }
+  .lh-flap { display: inline-flex; align-items: center; gap: 3px; }
+  .lh-cell {
+    position: relative; overflow: hidden;
+    width: calc(25px * var(--ui)); height: calc(35px * var(--ui));
+    border-radius: calc(5px * var(--ui));
+    background: linear-gradient(180deg, #20242E 0%, #181C25 49%, #12151C 51%, #0D1015 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 2px 5px rgba(0,0,0,0.42);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: calc(18px * var(--ui)); font-weight: 700; color: #FBBF24;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .lh-cell::after {
+    content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px;
+    background: rgba(0,0,0,0.7);
+  }
+  .lh-cell.turn { animation: flapTurn 150ms linear; }
+  @keyframes flapTurn {
+    0%   { transform: perspective(150px) rotateX(0); }
+    49%  { transform: perspective(150px) rotateX(-80deg); }
+    50%  { transform: perspective(150px) rotateX(80deg); }
+    100% { transform: perspective(150px) rotateX(0); }
+  }
+  .lh-colon {
+    color: #FBBF24; opacity: 0.75; font-size: calc(16px * var(--ui));
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .lh-cd-label {
+    font-size: calc(10px * var(--ui)); font-weight: 750; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--ink-3); line-height: 1.4;
+  }
+
+  /* ── blips light as the sweep crosses them ─────────────────────── */
+  .lh-blip { opacity: 0.22; transition: opacity 140ms linear, box-shadow 320ms ease-out; }
+  .lh-blip.lit { opacity: 1; }
+
+  /* ── snapshot rows hinge in, worst row keeps a travelling band ──── */
+  .lh-board { perspective: 900px; }
+  .lh-row { transform-origin: top center; }
+  .lh-row.flap-in { animation: rowIn 460ms cubic-bezier(0.2, 0.9, 0.25, 1) both; }
+  @keyframes rowIn { from { transform: rotateX(-88deg); opacity: 0; } to { transform: none; opacity: 1; } }
+  .lh-row { position: relative; overflow: hidden; }
+  .lh-row.hot { background: rgba(185,28,28,0.06); }
+  .lh-row.hot::after {
+    content: ''; position: absolute; top: 0; bottom: 0; width: 120px;
+    background: linear-gradient(90deg, transparent, rgba(185,28,28,0.16), transparent);
+    animation: rowTravel 2.8s ease-in-out infinite;
+  }
+  @keyframes rowTravel { 0% { left: -120px; } 100% { left: 100%; } }
+
+  /* ── approach lights running into the Enter button ─────────────── */
+  .landing-approach { display: flex; justify-content: center; gap: calc(8px * var(--ui)); margin-bottom: var(--s3); }
+  .landing-approach i {
+    width: calc(8px * var(--ui)); height: calc(8px * var(--ui)); border-radius: 50%;
+    background: rgba(56,189,248,0.20); animation: rabbit 1.5s linear infinite;
+  }
+  .landing-approach i:nth-child(2) { animation-delay: 0.12s; }
+  .landing-approach i:nth-child(3) { animation-delay: 0.24s; }
+  .landing-approach i:nth-child(4) { animation-delay: 0.36s; }
+  .landing-approach i:nth-child(5) { animation-delay: 0.48s; }
+  @keyframes rabbit {
+    0%, 72% { background: rgba(56,189,248,0.18); box-shadow: none; }
+    76%     { background: #7DD3FC; box-shadow: 0 0 10px 3px rgba(125,211,252,0.7); }
+    92%     { background: rgba(56,189,248,0.18); box-shadow: none; }
+  }
+
+  /* ── the departure ─────────────────────────────────────────────── */
+  .landing-flyer {
+    position: absolute; left: 6%; bottom: 15%; z-index: 2;
+    font-size: calc(30px * var(--ui)); color: rgba(49,64,94,0.55);
+    opacity: 0; pointer-events: none;
+  }
+  #landingScreen.sky-night .landing-flyer { color: rgba(147,166,200,0.6); }
+  .landing-flyer.departing { opacity: 1; animation: landingTakeoff 1.25s cubic-bezier(0.5,0,0.75,0.2) forwards; }
+  @keyframes landingTakeoff {
+    0%   { transform: translate(0,0) rotate(0); }
+    58%  { transform: translate(46vw, 0) rotate(0); }
+    100% { transform: translate(96vw, -30vh) rotate(-18deg); }
+  }
+
+  /* Everything above is ornament. None of it is how you learn anything, so
+     it all comes off when the device asks for less motion. */
+  @media (prefers-reduced-motion: reduce) {
+    .landing-ticker-run,
+    .landing-approach i,
+    .lh-row.hot::after,
+    .landing-flyer.departing { animation: none !important; }
+    .lh-cell.turn { animation: none !important; }
+    .lh-row.flap-in { animation: none !important; opacity: 1; transform: none; }
+    .lh-blip { opacity: 1 !important; }
+  }
 </style>
 </head>
 <body>
@@ -4056,6 +4212,14 @@
     <div class="landing-float-plane landing-float-plane-1">✈</div>
     <div class="landing-float-plane landing-float-plane-2">✈</div>
   </div>
+  <!-- The LED strip above a gate. Same information as the top ticker in the
+       app, in the typeface the whole team already reads across a room. -->
+  <div class="landing-ticker" id="landingTicker" aria-hidden="true">
+    <div class="landing-ticker-run" id="landingTickerRun"></div>
+  </div>
+  <!-- taxis and climbs away when you enter the roster, ahead of the shutter -->
+  <span class="landing-flyer" id="landingFlyer" aria-hidden="true">✈</span>
+
   <div class="landing-progress-dots" id="landingProgressDots">
     <span class="landing-dot"></span>
     <span class="landing-dot"></span>
@@ -4092,6 +4256,10 @@
           <div class="lh-headline" id="landingHeadline">Everyone is on track.</div>
           <div class="landing-quick-stats-row" id="landingQuickStats"></div>
           <div class="lh-attention" id="landingAttention"></div>
+          <div class="lh-cd" id="landingCountdown" hidden>
+            <div class="lh-flap" id="landingFlap"></div>
+            <div class="lh-cd-label" id="landingCountdownLabel"></div>
+          </div>
           <div class="landing-scroll-hint">
             <span>Scroll to see today's snapshot</span>
             <svg viewBox="0 0 24 24" class="landing-scroll-arrow"><path d="M12 4v16m0 0l-6-6m6 6l6-6"/></svg>
@@ -4144,6 +4312,9 @@
       <div class="landing-reveal">
         <div class="landing-section-title">Ready to get to work?</div>
         <div class="landing-cta-date" id="landingCtaDate"></div>
+        <div class="landing-approach" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i>
+        </div>
         <div class="landing-cta-row">
           <button class="landing-cta-btn landing-cta-primary" onclick="enterAppFrom('roster')">
             <span>Enter Roster</span>
@@ -8561,7 +8732,11 @@ function getDisplayName() {
     const user = firebaseAvailable ? firebase.auth().currentUser : null;
     if (user && user.displayName) return user.displayName;
   } catch (e) { /* firebase not available — fall through */ }
-  if (currentUserEmail) return currentUserEmail.split('@')[0];
+  if (currentUserEmail) {
+    // "manpreet@..." greeting as "Manpreet", not "manpreet"
+    const handle = currentUserEmail.split('@')[0].replace(/[._-]+/g, ' ');
+    return handle.charAt(0).toUpperCase() + handle.slice(1);
+  }
   return 'there';
 }
 
@@ -8573,8 +8748,105 @@ let mfaSuggestSkippedThisSession = false;
 let landingScreenShownThisSession = false;
 let landingObserverSetup = false;
 
+// ── landing motion ────────────────────────────────────────────────────
+// All of it is ornament. It runs only while the landing is on screen, and
+// it all stops under prefers-reduced-motion.
+function landingReducedMotion() {
+  return window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function escapeTicker(t) {
+  return String(t).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+}
+
+// The countdown to the next officer being owed a break. Only the digit that
+// actually changed flips — six tiles turning every second is unbearable.
+let landingCdCells = [];
+let landingCdSecs = null;
+let landingCdTimer = null;
+let landingCdUp = false;   // counting up (already owed) rather than down
+
+function buildLandingFlap() {
+  const wrap = document.getElementById('landingFlap');
+  if (!wrap || landingCdCells.length) return;
+  '000000'.split('').forEach((_, i) => {
+    if (i === 2 || i === 4) {
+      const c = document.createElement('span');
+      c.className = 'lh-colon'; c.textContent = ':';
+      wrap.appendChild(c);
+    }
+    const cell = document.createElement('div');
+    cell.className = 'lh-cell'; cell.textContent = '0';
+    wrap.appendChild(cell);
+    landingCdCells.push(cell);
+  });
+}
+
+function paintLandingFlap() {
+  if (landingCdSecs === null) return;
+  const t = Math.max(0, landingCdSecs);
+  const str = String(Math.floor(t / 3600)).padStart(2, '0')
+            + String(Math.floor(t / 60) % 60).padStart(2, '0')
+            + String(t % 60).padStart(2, '0');
+  const reduced = landingReducedMotion();
+  str.split('').forEach((ch, i) => {
+    const cell = landingCdCells[i];
+    if (!cell || cell.textContent === ch) return;
+    cell.textContent = ch;
+    if (reduced) return;
+    cell.classList.remove('turn');
+    void cell.offsetWidth;
+    cell.classList.add('turn');
+  });
+}
+
+function setLandingCountdown(entry) {
+  const box = document.getElementById('landingCountdown');
+  const label = document.getElementById('landingCountdownLabel');
+  if (!box) return;
+  if (!entry) { box.hidden = true; landingCdSecs = null; return; }
+  box.hidden = false;
+  buildLandingFlap();
+  landingCdSecs = entry.secs;
+  landingCdUp = !!entry.up;
+  const who = (entry.p.name || 'an officer').split(/\s+/)[0];
+  label.innerHTML = landingCdUp
+    ? escapeTicker(who) + ' has waited<br>this long already'
+    : 'until ' + escapeTicker(who) + ' is<br>owed a break';
+  paintLandingFlap();
+  if (landingCdTimer) clearInterval(landingCdTimer);
+  landingCdTimer = setInterval(() => {
+    if (document.getElementById('landingScreen').classList.contains('hidden')) return;
+    if (landingCdSecs === null) return;
+    landingCdSecs = landingCdUp ? landingCdSecs + 1 : Math.max(0, landingCdSecs - 1);
+    paintLandingFlap();
+  }, 1000);
+}
+
+// Blips are dim until the sweep crosses them. The loop only runs while the
+// landing is visible — it stops itself the moment the app takes over.
+let landingSweepRunning = false;
+function startLandingSweep() {
+  if (landingSweepRunning || landingReducedMotion()) return;
+  landingSweepRunning = true;
+  const t0 = performance.now();
+  (function frame(now) {
+    const screen = document.getElementById('landingScreen');
+    if (!screen || screen.classList.contains('hidden')) { landingSweepRunning = false; return; }
+    const beam = (((now - t0) / 4500) * 360) % 360;   // matches the sweep's 4.5s
+    document.querySelectorAll('.lh-blip').forEach(b => {
+      const ang = Number(b.dataset.ang || 0);
+      const lit = ((beam - ang + 360) % 360) < 44;
+      b.classList.toggle('lit', lit);
+      b.style.boxShadow = lit ? '0 0 0 9px ' + (b.dataset.glow || 'transparent') : 'none';
+    });
+    requestAnimationFrame(frame);
+  })(t0);
+}
+
 function showLandingScreen() {
   document.getElementById('landingScreen').classList.remove('hidden');
+  startLandingSweep();
   document.getElementById('landingScroll').scrollTop = 0;
   renderLandingScreen();
   setupLandingScrollReveal();
@@ -8604,8 +8876,26 @@ function setupLandingParallax() {
 
 function enterAppFrom(view) {
   const shutter = document.getElementById('shutterTransition');
+
+  // Taxi out first, then close the shutter behind it. The shutter already
+  // existed; this gives it something to close behind.
+  const flyer = document.getElementById('landingFlyer');
+  const reduced = landingReducedMotion();
+  let hold = 0;
+  if (flyer && !reduced && !document.getElementById('landingScreen').classList.contains('hidden')) {
+    flyer.classList.remove('departing');
+    void flyer.offsetWidth;
+    flyer.classList.add('departing');
+    hold = 900;
+  }
+
+  setTimeout(() => enterAppNow(view, shutter, flyer), hold);
+}
+
+function enterAppNow(view, shutter, flyer) {
   shutter.classList.add('closed');
   setTimeout(() => {
+    if (flyer) flyer.classList.remove('departing');
     document.getElementById('landingScreen').classList.add('hidden');
     switchMainView(view === 'dashboard' ? 'dashboard' : 'roster');
     requestAnimationFrame(() => {
@@ -8673,12 +8963,19 @@ function renderLandingScreen() {
   });
   attention.sort((a, b) => b.u.rank - a.u.rank || (b.u.mins || 0) - (a.u.mins || 0));
 
+  // ── the ground follows the clock ──────────────────────────────────
+  const hr = now.getHours();
+  const sky = hr < 4 ? 'night' : hr < 7 ? 'dawn' : hr < 17 ? 'day' : hr < 20 ? 'dusk' : 'night';
+  const screen = document.getElementById('landingScreen');
+  ['dawn','day','dusk','night'].forEach(k => screen.classList.toggle('sky-' + k, k === sky));
+
   const headline = document.getElementById('landingHeadline');
   if (headline) {
     headline.innerHTML = attention.length === 0
       ? 'Everyone is <em>on track</em>.'
       : '<em>' + (attention.length === 1 ? 'One officer' : attention.length + ' officers') +
-        '</em> need a break<br>before you do anything else.';
+        '</em> ' + (attention.length === 1 ? 'needs' : 'need') +
+        ' a break<br>before you do anything else.';
   }
 
   function attentionRow(entry, withButton) {
@@ -8740,6 +9037,9 @@ function renderLandingScreen() {
                   : ['#15803D','rgba(21,128,61,0.18)'];
         dot.style.setProperty('--b', col[0]);
         dot.style.setProperty('--bs', col[1]);
+        // the sweep loop needs to know where this blip sits and how to light it
+        dot.dataset.ang = ((angle * 180 / Math.PI) + 360) % 360;
+        dot.dataset.glow = col[1];
         dot.title = (p.name || 'Officer') + ' — ' + section.title +
                     (u.mins !== null && u.mins !== undefined ? ' · ' + u.text + ' since a break' : '');
         blips.appendChild(dot);
@@ -8796,12 +9096,49 @@ function renderLandingScreen() {
     row.querySelector('.eta').textContent = !count ? '—'
       : (worst && worst.rank >= 3) ? 'now'
       : (soonest === null ? '—' : fmtDurShort(soonest));
+    if (worst && worst.rank >= 3) row.classList.add('hot');
+    row.style.animationDelay = (grid.children.length * 90) + 'ms';
+    row.classList.add('flap-in');
     grid.appendChild(row);
   });
   document.getElementById('landingStaffingSubtitle').textContent = attention.length
     ? attention[0].section.title + ' is the one to deal with first.'
     : (busiestCount > 0 ? busiestTitle + ' has the most coverage right now.'
                         : "Here's who's covering what right now.");
+
+  // ── the gate ticker: the same facts, in the typeface you can read across
+  // a room. Doubled so the marquee loops without a seam.
+  const tickParts = [];
+  attention.slice(0, 3).forEach(({ p, section, u }) => {
+    tickParts.push('<span class="bad">' + escapeTicker(section.title) + ' · ' +
+      escapeTicker((p.name || 'OFFICER').toUpperCase()) + ' · ' +
+      (p.overdue ? 'SHIFT ENDED, BREAKS OWED' : u.text.toUpperCase() + ' WITHOUT A BREAK') + '</span>');
+  });
+  if (!tickParts.length) tickParts.push('<span class="ok">ALL CHECKPOINTS ON TIME</span>');
+  // stats.compliancePct, not the `pct` const — that is declared further down
+  tickParts.push('<span class="ok">COMPLIANCE ' + stats.compliancePct + '%</span>');
+  tickParts.push(stats.total + ' ON SHIFT');
+  const tickText = tickParts.join(' &nbsp;···&nbsp; ') + ' &nbsp;···&nbsp; ';
+  document.getElementById('landingTickerRun').innerHTML = tickText + tickText;
+
+  // ── the split-flap countdown ──────────────────────────────────────
+  // Normally: time until the next officer crosses the 2h mark and is owed a
+  // break. If everybody is already owed one there is nothing to count down
+  // to, so it counts UP the worst officer's wait instead — a clock frozen at
+  // 00:00:00 is exactly the dead screen this was meant to fix.
+  let nextDue = null, worstWait = null;
+  data.forEach(section => section.people.forEach(p => {
+    if (!p.name && !p.note) return;
+    const u = breakUrgency(p, now);
+    if (u.mins === null || u.mins === undefined) return;
+    const secsLeft = Math.round((120 - u.mins) * 60);   // yellow starts at 2h
+    if (secsLeft > 0) {
+      if (nextDue === null || secsLeft < nextDue.secs) nextDue = { secs: secsLeft, p, section, up: false };
+    } else if (worstWait === null || u.mins > worstWait.mins) {
+      worstWait = { secs: Math.round(u.mins * 60), mins: u.mins, p, section, up: true };
+    }
+  }));
+  setLandingCountdown(nextDue || worstWait);
 
   const pct = stats.compliancePct;
   const circumference = 326.7;
