@@ -5338,6 +5338,12 @@ function startFirebaseListener() {
     }
 
     const wasLegacy = !isWrapped;
+    // Keep a real handle on the last good board. The old code assigned straight
+    // into `data` and THEN ran the steps that can throw, so by the time the
+    // catch fired `data` had already been replaced — "showing last good copy"
+    // was not true, and what stayed on screen was a half-finished render.
+    const lastGoodData = data;
+    let applied = false;
 
     try {
       applyingRemoteUpdate = true;
@@ -5346,9 +5352,12 @@ function startFirebaseListener() {
       checkShiftTimers();
       autoMoveClosedSections();
       render();
+      applied = true;
       setSyncStatus('Synced · ' + new Date().toLocaleTimeString());
     } catch (e) {
       console.error('Failed to apply synced data', e);
+      data = lastGoodData;                 // now the message is actually honest
+      try { render(); } catch (e2) { console.error('Re-render after restore failed', e2); }
       setSyncStatus('Sync error — showing last good copy (see console)');
     } finally {
       applyingRemoteUpdate = false;
@@ -5357,7 +5366,11 @@ function startFirebaseListener() {
     // A board written by an older build carries no updatedAt, which makes it
     // look infinitely old to every conflict check. Re-save it in the stamped
     // shape immediately so that window closes on first contact.
-    if (wasLegacy) pushToFirebaseDebounced();
+    // Only ever re-stamp a board we actually managed to apply. This line sat
+    // outside the try/catch: on a failed apply it pushed our half-built state
+    // straight back over the good copy on the server — a read error turning
+    // itself into real data loss.
+    if (wasLegacy && applied) pushToFirebaseDebounced();
   }, (err) => {
     console.error('Firebase listener error', err);
     setSyncStatus('Offline (using local copy)');
