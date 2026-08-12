@@ -4895,6 +4895,14 @@ let applyingRemoteUpdate = false;
 // cleared cache) starts from a blank board and can push that blank over
 // everyone else's data before the first snapshot arrives.
 let remoteBoardSeen = false;
+// The server's updatedAt for the last board this device SUCCESSFULLY applied.
+// It is what separates "my edit is built on the current board" from "my edit is
+// built on something hours out of date" — and a whole-board write from the
+// second case silently destroys everyone else's work.
+let lastAppliedUpdatedAt = 0;
+// Distinguishes "we chose not to write" from a completed write, so the success
+// handler doesn't announce a save that never happened.
+const SKIPPED_WRITE = Symbol('skipped-write');
 const PENDING_SYNC_KEY = 'shift_break_tracker_pending_sync_v1';
 // Restored from localStorage, not just defaulted to false — if the app was
 // fully closed (not just backgrounded) before an edit finished saving, this
@@ -4947,7 +4955,7 @@ function setSyncStatus(text) {
 // device in your hand, whether it is running the code you just deployed or a
 // cached copy from yesterday — a phone on the same URL can quietly serve an
 // old build for hours.
-const BUILD_ID = '2026-08-12.5';
+const BUILD_ID = '2026-08-12.6';
 
 // A device that made an edit it could never push keeps hasPendingLocalChanges
 // set — in localStorage, so it survives reloads — and from then on refuses
@@ -5346,12 +5354,35 @@ function pushToFirebaseDebounced() {
   clearTimeout(fbSyncTimeout);
   setSyncStatus('Syncing…');
   fbSyncTimeout = setTimeout(() => {
-    dataRef.set({
-      board: data,
-      updatedAt: firebase.database.ServerValue.TIMESTAMP,
-      updatedBy: currentUserEmail || ''
-    })
-      .then(() => {
+    // Check we are writing on top of the board we actually read. retryPendingPush
+    // has always done this; the ordinary path never did — it just set the whole
+    // board with a fresh server timestamp, which made an hours-old copy look like
+    // the newest thing on the server. A device left on a stale board therefore
+    // wiped out everyone else's work the moment anything triggered a save, and
+    // the shift timers trigger saves on their own, with nobody touching it.
+    dataRef.child('updatedAt').once('value')
+      .then(snap => {
+        const serverAt = snap.val() || 0;
+        if (serverAt > lastAppliedUpdatedAt) {
+          // Someone wrote after the copy we are holding. Writing now would
+          // replace their board with ours wholesale. Take theirs instead.
+          console.warn('Refusing to overwrite a newer board (server ' + serverAt +
+                       ' > last applied ' + lastAppliedUpdatedAt + ') — pulling instead.');
+          setPendingLocalChanges(false);
+          setSyncStatus('Another device saved first — loaded their copy');
+          showToast('Another device had newer data — loaded theirs instead.', 'error');
+          pullRemoteNow();
+          return SKIPPED_WRITE;
+        }
+        return dataRef.set({
+          board: data,
+          updatedAt: firebase.database.ServerValue.TIMESTAMP,
+          updatedBy: currentUserEmail || ''
+        });
+      })
+      .then(result => {
+        // the guard above already set its own status; don't claim we saved
+        if (result === SKIPPED_WRITE) return;
         setPendingLocalChanges(false); // confirmed saved — safe for remote updates again
         setSyncStatus('Synced · ' + new Date().toLocaleTimeString());
       })
@@ -5413,6 +5444,10 @@ function startFirebaseListener() {
       autoMoveClosedSections();
       render();
       applied = true;
+      // Only now is this device genuinely up to date, and only now may it write
+      // a whole board back. If the apply throws, this deliberately does not
+      // advance — so a device that cannot read the board can no longer overwrite it.
+      lastAppliedUpdatedAt = remoteUpdatedAt;
       setSyncStatus('Synced · ' + new Date().toLocaleTimeString());
     } catch (e) {
       console.error('Failed to apply synced data', e);
