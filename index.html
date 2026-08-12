@@ -1803,6 +1803,17 @@
   .add-person-btn { margin-top: 4px; }
   .add-section-wrap { text-align: center; margin-top: 18px; }
   .footer-note { font-size: 11px; color: var(--text-muted); margin-top: 28px; text-align: center; line-height: 1.6; }
+  .build-stamp {
+    display: inline-block; margin-left: 8px; padding: 1px 7px;
+    border-radius: 999px; background: var(--surface-2); color: var(--ink-3);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px;
+  }
+  .build-stamp b { font-weight: 700; color: var(--ink-2); }
+  .footer-link {
+    margin-left: 8px; background: none; border: none; padding: 0;
+    color: var(--accent); font-size: 11px; font-weight: 650;
+    text-decoration: underline; cursor: pointer;
+  }
 
   /* ── MJ signature ───────────────────────────── */
   .signature-block {
@@ -4386,7 +4397,13 @@
   <div class="shutter-panel shutter-bottom"></div>
 </div>
 
-<div class="footer-note">Saves automatically and syncs across every signed-in device.</div>
+<div class="footer-note">
+  Saves automatically and syncs across every signed-in device.
+  <!-- Printed so two devices can be compared at a glance. Half of a long night
+       was spent not knowing which build a given screen was actually running. -->
+  <span class="build-stamp">build <b id="buildStamp"></b></span>
+  <button type="button" id="forceServerBtn" class="footer-link">Devices disagree?</button>
+</div>
 
 <div class="signature-block">
   <div class="signature-divider"></div>
@@ -4924,6 +4941,49 @@ function setPendingLocalChanges(val) {
 function setSyncStatus(text) {
   const el = document.getElementById('lastSaved');
   if (el) el.textContent = text;
+}
+
+// Bump this whenever the file changes. It is the only way to tell, from the
+// device in your hand, whether it is running the code you just deployed or a
+// cached copy from yesterday — a phone on the same URL can quietly serve an
+// old build for hours.
+const BUILD_ID = '2026-08-12.5';
+
+// A device that made an edit it could never push keeps hasPendingLocalChanges
+// set — in localStorage, so it survives reloads — and from then on refuses
+// every remote update whose timestamp predates that edit. It shows its own
+// copy forever, with no indication and, until now, no way out. This is that
+// way out: throw away what this device is holding and take the server's copy.
+function forceServerCopy() {
+  if (!firebaseAvailable || !dataRef) {
+    showToast('Not connected to the server right now.', 'error');
+    return;
+  }
+  if (!confirm('Discard what THIS device is showing and load the server\'s copy?\n\n' +
+               'Any unsaved change made on this device is lost. Other devices are untouched.\n' +
+               'Use this when two devices disagree and you know which one is right.')) return;
+
+  setPendingLocalChanges(false);   // clears the flag AND pendingSince
+  setSyncStatus('Fetching the server\'s copy…');
+  dataRef.once('value').then(snap => {
+    const remote = snap.val();
+    const board = (remote && !Array.isArray(remote) && remote.board !== undefined)
+      ? remote.board : remote;
+    if (board === null || board === undefined) {
+      showToast('The server has no board saved yet — keeping what you have.', 'error');
+      setSyncStatus('Nothing on the server to load');
+      return;
+    }
+    data = ensureArray(board);
+    runMigrations(data);
+    saveData();
+    render();
+    setSyncStatus('Loaded the server\'s copy · ' + new Date().toLocaleTimeString());
+    showToast('Now showing the server\'s copy.', 'success');
+  }).catch(err => {
+    console.error('Could not load the server copy', err);
+    showToast('Couldn\'t reach the server — nothing changed.', 'error');
+  });
 }
 
 function hideAllAuthOverlays() {
@@ -8835,6 +8895,13 @@ function hideOfflineBar() {
   if (bar) bar.classList.add('hidden');
 }
 
+function initBuildStamp() {
+  const el = document.getElementById('buildStamp');
+  if (el) el.textContent = BUILD_ID;
+  const btn = document.getElementById('forceServerBtn');
+  if (btn) btn.addEventListener('click', forceServerCopy);
+}
+
 function initStaticIcons() {
   document.getElementById('pwToggleBtn').innerHTML = icon('eye');
   document.getElementById('lockPwToggleBtn').innerHTML = icon('eye');
@@ -8850,6 +8917,7 @@ function initStaticIcons() {
   document.getElementById('addSectionBtnBottom').innerHTML = icon('plus') + 'Add Section';
 }
 initStaticIcons();
+initBuildStamp();
 
 function updateAccountMenuLabel() {
   const el = document.getElementById('accountLabel');
