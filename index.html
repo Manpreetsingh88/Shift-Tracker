@@ -6133,15 +6133,27 @@ function lookupKnownHours(title) {
 // an empty `people: []` or `log: []` comes back as `undefined` on read. Every
 // array in our data model must be coerced defensively wherever it's consumed.
 function ensureArray(x) {
-  if (Array.isArray(x)) return x;
+  // Firebase stores an array as an object with numeric keys, and converts it
+  // back to a REAL array — filling any missing index with null. So the moment a
+  // section or a person is deleted, every later sync arrives holding something
+  // like [section, null, section]. Those holes reached runMigrations, which
+  // immediately did `section.people = ...` on the null and threw, failing the
+  // whole apply on every single sync from then on. Drop them here, once, on the
+  // one path every board and every people list already flows through.
+  const noHoles = v => v !== null && v !== undefined;
+  if (Array.isArray(x)) return x.filter(noHoles);
   if (x && typeof x === 'object') {
-    return Object.keys(x).sort((a, b) => Number(a) - Number(b)).map(k => x[k]);
+    return Object.keys(x).sort((a, b) => Number(a) - Number(b))
+             .map(k => x[k]).filter(noHoles);
   }
   return [];
 }
 
 function runMigrations(d) {
   d.forEach(section => {
+    // ensureArray strips holes, but this also runs over boards loaded straight
+    // from localStorage — and one bad entry must never fail the whole board.
+    if (!section || typeof section !== 'object') return;
     section.people = ensureArray(section.people);
     if (!section.hours) section.hours = { type: 'none' };
     if (section.collapsed === undefined) section.collapsed = false;
@@ -6150,6 +6162,7 @@ function runMigrations(d) {
       if (known) section.hours = known;
     }
     section.people.forEach(p => {
+      if (!p || typeof p !== 'object') return;
       p.breaks = ensureArray(p.breaks);
       if (p.computedHours === undefined) {
         updateBreaksFromTimes(p);
