@@ -4907,6 +4907,10 @@ let lastAppliedUpdatedAt = 0;
 // Distinguishes "we chose not to write" from a completed write, so the success
 // handler doesn't announce a save that never happened.
 const SKIPPED_WRITE = Symbol('skipped-write');
+// A device further behind the server than this has lost touch with the board
+// and must not write over it wholesale. Anything tighter and normal two-device
+// use trips it constantly.
+const STALE_BOARD_MS = 60000;
 // Stable per-device id, so a device can tell its own writes from everyone
 // else's when they come back through the listener.
 const DEVICE_ID_KEY = 'shift_break_tracker_device_id_v1';
@@ -4967,7 +4971,7 @@ function setSyncStatus(text) {
 // device in your hand, whether it is running the code you just deployed or a
 // cached copy from yesterday — a phone on the same URL can quietly serve an
 // old build for hours.
-const BUILD_ID = '2026-08-12.8';
+const BUILD_ID = '2026-08-12.9';
 
 // A device that made an edit it could never push keeps hasPendingLocalChanges
 // set — in localStorage, so it survives reloads — and from then on refuses
@@ -4994,10 +4998,10 @@ function forceServerCopy() {
       setSyncStatus('Nothing on the server to load');
       return;
     }
-    data = ensureArray(board);
-    runMigrations(data);
+    // same act, same bookkeeping — without recording what we adopted, this
+    // button left the device "behind" and every later tap got refused
+    adoptRemoteBoard(board, (remote && !Array.isArray(remote)) ? remote.updatedAt : 0);
     saveData();
-    render();
     setSyncStatus('Loaded the server\'s copy · ' + new Date().toLocaleTimeString());
     showToast('Now showing the server\'s copy.', 'success');
   }).catch(err => {
@@ -5417,7 +5421,14 @@ function attemptBoardPush() {
   dataRef.child('updatedAt').once('value')
     .then(snap => {
       const serverAt = snap.val() || 0;
-      if (serverAt > lastAppliedUpdatedAt) {
+      // How far behind counts as "stale"? Not one tick. Two devices in normal
+      // use put the server a second or two ahead of each other constantly, and
+      // refusing every one of those turns ordinary work into a stream of
+      // refusals with the action undone each time. What actually destroyed a
+      // roster was a device HOURS behind. So allow the ordinary case through on
+      // last-write-wins, as it always was, and only refuse a device that has
+      // genuinely lost touch with the board.
+      if (serverAt - lastAppliedUpdatedAt > STALE_BOARD_MS) {
         // Someone wrote after the copy we are holding. Writing the whole board
         // now would replace theirs with ours.
         if (isUserTyping() || dragState) {
@@ -5567,6 +5578,26 @@ function startFirebaseListener() {
 // Fetch and apply the server's board right now. Needed because .on('value')
 // only fires on change: once this device stops protecting a stale local copy,
 // nothing would otherwise tell it to catch up.
+// Adopting a remote board and RECORDING which board was adopted are the same
+// act, so they belong in one place. Three paths adopt one — the listener, the
+// catch-up read, and the manual override — and two of them used to forget the
+// second half. That left the device permanently behind by the guard's
+// reckoning: it refused every write, pulled, stayed behind, and refused again.
+// Every tap undone, forever, with a toast each time.
+function adoptRemoteBoard(board, updatedAt) {
+  try {
+    applyingRemoteUpdate = true;
+    data = ensureArray(board);
+    runMigrations(data);
+    checkShiftTimers();
+    autoMoveClosedSections();
+    render();
+    lastAppliedUpdatedAt = updatedAt || 0;
+  } finally {
+    applyingRemoteUpdate = false;
+  }
+}
+
 function pullRemoteNow() {
   if (!firebaseAvailable || !authReady) return;
   dataRef.once('value')
@@ -5575,17 +5606,9 @@ function pullRemoteNow() {
       if (remote === null) return;
       const isWrapped = remote && !Array.isArray(remote) && remote.board !== undefined;
       if (isUserTyping() || dragState || hasPendingLocalChanges) return;
-      try {
-        applyingRemoteUpdate = true;
-        data = ensureArray(isWrapped ? remote.board : remote);
-        runMigrations(data);
-        checkShiftTimers();
-        autoMoveClosedSections();
-        render();
-        setSyncStatus('Synced · ' + new Date().toLocaleTimeString());
-      } finally {
-        applyingRemoteUpdate = false;
-      }
+      adoptRemoteBoard(isWrapped ? remote.board : remote,
+                       isWrapped ? remote.updatedAt : 0);
+      setSyncStatus('Synced · ' + new Date().toLocaleTimeString());
     })
     .catch(err => console.error('Catch-up read failed', err));
 }
